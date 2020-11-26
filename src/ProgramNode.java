@@ -4,16 +4,16 @@ public class ProgramNode implements ExecutableNode{
 
     public ProgramNode() {}
 
-    public ArrayList<StatementNode> StatementNodes = new ArrayList<>();
+    public ArrayList<ExecutableNode> executableNodes = new ArrayList<>();
 
     @Override
-    public void execute() {
-        for(StatementNode s : StatementNodes){
-            s.execute();
+    public void execute(ProgramState programState) {
+        for(ExecutableNode e : executableNodes){
+            e.execute(programState);
         }
     }
 
-    public void addStatementNode(StatementNode s){
-        StatementNodes.add(s);
+    public void addExecutableNode(ExecutableNode e){
+        executableNodes.add(e);
     }
 }

@@ -1,98 +1,374 @@
 import java.util.*;
 import java.util.regex.*;
-enum RELOP {
-    gt,
-    lt,
-    eq
-}
-
-enum OP {
-    add,
-    sub,
-    mul,
-    div
-}
-
-enum CONDOP {
-    and,
-    or,
-    not
-}
 
 public class Parser {
 
-    static Pattern NUMPAT = Pattern.compile("-?\\d+"); // ("-?(0|[1-9][0-9]*)");
-    static Pattern OPENPAREN = Pattern.compile("\\(");
-    static Pattern CLOSEPAREN = Pattern.compile("\\)");
-    static Pattern OPENBRACE = Pattern.compile("\\{");
-    static Pattern CLOSEBRACE = Pattern.compile("\\}");
+    ArrayList<String> scriptVariableNames = new ArrayList<>();
+    ArrayList<String> scriptFunctionNames = new ArrayList<>();
 
+    enum Operation{
 
-    static Pattern ACTPATTERN = Pattern.compile("move|turnL|turnR|takeFuel|wait|turnAround|shieldOn|shieldOff");
-    static Pattern MOVE = Pattern.compile("move");
-    static Pattern TURNL = Pattern.compile("turnL");
-    static Pattern TURNR = Pattern.compile("turnR");
-    static Pattern TAKEFUEL = Pattern.compile("takeFuel");
-    static Pattern WAIT = Pattern.compile("wait");
+        greaterThan,
+        getGreaterThanOrEqual,
+        lessThan,
+        lessThanOrEqual,
+        equals,
 
-    static Pattern TURNAROUND = Pattern.compile("turnAround");
-    static Pattern SHIELDON = Pattern.compile("shieldOn");
-    static Pattern SHIELDOFF = Pattern.compile("shieldOff");
+        plus,
+        minus,
+        times,
+        divide,
+        modulo,
 
-    static Pattern SEMICOLON = Pattern.compile(";");
-
-    static Pattern LOOP = Pattern.compile("loop");
-
-    static Pattern IFPATTERN = Pattern.compile("if");
-    static Pattern WHILEPATTERN= Pattern.compile("while");
-
-
-    static Pattern RELOPPAT = Pattern.compile("gt|lt|eq");
-    static Pattern GTPAT = Pattern.compile("gt");
-    static Pattern LTPAT = Pattern.compile("lt");
-    static Pattern EQPAT = Pattern.compile("eq");
-
-    static Pattern COMMA = Pattern.compile(",");
-
-    static Pattern FUELLEFT = Pattern.compile("fuelLeft");
-    static Pattern OPPLR = Pattern.compile("oppLR");
-    static Pattern OPPFB = Pattern.compile("oppFB");
-    static Pattern NUMBARRELS = Pattern.compile("numBarrels");
-    static Pattern BARRELLR = Pattern.compile("barrelLR");
-    static Pattern BARRELFB = Pattern.compile("barrelFB");
-    static Pattern WALLDIST = Pattern.compile("wallDist");
-
-    static Pattern SENPAT = Pattern.compile("fuelLeft|oppLR|oppFB|numBarrels|barrelLR|barrelFB|wallDist");
-
-    static Pattern OPPAT = Pattern.compile("add|sub|mul|div");
-    static Pattern ADD = Pattern.compile("add");
-    static Pattern SUB = Pattern.compile("sub");
-    static Pattern MUL = Pattern.compile("mul");
-    static Pattern DIV = Pattern.compile("div");
-
-    static Pattern ELSEPAT = Pattern.compile("else");
-
-
-    static Pattern CONDPAT = Pattern.compile("and|or|not");
-    static Pattern ANDPAT = Pattern.compile("and");
-    static Pattern ORPAT = Pattern.compile("or");
-    static Pattern NOTPAT = Pattern.compile("not");
-
-    public ProgramNode parseScript(String script){
-        ProgramNode program = new ProgramNode();
-
-        Scanner scanner = new Scanner(script);
-        scanner.useDelimiter("\\s+|(?=[{}(),;])|(?<=[{}(),;])");
-
-
-
-        //Split into rows
-        String[] lines = script.split("\n");
-
-
-        return new ProgramNode();
+        and,
+        or,
+        not
     }
 
+    //need to rewrite as our own code
+    //Require scanner to have the following pattern.
+    static String require(Pattern p, String message, Scanner s) {
+        if (s.hasNext(p)) {
+            return s.next();
+        }
+        throw new InvalidSyntaxException(message);
+    }
+
+    static String require(String str, String message, Scanner s) {
+        if (s.hasNext(str)) {
+            return s.next();
+        }
+        throw new InvalidSyntaxException(message);
+    }
+
+//    static Pattern IntegerPattern = Pattern.compile("-?\\d+"); // ("-?(0|[1-9][0-9]*)");
+    static Pattern OpenParenthesis = Pattern.compile("\\(");
+    static Pattern CloseParenthesis = Pattern.compile("\\)");
+    static Pattern OpenBrace = Pattern.compile("\\{");
+    static Pattern CloseBrace = Pattern.compile("\\}");
+    static Pattern NewLine = Pattern.compile("\n");
+//    static Pattern SemiColon = Pattern.compile(";");
+
+    static Pattern Plus = Pattern.compile("\\+");
+    static Pattern Minus = Pattern.compile("-");
+    static Pattern Times = Pattern.compile("\\*");
+    static Pattern Divide = Pattern.compile("/");
+    static Pattern Modulo = Pattern.compile("%");
+
+    static Pattern And = Pattern.compile("&");
+    static Pattern Or = Pattern.compile("\\|");
+    static Pattern Not = Pattern.compile("!");
+
+    static Pattern DoubleQuotes = Pattern.compile("\"");
+
+    static Pattern Equals = Pattern.compile("=");
+
+
+//    static Pattern = Pattern.compile("");
+//    static Pattern = Pattern.compile("");
+//    static Pattern = Pattern.compile("");
+//    static Pattern = Pattern.compile("");
+//    static Pattern = Pattern.compile("");
+
+
+
+
+    //    static Pattern OPPAT = Pattern.compile("add|sub|mul|div");
+    //
+    //    static Pattern Comm Pattern.compile(",");
+    //
+    //    static Pattern EQPAT = Pattern.compile("eq");
+    //    static Pattern LTPAT = Pattern.compile("lt");
+    //    static Pattern GTPAT = Pattern.compile("gt");
+    //    static Pattern RELOPPAT = Pattern.compile("gt|lt|eq");
+    //
+    //
+    //    static Pattern WHILEPATTERN= Pattern.compile("while");
+    //    static Pattern IFPATTERN = Pattern.compile("if");
+    //
+//    static Pattern LOOP = Pattern.compile("loop");
+//
+//    static Pattern ELSEPAT = Pattern.compile("else");
+//
+//
+//    static Pattern CONDPAT = Pattern.compile("and|or|not");
+//    static Pattern ANDPAT = Pattern.compile("and");
+//    static Pattern ORPAT = Pattern.compile("or");
+//    static Pattern NOTPAT = Pattern.compile("not");
+
+    public ProgramNode parseScript(String script){
+
+        //Remove any lines beginning with "#". These lines are treated as comments by the parser.
+        String[] lines = script.split("\n");
+        String commentRemovedScript = "";
+        for(String s : lines){
+            if( s.length()>0 && ! (s.charAt(0) == '#') ){
+                commentRemovedScript = commentRemovedScript + s + "\n";
+            }
+        }
+        System.out.println(script);
+        System.out.println("=================Parsing================== \n"+commentRemovedScript+"\n=============================================\n");
+
+        ProgramNode program = new ProgramNode();
+        Scanner scanner = new Scanner(commentRemovedScript);
+
+        //Old delimiter, consumes \n instead of retaining it.
+        //scanner.useDelimiter("\\s+|(?=[{}(),;\"+\\-*/%#])|(?<=[{}(),;\"+\\-*/%#])");
+
+        //New delimiter that cuts each token before the \n character without consuming it.
+        scanner.useDelimiter("[^\\S\\r\\n]|(?=[{}(),;\"+\\-*\\/%#\\n])|(?<=[{}(),;\"+\\-*\\/%#\\n])");
+
+        while(scanner.hasNext()){
+//            if(scanner.hasNext())
+//            System.out.println(scanner.next());
+            program.addExecutableNode(parseExecutableNode(scanner));
+        }
+
+        return program;
+    }
+
+
+    public ExecutableNode parseExecutableNode(Scanner s) {
+        if(s.hasNext("variable")){
+            return parseVariableAssignment(s);
+        }
+        else if(s.hasNext("print")){
+            return parsePrintNode(s);
+        }
+//        if(s.hasNext())
+
+
+        //error
+        return new ProgramNode();
+
+    }
+
+    public VariableAssignmentNode parseVariableAssignment(Scanner s){
+        String variableName;
+        Expression value;
+
+        require("variable","Expected \"variable\"",s);
+        if(s.hasNext("[a-z,A-Z]+")){
+            variableName = s.next();
+
+            require(Equals,"Expected =",s);
+
+            value = parseExpression(s,false);
+
+            require(NewLine,"Expected NewLine",s);
+
+            //Add new variable name to list of recognised variables.
+            scriptVariableNames.add(variableName);
+
+            return new VariableAssignmentNode(variableName,value);
+        }
+
+        //Error
+        return new VariableAssignmentNode("",new Expression(new NullVariable()));
+    }
+
+    public PrintNode parsePrintNode(Scanner s){
+        require("print","expected \"print\"",s);
+        require(OpenParenthesis,"Expected \"(\"",s);
+
+        Expression value = parseExpression(s, false);
+
+        require(CloseParenthesis,"Expected \")\"",s);
+        require(NewLine,"Expected NewLine",s);
+
+        return new PrintNode(value);
+    }
+
+    //operationPriority defines the behaviour for parsing lower priority operations (+,-)
+    //true = ignore lower priority operations
+    public Expression parseExpression(Scanner s, boolean operationPriority){
+//        System.out.println("entering parseExp1");
+
+//      Parse the left side of the expression.
+
+        Expression firstExpression = new Expression(new NullVariable());
+//        Expression firstExpression;
+
+        if(s.hasNext(OpenParenthesis)){
+            firstExpression = parseBracketExpression(s);
+        }
+        else if (s.hasNextInt()){firstExpression = new Expression(new IntegerVariable(s.nextInt()));}
+        else if (s.hasNextFloat()){firstExpression = new Expression(new FloatVariable(s.nextFloat()));}
+        else if (s.hasNextBoolean()){firstExpression = new Expression(new BooleanVariable(s.nextBoolean()));}
+        else {
+            boolean firstVariableSet = false;
+            for(String variableName : scriptVariableNames){
+                if(s.hasNext(variableName)){
+                    String recognisedVariableName = s.next();
+                    firstExpression = new Expression(recognisedVariableName);
+                    firstVariableSet = true;
+                    break;
+                }
+            }
+            if(!firstVariableSet){
+
+                if (s.hasNext(DoubleQuotes)){
+                    require(DoubleQuotes,"Expected \"",s);
+                    //end token just before the next " character
+                    s.useDelimiter("(?=[\"])");
+                    if(s.hasNext()){
+                        firstExpression = new Expression(new StringVariable(s.next()));
+                    }
+                    //replace original delimiter regex
+                    s.useDelimiter("[^\\S\\r\\n]|(?=[{}(),;\"+\\-*\\/%#\\n])|(?<=[{}(),;\"+\\-*\\/%#\\n])");
+                    require(DoubleQuotes,"Expected \"",s);
+                }
+                else if (s.hasNext(OpenBrace)){
+                    firstExpression = parseArrayExpression(s);
+                }
+                else if (s.hasNext(Not)){
+                    firstExpression = new Expression(parseExpression(s,operationPriority),null, Operation.not);
+                }else{
+                    //error
+                    firstExpression = new Expression(new NullVariable());
+                }
+            }
+        }
+
+
+        //Then detect the end of the expression. Otherwise, parse operators in the expression if it continues.
+
+        if(s.hasNext(CloseBrace)){return firstExpression;}
+        else if(s.hasNext(CloseParenthesis)){return firstExpression;}
+        else if(s.hasNext(NewLine)){return firstExpression;}
+
+        else if(s.hasNext(Plus)){
+            //if operationPriority is true, we are only accepting operations higher in the order of operations.
+            //this means + and - are ignored and not consumed by the parser.
+            if(operationPriority){
+                return firstExpression;
+            }else{
+                require(Plus,"Expected +",s);
+                return new Expression(firstExpression,parseExpression(s,false), Operation.plus);
+            }
+        }
+        else if(s.hasNext(Minus)){
+            //if operationPriority is true, we are only accepting operations higher in the order of operations.
+            //this means + and - are ignored and not consumed by the parser.
+            if(operationPriority){
+                return firstExpression;
+            }else {
+                require(Minus,"Expected -",s);
+                return new Expression(firstExpression, parseExpression(s, false), Operation.minus);
+            }
+        }
+
+        else if(s.hasNext(Times)){
+            require(Times, "Expected *", s);
+            Expression intermediateExpression =  new Expression(firstExpression, parseExpression(s, true), Operation.times);
+            return parseExpression(s,intermediateExpression);
+        }
+
+        else if(s.hasNext(Divide)){
+            require(Divide, "Expected /", s);
+            Expression intermediateExpression = new Expression(firstExpression, parseExpression(s, true), Operation.divide);
+            return parseExpression(s, intermediateExpression);
+        }
+        else if(s.hasNext(Modulo)){
+            require(Modulo, "Expected %", s);
+            Expression intermediateExpression = new Expression(firstExpression, parseExpression(s, true), Operation.modulo);
+            return parseExpression(s, intermediateExpression);
+        }
+
+        else if(s.hasNext(And)){
+            require(And,"Expecting &",s);
+            return new Expression(firstExpression, parseExpression(s,false), Operation.and);
+        }
+
+        else if(s.hasNext(Or)){
+            require(Or,"Expecting |",s);
+            return new Expression(firstExpression, parseExpression(s,false), Operation.or);
+        }
+
+
+
+//        if(s.hasNext()){}
+//        if(s.hasNext()){}
+//        if(s.hasNext()){}
+
+
+
+        return new Expression(new NullVariable());
+    }
+
+
+
+    //Alternate form of parseExpression which takes the left side of the expression already made, and only parses the rest of the expression.
+    //providedExpression takes the place of firstExpression in the other version of this method.
+    //This is used after a higher priority order of operations call of parseExpression is made for multiplication, division or modulo operation.
+    //Because the higher priority call ignores + and -, we must use this method, ensuring that if it hasn't finished parsing, it can continue.
+    //the boolean operationPriority used by the other version of this method is redundant here, as the priority will be false by default.
+    public Expression parseExpression(Scanner s, Expression providedExpression){
+        System.out.println("entering parseExp2");
+
+        if(s.hasNext(CloseBrace)){return providedExpression;}
+        else if(s.hasNext(CloseParenthesis)){return providedExpression;}
+        else if(s.hasNext(NewLine)){return providedExpression;}
+
+
+        else if(s.hasNext(Plus)){
+            require(Plus,"Expected +",s);
+            return new Expression(providedExpression,parseExpression(s,false), Operation.plus);
+        }
+
+        else if(s.hasNext(Minus)){
+            require(Minus,"Expected -",s);
+            return new Expression(providedExpression,parseExpression(s,false), Operation.minus);
+        }
+
+        else if(s.hasNext(Times)) {
+            require(Times, "Expected *", s);
+            Expression intermediateExpression = new Expression(providedExpression, parseExpression(s, true), Operation.times);
+            return parseExpression(s, intermediateExpression);
+        }
+
+        else if(s.hasNext(Divide)){
+            require(Divide, "Expected /", s);
+            Expression intermediateExpression = new Expression(providedExpression, parseExpression(s, true), Operation.divide);
+            return parseExpression(s, intermediateExpression);
+        }
+
+        else if(s.hasNext(Modulo)){
+            require(Modulo, "Expected %", s);
+            Expression intermediateExpression = new Expression(providedExpression, parseExpression(s, true), Operation.modulo);
+            return parseExpression(s, intermediateExpression);
+        }
+
+        else if(s.hasNext(And)){
+            require(And,"Expecting &",s);
+            return new Expression(providedExpression, parseExpression(s,false), Operation.and);
+        }
+
+        else if(s.hasNext(Or)){
+            require(Or,"Expecting |",s);
+            return new Expression(providedExpression, parseExpression(s,false), Operation.or);
+        }
+
+//        if(s.hasNext()){}
+//        if(s.hasNext()){}
+//        if(s.hasNext()){}
+
+
+        return new Expression(new NullVariable());
+    }
+
+    public Expression parseBracketExpression(Scanner s){
+        require(OpenParenthesis,"Expecting \"(\"",s);
+        Expression expression = parseExpression(s,false);
+        require(CloseParenthesis,"Expecting \")\"",s);
+
+        return expression;
+    }
+
+    //TODO
+    public Expression parseArrayExpression(Scanner s){
+        return new Expression(new ArrayVariable(new ArrayList<Variable>()));
+    }
 
 
     public Parser() {}

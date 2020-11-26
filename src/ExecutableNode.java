@@ -1,3 +1,3 @@
 public interface ExecutableNode {
-    public void execute();
+    public void execute(ProgramState programState);
 }

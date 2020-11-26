@@ -15,7 +15,8 @@ public class ProgramState {
 
     //Print a string line to console output
     public void print(String s){
-        consoleOutput = consoleOutput + s;
+        System.out.println("Adding to console output: " + s);
+        consoleOutput = consoleOutput + s + "\n";
     }
 
     //Return console output after execution
@@ -27,7 +28,7 @@ public class ProgramState {
     public Variable getProgramVariable(String key){
         return programVariables.get(key);
     }
-    public void setProgramVariable(String s,Variable v){
+    public void addProgramVariable(String s,Variable v){
         programVariables.put(s,v);
     }
 
@@ -38,6 +39,11 @@ public class ProgramState {
     public void addProgramFunction(String s, Function f){
         programFunctions.put(s,f);
     }
+
+
+    //For testing only
+    public HashMap<String, Variable> getProgramVariables() {return programVariables; }
+    public HashMap<String, Function> getProgramFunctions() {return programFunctions; }
 
     public ProgramState() {}
 
