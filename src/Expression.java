@@ -2,6 +2,7 @@ public class Expression {
 
     enum Mode{
         Value,
+        Function,
         Operation,
         Reference
     }
@@ -9,6 +10,8 @@ public class Expression {
 
 
     Variable value;
+
+    Function function;
 
     Expression expression1;
     Expression expression2;
@@ -22,6 +25,12 @@ public class Expression {
     public Expression(Variable value){
         this.value = value;
         myMode = Mode.Value;
+    }
+
+    //Expression represents a function call
+    public Expression(Function function){
+        this.function = function;
+        myMode = Mode.Function;
     }
 
     //Expression is an operation on two expressions
@@ -62,25 +71,47 @@ public class Expression {
                 switch (operation) {
                     case greaterThan:
                         if (bothValuesAreNumbers(type1, type2)) {
-                            return new BooleanVariable((double) value1.getValue() > (double) value2.getValue());
+                            if(type1 == VariableType.FLOAT && type2 == VariableType.FLOAT ){
+                                return new BooleanVariable((float) value1.getValue() > (float) value2.getValue());
+                            }
+                            else if(type1 == VariableType.FLOAT && type2 == VariableType.INTEGER ){
+                                return new BooleanVariable((float) value1.getValue() > (int) value2.getValue());
+                            }
+                            else if(type1 == VariableType.INTEGER && type2 == VariableType.FLOAT ){
+                                return new BooleanVariable((int) value1.getValue() > (float) value2.getValue());
+                            }
+                            else {
+                                return new BooleanVariable((int) value1.getValue() > (int) value2.getValue());
+                            }
                         }
                         break;
 
                     case getGreaterThanOrEqual:
                         if (bothValuesAreNumbers(type1, type2)) {
-                            return new BooleanVariable((double) value1.getValue() >= (double) value2.getValue());
+                            return new BooleanVariable((float) value1.getValue() >= (float) value2.getValue());
                         }
                         break;
 
                     case lessThan:
                         if (bothValuesAreNumbers(type1, type2)) {
-                            return new BooleanVariable((double) value1.getValue() < (double) value2.getValue());
+                            if(type1 == VariableType.FLOAT && type2 == VariableType.FLOAT ){
+                                return new BooleanVariable((float) value1.getValue() < (float) value2.getValue());
+                            }
+                            else if(type1 == VariableType.FLOAT && type2 == VariableType.INTEGER ){
+                                return new BooleanVariable((float) value1.getValue() < (int) value2.getValue());
+                            }
+                            else if(type1 == VariableType.INTEGER && type2 == VariableType.FLOAT ){
+                                return new BooleanVariable((int) value1.getValue() < (float) value2.getValue());
+                            }
+                            else {
+                                return new BooleanVariable((int) value1.getValue() < (int) value2.getValue());
+                            }
                         }
                         break;
 
                     case lessThanOrEqual:
                         if (bothValuesAreNumbers(type1, type2)) {
-                            return new BooleanVariable((double) value1.getValue() <= (double) value2.getValue());
+                            return new BooleanVariable((float) value1.getValue() <= (float) value2.getValue());
                         }
                         break;
 
@@ -114,11 +145,15 @@ public class Expression {
                     case plus:
                         if (bothValuesAreNumbers(type1, type2)) {
 
-                            //Float addition
-                            if (type1 == VariableType.FLOAT || type2 == VariableType.FLOAT) {
+                            if (type1 == VariableType.FLOAT && type2 == VariableType.FLOAT) {
                                 return new FloatVariable((float) value1.getValue() + (float) value2.getValue());
                             }
-                            //Integer addition
+                            if (type1 == VariableType.INTEGER && type2 == VariableType.FLOAT) {
+                                return new FloatVariable((float) (int)value1.getValue() + (float) value2.getValue());
+                            }
+                            if (type1 == VariableType.FLOAT && type2 == VariableType.INTEGER) {
+                                return new FloatVariable((float) value1.getValue() + (float) (int)value2.getValue());
+                            }
                             return new IntegerVariable((int) value1.getValue() + (int) value2.getValue());
                         }
                         //String concatenation
@@ -129,32 +164,53 @@ public class Expression {
 
                     case minus:
                         if (bothValuesAreNumbers(type1, type2)) {
-                            if (type1 == VariableType.FLOAT || type2 == VariableType.FLOAT) {
+                            if (type1 == VariableType.FLOAT && type2 == VariableType.FLOAT) {
                                 return new FloatVariable((float) value1.getValue() - (float) value2.getValue());
                             }
+                            if (type1 == VariableType.INTEGER && type2 == VariableType.FLOAT) {
+                                return new FloatVariable((float) (int)value1.getValue() - (float) value2.getValue());
+                            }
+                            if (type1 == VariableType.FLOAT && type2 == VariableType.INTEGER) {
+                                return new FloatVariable((float) value1.getValue() - (float) (int)value2.getValue());
+                            }
+                            //both are ints
                             return new IntegerVariable((int) value1.getValue() - (int) value2.getValue());
                         }
                         break;
 
                     case times:
                         if (bothValuesAreNumbers(type1, type2)) {
-                            if (type1 == VariableType.FLOAT || type2 == VariableType.FLOAT) {
+                            if (type1 == VariableType.FLOAT && type2 == VariableType.FLOAT) {
                                 return new FloatVariable((float) value1.getValue() * (float) value2.getValue());
                             }
+                            if (type1 == VariableType.INTEGER && type2 == VariableType.FLOAT) {
+                                return new FloatVariable((float) (int)value1.getValue() * (float) value2.getValue());
+                            }
+                            if (type1 == VariableType.FLOAT && type2 == VariableType.INTEGER) {
+                                return new FloatVariable((float) value1.getValue() * (float) (int)value2.getValue());
+                            }
+                            //both are ints
                             return new IntegerVariable((int) value1.getValue() * (int) value2.getValue());
                         }
                         break;
 
                     case divide:
                         if (bothValuesAreNumbers(type1, type2)) {
-                            if (type1 == VariableType.FLOAT || type2 == VariableType.FLOAT) {
+                            if (type1 == VariableType.FLOAT && type2 == VariableType.FLOAT) {
                                 return new FloatVariable((float) value1.getValue() / (float) value2.getValue());
                             }
+                            if (type1 == VariableType.FLOAT && type2 == VariableType.INTEGER) {
+                                return new FloatVariable((float) value1.getValue() / (float) (int)value2.getValue());
+                            }
+                            if (type1 == VariableType.INTEGER && type2 == VariableType.FLOAT) {
+                                return new FloatVariable((float) (int)value1.getValue() / (float) value2.getValue());
+                            }
 
+                            //if both are integers: only return float if they don't divide to a whole number.
                             if ((int) value1.getValue() % (int) value2.getValue() == 0) {
                                 return new IntegerVariable((int) value1.getValue() / (int) value2.getValue());
                             }
-                            return new FloatVariable((float) value1.getValue() / (float) value2.getValue());
+                            return new FloatVariable((float) (int)value1.getValue() / (float) (int)value2.getValue());
                         }
                         break;
 
@@ -181,7 +237,18 @@ public class Expression {
                             return new BooleanVariable(!(Boolean) value1.getValue());
                         }
                         break;
+                    case castString:
+                        return new StringVariable(value.castString());
+                    case castInteger:
+                        return new IntegerVariable(value.castInteger());
+                    case castFloat:
+                        return new FloatVariable(value.castFloat());
+                    case castBoolean:
+                        return new BooleanVariable(value.castBoolean());
                 }
+                return new NullVariable();
+
+            case Function:
                 return new NullVariable();
 
             default:
@@ -200,5 +267,12 @@ public class Expression {
         return  (a == VariableType.BOOLEAN)
                 &&
                 (b == VariableType.BOOLEAN);
+    }
+
+    @Override
+    public String toString() {
+        return "Expression{" +
+                myMode +
+                '}';
     }
 }

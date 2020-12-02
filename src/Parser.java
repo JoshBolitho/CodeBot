@@ -22,7 +22,12 @@ public class Parser {
 
         and,
         or,
-        not
+        not,
+
+        castString,
+        castInteger,
+        castFloat,
+        castBoolean
     }
 
     //need to rewrite as our own code
@@ -63,38 +68,20 @@ public class Parser {
 
     static Pattern Equals = Pattern.compile("=");
 
+    static Pattern GreaterThan = Pattern.compile(">");
+    static Pattern LessThan = Pattern.compile("<");
 
-//    static Pattern = Pattern.compile("");
-//    static Pattern = Pattern.compile("");
-//    static Pattern = Pattern.compile("");
-//    static Pattern = Pattern.compile("");
-//    static Pattern = Pattern.compile("");
+    static Pattern StringCast = Pattern.compile("string");
+    static Pattern IntegerCast= Pattern.compile("integer");
+    static Pattern FloatCast = Pattern.compile("float");
+    static Pattern BooleanCast = Pattern.compile("boolean");
 
 
-
-
-    //    static Pattern OPPAT = Pattern.compile("add|sub|mul|div");
-    //
-    //    static Pattern Comm Pattern.compile(",");
-    //
-    //    static Pattern EQPAT = Pattern.compile("eq");
-    //    static Pattern LTPAT = Pattern.compile("lt");
-    //    static Pattern GTPAT = Pattern.compile("gt");
-    //    static Pattern RELOPPAT = Pattern.compile("gt|lt|eq");
-    //
-    //
-    //    static Pattern WHILEPATTERN= Pattern.compile("while");
-    //    static Pattern IFPATTERN = Pattern.compile("if");
-    //
-//    static Pattern LOOP = Pattern.compile("loop");
-//
-//    static Pattern ELSEPAT = Pattern.compile("else");
-//
-//
-//    static Pattern CONDPAT = Pattern.compile("and|or|not");
-//    static Pattern ANDPAT = Pattern.compile("and");
-//    static Pattern ORPAT = Pattern.compile("or");
-//    static Pattern NOTPAT = Pattern.compile("not");
+    //    static Pattern Comma =  Pattern.compile(",");
+    //    static Pattern While = Pattern.compile("while");
+    //    static Pattern If = Pattern.compile("if");
+    //    static Pattern Else = Pattern.compile("else");
+    //    static Pattern Function = Pattern.compile("function");
 
     public ProgramNode parseScript(String script){
 
@@ -106,14 +93,11 @@ public class Parser {
                 commentRemovedScript = commentRemovedScript + s + "\n";
             }
         }
-        System.out.println(script);
+//        System.out.println(script);
         System.out.println("=================Parsing================== \n"+commentRemovedScript+"\n=============================================\n");
 
         ProgramNode program = new ProgramNode();
         Scanner scanner = new Scanner(commentRemovedScript);
-
-        //Old delimiter, consumes \n instead of retaining it.
-        //scanner.useDelimiter("\\s+|(?=[{}(),;\"+\\-*/%#])|(?<=[{}(),;\"+\\-*/%#])");
 
         //New delimiter that cuts each token before the \n character without consuming it.
         scanner.useDelimiter("[^\\S\\r\\n]|(?=[{}(),;\"+\\-*\\/%#\\n])|(?<=[{}(),;\"+\\-*\\/%#\\n])");
@@ -135,8 +119,9 @@ public class Parser {
         else if(s.hasNext("print")){
             return parsePrintNode(s);
         }
-//        if(s.hasNext())
-
+        //check for function assignment
+        //check for variable names
+        //check for function names
 
         //error
         return new ProgramNode();
@@ -157,9 +142,11 @@ public class Parser {
 
             require(NewLine,"Expected NewLine",s);
 
-            //Add new variable name to list of recognised variables.
-            scriptVariableNames.add(variableName);
-
+            if(!scriptVariableNames.contains(variableName)){
+                //Add new variable name to list of recognised variables.
+                scriptVariableNames.add(variableName);
+            }
+            System.out.println("setting "+variableName+" to "+value.myMode);
             return new VariableAssignmentNode(variableName,value);
         }
 
@@ -189,9 +176,65 @@ public class Parser {
         Expression firstExpression = new Expression(new NullVariable());
 //        Expression firstExpression;
 
-        if(s.hasNext(OpenParenthesis)){
-            firstExpression = parseBracketExpression(s);
+
+        //Parse n "!" characters
+        boolean hasNotOperator = false;
+        while (s.hasNext(Not)){
+            hasNotOperator = !hasNotOperator;
         }
+
+        if(s.hasNext(OpenParenthesis)){
+            require(OpenParenthesis,"Expecting \"(\"",s);
+
+            if(!hasNotOperator) {
+                if (s.hasNext(StringCast)) {
+                    require(StringCast, "Expecting \"string\"", s);
+                    require(CloseParenthesis, "Expecting \")\"", s);
+                    return new Expression(parseExpression(s, false), null, Operation.castString);
+                } else if (s.hasNext(IntegerCast)) {
+                    require(IntegerCast, "Expecting \"integer\"", s);
+                    require(CloseParenthesis, "Expecting \")\"", s);
+                    return new Expression(parseExpression(s, false), null, Operation.castInteger);
+                } else if (s.hasNext(FloatCast)) {
+                    require(FloatCast, "Expecting \"float\"", s);
+                    require(CloseParenthesis, "Expecting \")\"", s);
+                    return new Expression(parseExpression(s, false), null, Operation.castFloat);
+                } else if (s.hasNext(BooleanCast)) {
+                    require(BooleanCast, "Expecting \"boolean\"", s);
+                    require(CloseParenthesis, "Expecting \")\"", s);
+                    return new Expression(parseExpression(s, false), null, Operation.castBoolean);
+                } else {
+                    firstExpression = parseExpression(s, false);
+                    require(CloseParenthesis, "Expecting \")\"", s);
+                }
+            }else{
+
+                if (s.hasNext(StringCast)) {
+                    require(StringCast, "Expecting \"string\"", s);
+                    require(CloseParenthesis, "Expecting \")\"", s);
+                    return new Expression(new Expression(parseExpression(s, false), null, Operation.castString), null, Operation.not);
+                } else if (s.hasNext(IntegerCast)) {
+                    require(IntegerCast, "Expecting \"integer\"", s);
+                    require(CloseParenthesis, "Expecting \")\"", s);
+                    return new Expression(new Expression(parseExpression(s, false), null, Operation.castInteger), null, Operation.not);
+                } else if (s.hasNext(FloatCast)) {
+                    require(FloatCast, "Expecting \"float\"", s);
+                    require(CloseParenthesis, "Expecting \")\"", s);
+                    return new Expression(new Expression(parseExpression(s, false), null, Operation.castFloat), null, Operation.not);
+                } else if (s.hasNext(BooleanCast)) {
+                    require(BooleanCast, "Expecting \"boolean\"", s);
+                    require(CloseParenthesis, "Expecting \")\"", s);
+                    return new Expression(new Expression(parseExpression(s, false), null, Operation.castBoolean), null, Operation.not);
+                } else {
+                    firstExpression = new Expression(parseExpression(s, false), null, Operation.not);
+                    require(CloseParenthesis, "Expecting \")\"", s);
+                }
+
+            }
+
+        }
+
+
         else if (s.hasNextInt()){firstExpression = new Expression(new IntegerVariable(s.nextInt()));}
         else if (s.hasNextFloat()){firstExpression = new Expression(new FloatVariable(s.nextFloat()));}
         else if (s.hasNextBoolean()){firstExpression = new Expression(new BooleanVariable(s.nextBoolean()));}
@@ -220,14 +263,15 @@ public class Parser {
                 }
                 else if (s.hasNext(OpenBrace)){
                     firstExpression = parseArrayExpression(s);
-                }
-                else if (s.hasNext(Not)){
-                    firstExpression = new Expression(parseExpression(s,operationPriority),null, Operation.not);
                 }else{
                     //error
                     firstExpression = new Expression(new NullVariable());
                 }
             }
+        }
+
+        if(hasNotOperator){
+            firstExpression = new Expression(firstExpression,firstExpression,Operation.not);
         }
 
 
@@ -285,6 +329,20 @@ public class Parser {
             return new Expression(firstExpression, parseExpression(s,false), Operation.or);
         }
 
+        else if (s.hasNext(Equals)){
+            require(Equals,"Expecting =",s);
+            return new Expression(firstExpression,parseExpression(s,false),Operation.equals);
+        }
+
+        else if (s.hasNext(GreaterThan)){
+            require(GreaterThan,"Expecting >",s);
+            return new Expression(firstExpression,parseExpression(s,false),Operation.greaterThan);
+        }
+
+        else if (s.hasNext(LessThan)){
+            require(LessThan,"Expecting <",s);
+            return new Expression(firstExpression,parseExpression(s,false),Operation.lessThan);
+        }
 
 
 //        if(s.hasNext()){}
@@ -293,6 +351,7 @@ public class Parser {
 
 
 
+        //Error
         return new Expression(new NullVariable());
     }
 
@@ -304,7 +363,7 @@ public class Parser {
     //Because the higher priority call ignores + and -, we must use this method, ensuring that if it hasn't finished parsing, it can continue.
     //the boolean operationPriority used by the other version of this method is redundant here, as the priority will be false by default.
     public Expression parseExpression(Scanner s, Expression providedExpression){
-        System.out.println("entering parseExp2");
+//        System.out.println("entering parseExp2");
 
         if(s.hasNext(CloseBrace)){return providedExpression;}
         else if(s.hasNext(CloseParenthesis)){return providedExpression;}
@@ -349,11 +408,28 @@ public class Parser {
             return new Expression(providedExpression, parseExpression(s,false), Operation.or);
         }
 
+        else if (s.hasNext(Equals)){
+            require(Equals,"Expecting =",s);
+            return new Expression(providedExpression,parseExpression(s,false),Operation.equals);
+        }
+
+        else if (s.hasNext(GreaterThan)){
+            require(GreaterThan,"Expecting >",s);
+            return new Expression(providedExpression,parseExpression(s,false),Operation.greaterThan);
+        }
+
+        else if (s.hasNext(LessThan)){
+            require(LessThan,"Expecting <",s);
+            return new Expression(providedExpression,parseExpression(s,false),Operation.lessThan);
+        }
+
+
 //        if(s.hasNext()){}
 //        if(s.hasNext()){}
 //        if(s.hasNext()){}
 
 
+        //Error
         return new Expression(new NullVariable());
     }
 

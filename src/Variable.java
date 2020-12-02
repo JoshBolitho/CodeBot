@@ -7,6 +7,6 @@ public interface Variable {
     public String castString();
     public Integer castInteger();
     public Float castFloat();
-    public String castBoolean();
+    public Boolean castBoolean();
 
 }

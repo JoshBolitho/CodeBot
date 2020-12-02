@@ -9,4 +9,9 @@ public class PrintNode implements ExecutableNode{
     public void execute(ProgramState programState) {
         programState.print(value.evaluate(programState).asString());
     }
+
+    @Override
+    public String toString() {
+        return "PrintNode{" + value + '}';
+    }
 }

@@ -37,7 +37,7 @@ public class IntegerVariable implements Variable{
     }
 
     @Override
-    public String castBoolean() {
+    public Boolean castBoolean() {
         return null;
     }
 }

@@ -13,6 +13,15 @@ public class ProgramNode implements ExecutableNode{
         }
     }
 
+    @Override
+    public String toString() {
+        String res = "ProgramNode{";
+        for(ExecutableNode ex : executableNodes){
+            res += "\n    "+ex;
+        }
+        return res + "\n}";
+    }
+
     public void addExecutableNode(ExecutableNode e){
         executableNodes.add(e);
     }

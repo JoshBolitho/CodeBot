@@ -28,6 +28,8 @@ public class ProgramState {
     public Variable getProgramVariable(String key){
         return programVariables.get(key);
     }
+
+    //add a variable,
     public void addProgramVariable(String s,Variable v){
         programVariables.put(s,v);
     }

@@ -37,7 +37,7 @@ public class BooleanVariable implements Variable{
     }
 
     @Override
-    public String castBoolean() {
+    public Boolean castBoolean() {
         return null;
     }
 }

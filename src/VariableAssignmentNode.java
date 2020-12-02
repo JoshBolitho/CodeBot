@@ -12,4 +12,11 @@ public class VariableAssignmentNode implements ExecutableNode {
     public void execute(ProgramState programState) {
         programState.addProgramVariable(name,value.evaluate(programState));
     }
+
+    @Override
+    public String toString() {
+        return "VariableAssignmentNode{" +
+                name + ',' +
+                value + '}';
+    }
 }
