@@ -19,21 +19,21 @@ public class NullVariable implements Variable{
 
     @Override
     public String castString() {
-        return null;
+        return "null";
     }
 
     @Override
-    public Integer castInteger() {
-        return null;
+    public Integer castInteger()throws ExecutionException {
+        throw new ExecutionException(String.format("Failed to null to integer"));
     }
 
     @Override
-    public Float castFloat() {
-        return null;
+    public Float castFloat() throws ExecutionException{
+        throw new ExecutionException(String.format("Failed to cast null to float"));
     }
 
     @Override
-    public Boolean castBoolean() {
-        return null;
+    public Boolean castBoolean() throws ExecutionException{
+        throw new ExecutionException(String.format("Failed to cast null to boolean"));
     }
 }

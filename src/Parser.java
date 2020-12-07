@@ -36,14 +36,14 @@ public class Parser {
         if (s.hasNext(p)) {
             return s.next();
         }
-        throw new InvalidSyntaxException(message);
+        throw new CompilerException(message);
     }
 
     static String require(String str, String message, Scanner s) {
         if (s.hasNext(str)) {
             return s.next();
         }
-        throw new InvalidSyntaxException(message);
+        throw new CompilerException(message);
     }
 
 //    static Pattern IntegerPattern = Pattern.compile("-?\\d+"); // ("-?(0|[1-9][0-9]*)");
@@ -94,7 +94,7 @@ public class Parser {
             }
         }
 //        System.out.println(script);
-        System.out.println("=================Parsing================== \n"+commentRemovedScript+"\n=============================================\n");
+        System.out.println("=================Parsing================== \n"+commentRemovedScript);
 
         ProgramNode program = new ProgramNode();
         Scanner scanner = new Scanner(commentRemovedScript);
@@ -103,8 +103,6 @@ public class Parser {
         scanner.useDelimiter("[^\\S\\r\\n]|(?=[{}(),;\"+\\-*\\/%#\\n])|(?<=[{}(),;\"+\\-*\\/%#\\n])");
 
         while(scanner.hasNext()){
-//            if(scanner.hasNext())
-//            System.out.println(scanner.next());
             program.addExecutableNode(parseExecutableNode(scanner));
         }
 
@@ -128,7 +126,7 @@ public class Parser {
 
     }
 
-    public VariableAssignmentNode parseVariableAssignment(Scanner s){
+    public VariableAssignmentNode parseVariableAssignment(Scanner s) throws CompilerException{
         String variableName;
         Expression value;
 
@@ -148,10 +146,9 @@ public class Parser {
             }
             System.out.println("setting "+variableName+" to "+value.myMode);
             return new VariableAssignmentNode(variableName,value);
+        }else{
+            throw new CompilerException("");
         }
-
-        //Error
-        return new VariableAssignmentNode("",new Expression(new NullVariable()));
     }
 
     public PrintNode parsePrintNode(Scanner s){
@@ -431,14 +428,6 @@ public class Parser {
 
         //Error
         return new Expression(new NullVariable());
-    }
-
-    public Expression parseBracketExpression(Scanner s){
-        require(OpenParenthesis,"Expecting \"(\"",s);
-        Expression expression = parseExpression(s,false);
-        require(CloseParenthesis,"Expecting \")\"",s);
-
-        return expression;
     }
 
     //TODO

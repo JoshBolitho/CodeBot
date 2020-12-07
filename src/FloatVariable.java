@@ -23,21 +23,21 @@ public class FloatVariable implements Variable{
 
     @Override
     public String castString() {
-        return null;
+        return Float.toString(value);
     }
 
     @Override
     public Integer castInteger() {
-        return null;
+        return (int)value;
     }
 
     @Override
     public Float castFloat() {
-        return null;
+        return value;
     }
 
     @Override
     public Boolean castBoolean() {
-        return null;
+        return (int)value != 0;
     }
 }

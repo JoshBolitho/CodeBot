@@ -15,7 +15,7 @@ public class ProgramState {
 
     //Print a string line to console output
     public void print(String s){
-        System.out.println("Adding to console output: " + s);
+//        System.out.println("Adding to console output: " + s);
         consoleOutput = consoleOutput + s + "\n";
     }
 

@@ -50,8 +50,8 @@ public class Expression {
 
 
 
+    public Variable evaluate(ProgramState programState) throws RuntimeException{
 
-    public Variable evaluate(ProgramState programState) {
         switch (myMode) {
 
             case Value:
@@ -63,10 +63,29 @@ public class Expression {
             case Operation:
 
                 Variable value1 = expression1.evaluate(programState);
-                Variable value2 = expression2.evaluate(programState);
+                VariableType type1;
+                if(value1==null){
+                    type1 = VariableType.NULL;
+                }else{
+                    type1 = value1.getType();
+                }
 
-                VariableType type1 = value1.getType();
-                VariableType type2 = value2.getType();
+
+                //Sometimes, Expression2 will be null, as it is not used by the operator.
+                // e.g. ! operator only takes one expression, so expression2 here will be null.
+                Variable value2;
+                VariableType type2;
+                if(expression2==null){
+                    value2 = null;
+                }else{
+                    value2 = expression2.evaluate(programState);
+                }
+
+                if(value2==null){
+                    type2 = VariableType.NULL;
+                }else{
+                    type2 = value1.getType();
+                }
 
                 switch (operation) {
                     case greaterThan:
@@ -84,13 +103,7 @@ public class Expression {
                                 return new BooleanVariable((int) value1.getValue() > (int) value2.getValue());
                             }
                         }
-                        break;
-
-                    case getGreaterThanOrEqual:
-                        if (bothValuesAreNumbers(type1, type2)) {
-                            return new BooleanVariable((float) value1.getValue() >= (float) value2.getValue());
-                        }
-                        break;
+                        throw new ExecutionException(String.format("Failed to evaluate %s %s %s",value1.asString(),operation,value2.asString()));
 
                     case lessThan:
                         if (bothValuesAreNumbers(type1, type2)) {
@@ -107,13 +120,7 @@ public class Expression {
                                 return new BooleanVariable((int) value1.getValue() < (int) value2.getValue());
                             }
                         }
-                        break;
-
-                    case lessThanOrEqual:
-                        if (bothValuesAreNumbers(type1, type2)) {
-                            return new BooleanVariable((float) value1.getValue() <= (float) value2.getValue());
-                        }
-                        break;
+                        throw new ExecutionException(String.format("Failed to evaluate %s %s %s",value1.asString(),operation,value2.asString()));
 
                     case equals:
 
@@ -125,9 +132,7 @@ public class Expression {
                         }
                         if (type1 == VariableType.STRING && type2 == VariableType.STRING) {
                             return new BooleanVariable(
-                                    ((String) value1.getValue())
-                                            .equals
-                                                    ((String) value2.getValue())
+                                value1.getValue().equals(value2.getValue())
                             );
                         }
                         if (type1 == VariableType.BOOLEAN && type2 == VariableType.BOOLEAN) {
@@ -160,7 +165,7 @@ public class Expression {
                         if (type1 == VariableType.STRING || type2 == VariableType.STRING) {
                             return new StringVariable(value1.asString() + value2.asString());
                         }
-                        break;
+                        throw new ExecutionException(String.format("Failed to evaluate %s %s %s",value1.asString(),operation,value2.asString()));
 
                     case minus:
                         if (bothValuesAreNumbers(type1, type2)) {
@@ -176,7 +181,7 @@ public class Expression {
                             //both are ints
                             return new IntegerVariable((int) value1.getValue() - (int) value2.getValue());
                         }
-                        break;
+                        throw new ExecutionException(String.format("Failed to evaluate %s %s %s",value1.asString(),operation,value2.asString()));
 
                     case times:
                         if (bothValuesAreNumbers(type1, type2)) {
@@ -192,7 +197,7 @@ public class Expression {
                             //both are ints
                             return new IntegerVariable((int) value1.getValue() * (int) value2.getValue());
                         }
-                        break;
+                        throw new ExecutionException(String.format("Failed to evaluate %s %s %s",value1.asString(),operation,value2.asString()));
 
                     case divide:
                         if (bothValuesAreNumbers(type1, type2)) {
@@ -212,39 +217,39 @@ public class Expression {
                             }
                             return new FloatVariable((float) (int)value1.getValue() / (float) (int)value2.getValue());
                         }
-                        break;
+                        throw new ExecutionException(String.format("Failed to evaluate %s %s %s",value1.asString(),operation,value2.asString()));
 
                     case modulo:
                         if (type1 == VariableType.INTEGER && type2 == VariableType.INTEGER) {
                             return new IntegerVariable((int) value1.getValue() % (int) value2.getValue());
                         }
-                        break;
+                        throw new ExecutionException(String.format("Failed to evaluate %s %s %s",value1.asString(),operation,value2.asString()));
 
                     case and:
                         if (bothValuesAreBooleans(type1, type2)) {
                             return new BooleanVariable((Boolean) value1.getValue() && (Boolean) value2.getValue());
                         }
-                        break;
+                        throw new ExecutionException(String.format("Failed to evaluate %s %s %s",value1.asString(),operation,value2.asString()));
 
                     case or:
                         if (bothValuesAreBooleans(type1, type2)) {
                             return new BooleanVariable((Boolean) value1.getValue() || (Boolean) value2.getValue());
                         }
-                        break;
+                        throw new ExecutionException(String.format("Failed to evaluate %s %s %s",value1.asString(),operation,value2.asString()));
 
                     case not:
                         if (type1 == VariableType.BOOLEAN) {
                             return new BooleanVariable(!(Boolean) value1.getValue());
                         }
-                        break;
+                        throw new ExecutionException(String.format("Failed to evaluate %s %s",operation,value1.asString()));
                     case castString:
-                        return new StringVariable(value.castString());
+                        return new StringVariable(value1.castString());
                     case castInteger:
-                        return new IntegerVariable(value.castInteger());
+                        return new IntegerVariable(value1.castInteger());
                     case castFloat:
-                        return new FloatVariable(value.castFloat());
+                        return new FloatVariable(value1.castFloat());
                     case castBoolean:
-                        return new BooleanVariable(value.castBoolean());
+                        return new BooleanVariable(value1.castBoolean());
                 }
                 return new NullVariable();
 
