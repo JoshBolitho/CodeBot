@@ -84,7 +84,7 @@ public class Expression {
                 if(value2==null){
                     type2 = VariableType.NULL;
                 }else{
-                    type2 = value1.getType();
+                    type2 = value2.getType();
                 }
 
                 switch (operation) {

@@ -8,7 +8,7 @@ public class BooleanVariable implements Variable{
 
     @Override
     public String asString() {
-        return Boolean.toString(value);
+        return value ? "true" : "false";
     }
 
     @Override

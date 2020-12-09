@@ -36,6 +36,12 @@ public class Parser {
         if (s.hasNext(p)) {
             return s.next();
         }
+        //if the require fails:
+        String log = "Tokens received:";
+        for(int i=0;i<5;i++){
+            log += "["+ s.next() + "], ";
+        }
+        System.out.println(log);
         throw new CompilerException(message);
     }
 
@@ -147,7 +153,7 @@ public class Parser {
             System.out.println("setting "+variableName+" to "+value.myMode);
             return new VariableAssignmentNode(variableName,value);
         }else{
-            throw new CompilerException("");
+            throw new CompilerException("Invalid variable name (Upper/Lower case alphabet characters only): "+s.next());
         }
     }
 
@@ -233,7 +239,8 @@ public class Parser {
 
 
         else if (s.hasNextInt()){firstExpression = new Expression(new IntegerVariable(s.nextInt()));}
-        else if (s.hasNextFloat()){firstExpression = new Expression(new FloatVariable(s.nextFloat()));}
+        else if (s.hasNextFloat()){
+            firstExpression = new Expression(new FloatVariable(s.nextFloat()));}
         else if (s.hasNextBoolean()){firstExpression = new Expression(new BooleanVariable(s.nextBoolean()));}
         else {
             boolean firstVariableSet = false;
@@ -249,20 +256,28 @@ public class Parser {
 
                 if (s.hasNext(DoubleQuotes)){
                     require(DoubleQuotes,"Expected \"",s);
-                    //end token just before the next " character
-                    s.useDelimiter("(?=[\"])");
-                    if(s.hasNext()){
-                        firstExpression = new Expression(new StringVariable(s.next()));
+                    //end token just before the next " character, and just after it aswell
+                    s.useDelimiter("(?=[\"])|(?<=[\"])");
+                    String nextString = s.next();
+
+                    //This case catches an empty string
+                    if(nextString.equals("\"")){
+                        firstExpression = new Expression(new StringVariable(""));
+                    }
+                    //this case catches literally any other possible string
+                    else {
+                        firstExpression = new Expression(new StringVariable(nextString));
+                        s.useDelimiter("[^\\S\\r\\n]|(?=[{}(),;\"+\\-*\\/%#\\n])|(?<=[{}(),;\"+\\-*\\/%#\\n])");
+                        require(DoubleQuotes,"Expected \"",s);
                     }
                     //replace original delimiter regex
                     s.useDelimiter("[^\\S\\r\\n]|(?=[{}(),;\"+\\-*\\/%#\\n])|(?<=[{}(),;\"+\\-*\\/%#\\n])");
-                    require(DoubleQuotes,"Expected \"",s);
+
                 }
                 else if (s.hasNext(OpenBrace)){
                     firstExpression = parseArrayExpression(s);
                 }else{
-                    //error
-                    firstExpression = new Expression(new NullVariable());
+                    throw new CompilerException("Unrecognised Expression: "+s.next());
                 }
             }
         }
@@ -272,8 +287,7 @@ public class Parser {
         }
 
 
-        //Then detect the end of the expression. Otherwise, parse operators in the expression if it continues.
-
+        //Detect the end of the expression if it exists. Otherwise, parse operators in the expression if it continues.
         if(s.hasNext(CloseBrace)){return firstExpression;}
         else if(s.hasNext(CloseParenthesis)){return firstExpression;}
         else if(s.hasNext(NewLine)){return firstExpression;}

@@ -13,16 +13,16 @@ public class ScriptExecutor {
 
     //Parse script to ProgramNode
     public void parseScript(){
-        try {
+//        try {
             program = parser.parseScript(script);
-        }catch (CompilerException e){
-            String message = e.getMessage();
-            if(message != null){
-                programState.print(e.getMessage());
-            }else{
-                programState.print("Unspecified Compilation error.");
-            }
-        }
+//        }catch (CompilerException e){
+//            String message = e.getMessage();
+//            if(message != null){
+//                programState.print("Error: "+e.getMessage());
+//            }else{
+//                programState.print("Error: Unspecified Compilation error.");
+//            }
+//        }
     }
 
     public void displayProgram(){
@@ -36,9 +36,9 @@ public class ScriptExecutor {
         }catch (ExecutionException e){
             String message = e.getMessage();
             if(message != null){
-                programState.print(e.getMessage());
+                programState.print("Error: "+e.getMessage());
             }else{
-                programState.print("Unspecified Execution error.");
+                programState.print("Error: Unspecified Execution error.");
             }
         }
     }
@@ -49,10 +49,26 @@ public class ScriptExecutor {
     }
 
     public static void main (String[] Args){
-        String testScript = "variable a = \"6\"\n" +
-                "variable b = (integer) a\n" +
-                "variable c = 3 + b\n" +
-                "print(\"Expecting 9: \"+c)";
+        String testScript = "variable testa = 3 + (integer) \"6\"\n" +
+                "print(\"Expecting 9: \"+testa)\n" +
+                "\n" +
+                "variable testb = ((string) 6) + 7 \n" +
+                "print(\"Expecting 67: \"+testb)\n" +
+                "\n" +
+                "variable testc = ((boolean) 6.2 ) + \" or false = \" + true\n" +
+                "print(\"Expecting  true or false = true: \"+testc)\n" +
+                "\n" +
+                "variable testd = \"\"\n" +
+                "print(\"Expecting []: [\"+testd+\"]\")\n" +
+                "\n" +
+                "variable testf = ((boolean) 1 )| false\n" +
+                "print(\"Expecting true: \"+testf)\n" +
+                "\n" +
+                "variable testg = (integer) 3.4\n" +
+                "print(\"Expecting 3: \"+testg)\n" +
+                "\n" +
+                "variable testh = (float) 3\n" +
+                "print(\"Expecting 3.0: \"+testh)";
 
         ScriptExecutor myScriptExecutor = new ScriptExecutor(testScript);
         myScriptExecutor.parseScript();
