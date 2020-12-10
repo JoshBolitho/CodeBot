@@ -8,7 +8,6 @@ public class Expression {
     }
     Mode myMode;
 
-
     Variable value;
 
     Function function;

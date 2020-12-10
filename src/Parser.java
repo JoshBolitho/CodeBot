@@ -9,9 +9,7 @@ public class Parser {
     enum Operation{
 
         greaterThan,
-        getGreaterThanOrEqual,
         lessThan,
-        lessThanOrEqual,
         equals,
 
         plus,
@@ -128,7 +126,9 @@ public class Parser {
         //check for function names
 
         //error
-        return new ProgramNode();
+        else{
+            throw new CompilerException("Invalid statement");
+        }
 
     }
 

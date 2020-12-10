@@ -1,28 +1,33 @@
 //Parse the script, execute the parsed program, and return the console result
 public class ScriptExecutor {
 
-    private static ProgramState programState = new ProgramState();
-    private static Parser parser = new Parser();
     private static String script;
-    private static ProgramNode program = new ProgramNode();
+
+    private static ProgramState programState;
+    private static Parser parser;
+    private static ProgramNode program;
 
     //Initialise ScriptExecutor
     public ScriptExecutor(String script) {
         ScriptExecutor.script = script;
+
+        programState = new ProgramState();
+        parser = new Parser();
+        program = new ProgramNode();
     }
 
     //Parse script to ProgramNode
     public void parseScript(){
-//        try {
+        try {
             program = parser.parseScript(script);
-//        }catch (CompilerException e){
-//            String message = e.getMessage();
-//            if(message != null){
-//                programState.print("Error: "+e.getMessage());
-//            }else{
-//                programState.print("Error: Unspecified Compilation error.");
-//            }
-//        }
+        }catch (CompilerException e){
+            String message = e.getMessage();
+            if(message != null){
+                programState.print("Error: "+e.getMessage());
+            }else{
+                programState.print("Error: Unspecified Compilation error.");
+            }
+        }
     }
 
     public void displayProgram(){
