@@ -104,7 +104,7 @@ public class Parser {
         Scanner scanner = new Scanner(commentRemovedScript);
 
         //New delimiter that cuts each token before the \n character without consuming it.
-        scanner.useDelimiter("[^\\S\\r\\n]|(?=[{}(),;\"+\\-*\\/%#\\n])|(?<=[{}(),;\"+\\-*\\/%#\\n])");
+        scanner.useDelimiter("[^\\S\\r\\n]|(?=[{}(),;\\\"+\\-*\\/%#&|!\\n])|(?<=[{}(),;\\\"+\\-*\\/%#&|!\\n])");
 
         while(scanner.hasNext()){
             program.addExecutableNode(parseExecutableNode(scanner));
@@ -150,7 +150,7 @@ public class Parser {
                 //Add new variable name to list of recognised variables.
                 scriptVariableNames.add(variableName);
             }
-            System.out.println("setting "+variableName+" to "+value.myMode);
+//            System.out.println("setting "+variableName+" to "+value.myMode);
             return new VariableAssignmentNode(variableName,value);
         }else{
             throw new CompilerException("Invalid variable name (Upper/Lower case alphabet characters only): "+s.next());
@@ -183,6 +183,7 @@ public class Parser {
         //Parse n "!" characters
         boolean hasNotOperator = false;
         while (s.hasNext(Not)){
+            require(Not, "Expecting \"!\"",s);
             hasNotOperator = !hasNotOperator;
         }
 
@@ -211,7 +212,6 @@ public class Parser {
                     require(CloseParenthesis, "Expecting \")\"", s);
                 }
             }else{
-
                 if (s.hasNext(StringCast)) {
                     require(StringCast, "Expecting \"string\"", s);
                     require(CloseParenthesis, "Expecting \")\"", s);
@@ -231,6 +231,7 @@ public class Parser {
                 } else {
                     firstExpression = new Expression(parseExpression(s, false), null, Operation.not);
                     require(CloseParenthesis, "Expecting \")\"", s);
+                    return firstExpression;
                 }
 
             }
@@ -267,11 +268,11 @@ public class Parser {
                     //this case catches literally any other possible string
                     else {
                         firstExpression = new Expression(new StringVariable(nextString));
-                        s.useDelimiter("[^\\S\\r\\n]|(?=[{}(),;\"+\\-*\\/%#\\n])|(?<=[{}(),;\"+\\-*\\/%#\\n])");
+                        s.useDelimiter("[^\\S\\r\\n]|(?=[{}(),;\\\"+\\-*\\/%#&|!\\n])|(?<=[{}(),;\\\"+\\-*\\/%#&|!\\n])");
                         require(DoubleQuotes,"Expected \"",s);
                     }
                     //replace original delimiter regex
-                    s.useDelimiter("[^\\S\\r\\n]|(?=[{}(),;\"+\\-*\\/%#\\n])|(?<=[{}(),;\"+\\-*\\/%#\\n])");
+                    s.useDelimiter("[^\\S\\r\\n]|(?=[{}(),;\\\"+\\-*\\/%#&|!\\n])|(?<=[{}(),;\\\"+\\-*\\/%#&|!\\n])");
 
                 }
                 else if (s.hasNext(OpenBrace)){

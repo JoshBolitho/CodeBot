@@ -1,15 +1,15 @@
 //Parse the script, execute the parsed program, and return the console result
 public class ScriptExecutor {
 
-    private static String script;
+    private String script;
 
-    private static ProgramState programState;
-    private static Parser parser;
-    private static ProgramNode program;
+    private ProgramState programState;
+    private Parser parser;
+    private ProgramNode program;
 
     //Initialise ScriptExecutor
     public ScriptExecutor(String script) {
-        ScriptExecutor.script = script;
+        this.script = script;
 
         programState = new ProgramState();
         parser = new Parser();
@@ -54,26 +54,12 @@ public class ScriptExecutor {
     }
 
     public static void main (String[] Args){
-        String testScript = "variable testa = 3 + (integer) \"6\"\n" +
-                "print(\"Expecting 9: \"+testa)\n" +
+
+        String testScript = "variable testU = !(false)\n" +
+                "print(\"Expecting true: \"+testU)\n" +
                 "\n" +
-                "variable testb = ((string) 6) + 7 \n" +
-                "print(\"Expecting 67: \"+testb)\n" +
-                "\n" +
-                "variable testc = ((boolean) 6.2 ) + \" or false = \" + true\n" +
-                "print(\"Expecting  true or false = true: \"+testc)\n" +
-                "\n" +
-                "variable testd = \"\"\n" +
-                "print(\"Expecting []: [\"+testd+\"]\")\n" +
-                "\n" +
-                "variable testf = ((boolean) 1 )| false\n" +
-                "print(\"Expecting true: \"+testf)\n" +
-                "\n" +
-                "variable testg = (integer) 3.4\n" +
-                "print(\"Expecting 3: \"+testg)\n" +
-                "\n" +
-                "variable testh = (float) 3\n" +
-                "print(\"Expecting 3.0: \"+testh)";
+                "variable testZ = (3.0 = 9 /3.0) & !false = true\n" +
+                "print(\"Expecting true: \"+testZ)";
 
         ScriptExecutor myScriptExecutor = new ScriptExecutor(testScript);
         myScriptExecutor.parseScript();

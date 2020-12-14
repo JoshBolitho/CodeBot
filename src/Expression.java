@@ -8,14 +8,20 @@ public class Expression {
     }
     Mode myMode;
 
+    //Each following groups are initialised exclusively depending on what kind of expression this is (Mode enum).
+
+    //Value
     Variable value;
 
+    //Function
     Function function;
 
+    //Operation
     Expression expression1;
     Expression expression2;
     Parser.Operation operation;
 
+    //Reference
     String variableReference;
 
 
@@ -275,6 +281,17 @@ public class Expression {
 
     @Override
     public String toString() {
+        switch (myMode){
+            case Value :
+                return "Value(" + value.asString() + ')';
+            case Function:
+                return "Function";
+            case Operation:
+                if(operation == Parser.Operation.not) return "not ("+expression1.toString()+")";
+                return "("+expression1.toString() +" "+ operation +" "+ expression2.toString()+")";
+            case Reference:
+                return "Reference("+variableReference+")";
+        }
         return "Expression{" +
                 myMode +
                 '}';
