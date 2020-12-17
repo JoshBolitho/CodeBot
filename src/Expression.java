@@ -287,13 +287,13 @@ public class Expression {
             case Function:
                 return "Function";
             case Operation:
-                if(operation == Parser.Operation.not) return "not ("+expression1.toString()+")";
+                if(operation == Parser.Operation.not) return "not("+expression1.toString()+")";
                 return "("+expression1.toString() +" "+ operation +" "+ expression2.toString()+")";
             case Reference:
                 return "Reference("+variableReference+")";
         }
-        return "Expression{" +
+        return "Expression(" +
                 myMode +
-                '}';
+                ')';
     }
 }

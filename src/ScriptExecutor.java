@@ -21,6 +21,7 @@ public class ScriptExecutor {
         try {
             program = parser.parseScript(script);
         }catch (CompilerException e){
+            System.out.println(e);
             String message = e.getMessage();
             if(message != null){
                 programState.print("Error: "+e.getMessage());
@@ -54,12 +55,7 @@ public class ScriptExecutor {
     }
 
     public static void main (String[] Args){
-
-        String testScript = "variable testU = !(false)\n" +
-                "print(\"Expecting true: \"+testU)\n" +
-                "\n" +
-                "variable testZ = (3.0 = 9 /3.0) & !false = true\n" +
-                "print(\"Expecting true: \"+testZ)";
+        String testScript = "";
 
         ScriptExecutor myScriptExecutor = new ScriptExecutor(testScript);
         myScriptExecutor.parseScript();
