@@ -7,18 +7,18 @@ public class Function {
 
     //Initialised when function is defined
     String[] variableNames;
-    ArrayList<ExecutableNode> executableNodes;
+    ProgramNode functionScript;
     VariableType returnType;
-
-    public Function (String[] variableNames, ArrayList<ExecutableNode> executableNodes, VariableType returnType) {
-        this.variableNames = variableNames;
-        this.executableNodes = executableNodes;
-        this.returnType = returnType;
-    }
 
     //Initialised when function is called
     HashMap<String,Variable> functionVariables;
     Variable returnVariable;
+
+    public Function(String[] variableNames, ProgramNode functionScript, VariableType returnType) {
+        this.variableNames = variableNames;
+        this.functionScript = functionScript;
+        this.returnType = returnType;
+    }
 
     //A called instance of this function. functionVariables are passed
     public Variable executeFunction( ArrayList<Variable> functionVariables, Variable returnVariable){

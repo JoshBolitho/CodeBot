@@ -48,4 +48,9 @@ public class ArrayVariable implements Variable{
     public Boolean castBoolean() throws ExecutionException{
         throw new ExecutionException(String.format("Failed to cast array to boolean"));
     }
+
+    @Override
+    public ArrayList<Variable> castArray() throws ExecutionException {
+        return value;
+    }
 }

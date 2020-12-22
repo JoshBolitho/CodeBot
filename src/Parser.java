@@ -25,7 +25,13 @@ public class Parser {
         castString,
         castInteger,
         castFloat,
-        castBoolean
+        castBoolean,
+
+        random,
+        length,
+        charAt,
+        get,
+        type
     }
 
     //need to rewrite as our own code
@@ -87,11 +93,18 @@ public class Parser {
     static Pattern BooleanCast = Pattern.compile("boolean");
 
 
-    //    static Pattern Comma =  Pattern.compile(",");
-        static Pattern While = Pattern.compile("while");
-        static Pattern If = Pattern.compile("if");
-        static Pattern Else = Pattern.compile("else");
-        static Pattern Function = Pattern.compile("function");
+    static Pattern While = Pattern.compile("while");
+    static Pattern If = Pattern.compile("if");
+    static Pattern Else = Pattern.compile("else");
+    static Pattern Function = Pattern.compile("function");
+    static Pattern Comma =  Pattern.compile(",");
+
+    static Pattern Random =  Pattern.compile("random");
+    static Pattern Length =  Pattern.compile("length");
+    static Pattern CharAt =  Pattern.compile("charAt");
+    static Pattern Get =  Pattern.compile("get");
+    static Pattern Type =  Pattern.compile("type");
+
 
     public ProgramNode parseScript(String script){
 
@@ -254,7 +267,6 @@ public class Parser {
         Expression firstExpression = new Expression(new NullVariable());
 //        Expression firstExpression;
 
-
         //Parse n "!" characters
         boolean hasNotOperator = false;
         while (s.hasNext(Not)){
@@ -318,6 +330,47 @@ public class Parser {
         else if (s.hasNextFloat()){
             firstExpression = new Expression(new FloatVariable(s.nextFloat()));}
         else if (s.hasNextBoolean()){firstExpression = new Expression(new BooleanVariable(s.nextBoolean()));}
+        else if (s.hasNext(Random)){
+            require(Random,s);
+            require(OpenParenthesis,s);
+            require(CloseParenthesis,s);
+            firstExpression = new Expression(null,null,Operation.random);
+
+        }
+        else if (s.hasNext(Length)){
+            //length(string)
+            require(Length,s);
+            require(OpenParenthesis,s);
+            firstExpression = new Expression(parseExpression(s,false),null,Operation.length);
+            require(CloseParenthesis,s);
+        }
+        else if (s.hasNext(CharAt)){
+            //charAt(string,int)
+            require(CharAt,s);
+            require(OpenParenthesis,s);
+            Expression expression1 = parseExpression(s,false);
+            require(Comma,s);
+            Expression expression2 = parseExpression(s,false);
+            require(CloseParenthesis,s);
+            firstExpression = new Expression(expression1,expression2,Operation.charAt);
+        }
+        else if (s.hasNext(Get)){
+            //get(array,int)
+            require(Get,s);
+            require(OpenParenthesis,s);
+            Expression expression1 = parseExpression(s,false);
+            require(Comma,s);
+            Expression expression2 = parseExpression(s,false);
+            require(CloseParenthesis,s);
+            firstExpression = new Expression(expression1,expression2,Operation.get);
+        }
+        else if (s.hasNext(Type)){
+            //type(variable)
+            require(Type,s);
+            require(OpenParenthesis,s);
+            firstExpression = new Expression(parseExpression(s,false),null,Operation.type);
+            require(CloseParenthesis,s);
+        }
         else {
             boolean firstVariableSet = false;
             for(String variableName : scriptVariableNames){
@@ -367,6 +420,7 @@ public class Parser {
         if(s.hasNext(CloseBrace)){return firstExpression;}
         else if(s.hasNext(CloseParenthesis)){return firstExpression;}
         else if(s.hasNext(NewLine)){return firstExpression;}
+        else if(s.hasNext(Comma)){return firstExpression;}
 
         else if(s.hasNext(Plus)){
             //if operationPriority is true, we are only accepting operations higher in the order of operations.
@@ -431,19 +485,12 @@ public class Parser {
             return new Expression(firstExpression,parseExpression(s,false),Operation.lessThan);
         }
 
-
-//        if(s.hasNext()){}
-//        if(s.hasNext()){}
-//        if(s.hasNext()){}
-
-
-
         //Error
-        return new Expression(new NullVariable());
+        throw new CompilerException("Unrecognised operation");
     }
 
 
-    //Alternate form of parseExpression which takes the left side of the expression already made, and only parses the rest of the expression.
+    //Alternate form of parseExpression which takes the left side of the expression already made, and only parses the next operation.
     //providedExpression takes the place of firstExpression in the other version of this method.
     //This is used after a higher priority order of operations call of parseExpression is made for multiplication, division or modulo operation.
     //Because the higher priority call ignores + and -, we must use this method, ensuring that if it hasn't finished parsing, it can continue.
@@ -454,6 +501,7 @@ public class Parser {
         if(s.hasNext(CloseBrace)){return providedExpression;}
         else if(s.hasNext(CloseParenthesis)){return providedExpression;}
         else if(s.hasNext(NewLine)){return providedExpression;}
+        else if(s.hasNext(Comma)){return providedExpression;}
 
 
         else if(s.hasNext(Plus)){
@@ -510,13 +558,8 @@ public class Parser {
         }
 
 
-//        if(s.hasNext()){}
-//        if(s.hasNext()){}
-//        if(s.hasNext()){}
-
-
         //Error
-        return new Expression(new NullVariable());
+        throw new CompilerException("Unrecognised operation");
     }
 
     //TODO

@@ -1,3 +1,5 @@
+import java.util.ArrayList;
+
 public class NullVariable implements Variable{
 
     public NullVariable() {}
@@ -35,5 +37,10 @@ public class NullVariable implements Variable{
     @Override
     public Boolean castBoolean() throws ExecutionException{
         throw new ExecutionException(String.format("Failed to cast null to boolean"));
+    }
+
+    @Override
+    public ArrayList<Variable> castArray() throws ExecutionException {
+        throw new ExecutionException(String.format("Failed to cast null to array"));
     }
 }

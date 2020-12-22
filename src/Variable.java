@@ -1,3 +1,5 @@
+import java.util.ArrayList;
+
 public interface Variable {
     public String asString();
     public Object getValue();
@@ -8,5 +10,6 @@ public interface Variable {
     public Integer castInteger() throws ExecutionException;
     public Float castFloat() throws ExecutionException;
     public Boolean castBoolean() throws ExecutionException;
+    public ArrayList<Variable> castArray() throws ExecutionException;
 
 }

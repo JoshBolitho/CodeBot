@@ -1,3 +1,5 @@
+import java.util.ArrayList;
+
 public class IntegerVariable implements Variable{
 
     private int value;
@@ -39,5 +41,10 @@ public class IntegerVariable implements Variable{
     @Override
     public Boolean castBoolean() {
         return value != 0;
+    }
+
+    @Override
+    public ArrayList<Variable> castArray() throws ExecutionException {
+        throw new ExecutionException(String.format("Failed to cast %s to array",value));
     }
 }

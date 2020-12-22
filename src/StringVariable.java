@@ -1,3 +1,5 @@
+import java.util.ArrayList;
+
 public class StringVariable implements Variable{
 
     private String value;
@@ -52,5 +54,10 @@ public class StringVariable implements Variable{
             return false;
         }
         throw new ExecutionException(String.format("Failed to cast %s to boolean",value));
+    }
+
+    @Override
+    public ArrayList<Variable> castArray() throws ExecutionException {
+        throw new ExecutionException(String.format("Failed to cast %s to array",value));
     }
 }

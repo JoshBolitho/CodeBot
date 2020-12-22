@@ -1,3 +1,5 @@
+import java.util.ArrayList;
+
 public class FloatVariable implements Variable{
 
     private float value;
@@ -39,5 +41,10 @@ public class FloatVariable implements Variable{
     @Override
     public Boolean castBoolean() {
         return (int)value != 0;
+    }
+
+    @Override
+    public ArrayList<Variable> castArray() throws ExecutionException {
+        throw new ExecutionException(String.format("Failed to cast %s to array",value));
     }
 }

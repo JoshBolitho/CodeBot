@@ -1,3 +1,5 @@
+import java.lang.Math;
+
 public class Expression {
 
     enum Mode{
@@ -67,17 +69,24 @@ public class Expression {
 
             case Operation:
 
-                Variable value1 = expression1.evaluate(programState);
+                //Sometimes, Expression1 and Expression2 can be null, they may not be used by the operator.
+                // e.g. ! operator only takes one expression, so expression2 would be null.
+                // random() takes no expressions, so expression1 and expression2 would be null.
+
+                Variable value1;
                 VariableType type1;
+                if(expression1==null){
+                    value1 = null;
+                }else{
+                    value1 = expression1.evaluate(programState);
+                }
+
                 if(value1==null){
                     type1 = VariableType.NULL;
                 }else{
                     type1 = value1.getType();
                 }
 
-
-                //Sometimes, Expression2 will be null, as it is not used by the operator.
-                // e.g. ! operator only takes one expression, so expression2 here will be null.
                 Variable value2;
                 VariableType type2;
                 if(expression2==null){
@@ -255,19 +264,48 @@ public class Expression {
                         return new FloatVariable(value1.castFloat());
                     case castBoolean:
                         return new BooleanVariable(value1.castBoolean());
+
+                    case random:
+                        return new FloatVariable((float)Math.random());
+                    case length:
+                        if(type1==VariableType.STRING){
+                            return new IntegerVariable(value1.castString().length());
+                        }else if(type1==VariableType.ARRAY){
+                            return new IntegerVariable(value1.castArray().size());
+                        }
+                        //error invalid argument
+                        return new NullVariable();
+                    case charAt:
+                        if(type1 == VariableType.STRING && type2 == VariableType.INTEGER){
+                            String s = value1.castString();
+                            Integer i = value2.castInteger();
+                            return new StringVariable(Character.toString(s.charAt(i)));
+                        }
+                        //error invalid arguments
+                    case get:
+                        if(type1 == VariableType.ARRAY && type2 == VariableType.INTEGER){
+                            Integer i = value2.castInteger();
+                            return value1.castArray().get(i);
+                        }
+                        //error invalid arguments
+                    case type:
+                        return new StringVariable(type1.toString());
                 }
+                //error
                 return new NullVariable();
 
             case Function:
                 return new NullVariable();
 
             default:
+                //error
                 return new NullVariable();
         }
 
     }
 
 
+    //helper methods
     private boolean bothValuesAreNumbers(VariableType a, VariableType b){
         return  (a == VariableType.FLOAT || a == VariableType.INTEGER)
                 &&

@@ -21,7 +21,7 @@ public class ScriptExecutor {
         try {
             program = parser.parseScript(script);
         }catch (CompilerException e){
-            System.out.println(e);
+            e.printStackTrace();
             String message = e.getMessage();
             if(message != null){
                 programState.print("Error: "+e.getMessage());
