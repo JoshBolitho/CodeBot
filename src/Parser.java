@@ -34,7 +34,6 @@ public class Parser {
         type
     }
 
-    //need to rewrite as our own code
     //Require scanner to have the following pattern.
     static String require(Pattern p, Scanner s) {
         if (s.hasNext(p)) {
@@ -66,7 +65,7 @@ public class Parser {
     static Pattern OpenParenthesis = Pattern.compile("\\(");
     static Pattern CloseParenthesis = Pattern.compile("\\)");
     static Pattern OpenBrace = Pattern.compile("\\{");
-    static Pattern CloseBrace = Pattern.compile("\\}");
+    static Pattern CloseBrace = Pattern.compile("}");
     static Pattern NewLine = Pattern.compile("\n");
 //    static Pattern SemiColon = Pattern.compile(";");
 
@@ -325,12 +324,13 @@ public class Parser {
 
         }
 
-
+        else if (s.hasNext(OpenBrace)) { firstExpression = parseArrayExpression(s); }
         else if (s.hasNextInt()){firstExpression = new Expression(new IntegerVariable(s.nextInt()));}
         else if (s.hasNextFloat()){
             firstExpression = new Expression(new FloatVariable(s.nextFloat()));}
         else if (s.hasNextBoolean()){firstExpression = new Expression(new BooleanVariable(s.nextBoolean()));}
         else if (s.hasNext(Random)){
+            //random()
             require(Random,s);
             require(OpenParenthesis,s);
             require(CloseParenthesis,s);
@@ -402,9 +402,6 @@ public class Parser {
                     //replace original delimiter regex
                     s.useDelimiter("[^\\S\\r\\n]|(?=[{}(),;\\\"+\\-*\\/%#&|!\\n])|(?<=[{}(),;\\\"+\\-*\\/%#&|!\\n])");
 
-                }
-                else if (s.hasNext(OpenBrace)){
-                    firstExpression = parseArrayExpression(s);
                 }else{
                     throw new CompilerException("Unrecognised Expression: "+s.next());
                 }
@@ -562,11 +559,34 @@ public class Parser {
         throw new CompilerException("Unrecognised operation");
     }
 
-    //TODO
     public Expression parseArrayExpression(Scanner s){
-        return new Expression(new ArrayVariable(new ArrayList<Variable>()));
-    }
+        require(OpenBrace,s);
 
+        ArrayList<Expression> elements = new ArrayList<>();
+
+        while (true){
+            //ignore Newlines
+            if(s.hasNext(NewLine)){ require(NewLine,s);}
+
+            if(s.hasNext(CloseBrace)){
+                break;
+            }
+            elements.add(parseExpression(s,false));
+
+            //ignore Newlines
+            if(s.hasNext(NewLine)){ require(NewLine,s);}
+
+            if(s.hasNext(Comma)){
+                require(Comma,s);
+            }else{
+                break;
+            }
+        }
+
+        require(CloseBrace,s);
+
+        return new Expression(new ArrayVariable(elements));
+    }
 
     public Parser() {}
 }

@@ -1,4 +1,5 @@
 import java.lang.Math;
+import java.util.ArrayList;
 
 public class Expression {
 
@@ -62,6 +63,20 @@ public class Expression {
         switch (myMode) {
 
             case Value:
+                //Arrays are a special case, as they are parsed as an array of Expressions,
+                //but these expressions need to be evaluated during execution to an array of Variables.
+                //Only then, can the variables be accessed.
+                if(value.getType() == VariableType.ARRAY){
+                    //if the Variable array is null, evaluate the Expression array, and set the Variable array.
+                    if (value.getValue() == null){
+                        ArrayList<Variable> variables = new ArrayList<>();
+                        ArrayVariable thisArrayVariable = (ArrayVariable)value;
+                        for (Expression exp : thisArrayVariable.getExpressionArray()){
+                            variables.add(exp.evaluate(programState));
+                        }
+                        ((ArrayVariable) value).setValueArray(variables);
+                    }
+                }
                 return value;
 
             case Reference:
