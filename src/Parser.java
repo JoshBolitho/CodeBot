@@ -120,7 +120,7 @@ public class Parser {
                 commentRemovedScript = commentRemovedScript + s + "\n";
             }
         }
-//        System.out.println(script);
+
         System.out.println("\n=====================Parsing======================== \n"+commentRemovedScript);
 
         ProgramNode program = new ProgramNode();

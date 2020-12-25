@@ -171,9 +171,23 @@ public class Expression {
                             return new BooleanVariable(true);
                         }
                         if (type1 == VariableType.ARRAY && type2 == VariableType.ARRAY) {
-                            //TODO write recursive array equality checker
-                            return new BooleanVariable(false);
+                            if(value1.castArray().size() != value2.castArray().size()){return new BooleanVariable(false);}
+
+                            for(int i=0; i<value1.castArray().size(); i++){
+                                Variable v1 = value1.castArray().get(i);
+                                Variable v2 = value2.castArray().get(i);
+                                Variable equalityTester = new Expression(new Expression(v1),new Expression(v2),Parser.Operation.equals).evaluate(programState);
+
+                                if(equalityTester.getType() != VariableType.BOOLEAN ||
+                                        !equalityTester.castBoolean()
+                                ){
+                                    return new BooleanVariable(false);
+                                }
+                            }
+                            //every element of the two arrays have been tested and match.
+                            return new BooleanVariable(true);
                         }
+
                         return new BooleanVariable(false);
 
                     case plus:
