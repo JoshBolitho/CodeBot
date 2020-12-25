@@ -26,7 +26,7 @@ public class Function {
     }
 
 
-    public String asString() {
+    public String toString() {
         return "{TODO}";
     }
 

@@ -9,7 +9,7 @@ public class FloatVariable implements Variable{
     }
 
     @Override
-    public String asString() {
+    public String toString() {
         return Float.toString(value);
     }
 

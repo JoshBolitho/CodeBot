@@ -1,3 +1,5 @@
+package JSONClasses;
+
 public class Config {
     String user_access_token;
     String page_access_token;

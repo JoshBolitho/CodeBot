@@ -1,4 +1,4 @@
-package ResponseClasses;
+package JSONClasses;
 
 public class Comment {
     String created_time;

@@ -5,7 +5,7 @@ public class NullVariable implements Variable{
     public NullVariable() {}
 
     @Override
-    public String asString() {
+    public String toString() {
         return "null";
     }
 

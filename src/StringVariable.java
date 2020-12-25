@@ -9,7 +9,7 @@ public class StringVariable implements Variable{
     }
 
     @Override
-    public String asString() {
+    public String toString() {
         return value;
     }
 

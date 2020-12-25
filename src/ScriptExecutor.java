@@ -66,13 +66,13 @@ public class ScriptExecutor {
 
 //        System.out.println("Variables assigned:");
 //        for(String s : programState.getProgramVariables().keySet()){
-//            System.out.println(s+" : " + programState.getProgramVariables().get(s).asString());
+//            System.out.println(s+" : " + programState.getProgramVariables().get(s).toString());
 //        }
 //        System.out.println();
 //
 //        System.out.println("Functions assigned:");
 //        for(String s : programState.getProgramFunctions().keySet()){
-//            System.out.println(s+" : " + programState.getProgramFunctions().get(s).asString());
+//            System.out.println(s+" : " + programState.getProgramFunctions().get(s).toString());
 //        }
     }
 

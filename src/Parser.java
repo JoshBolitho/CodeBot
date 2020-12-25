@@ -34,38 +34,15 @@ public class Parser {
         type
     }
 
-    //Require scanner to have the following pattern.
-    static String require(Pattern p, Scanner s) {
-        if (s.hasNext(p)) {
-            return s.next();
-        }
-        //if the require fails:
-        String log = "Tokens received:";
-        for(int i=0;i<5;i++){
-            log += "["+ s.next() + "], ";
-        }
-        System.out.println(log);
-        throw new CompilerException("Expected "+p.toString());
-    }
-
-    static String require(String str, Scanner s) {
-        if (s.hasNext(str)) {
-            return s.next();
-        }
-        //if the require fails:
-        String log = "Tokens received:";
-        for(int i=0;i<5;i++){
-            log += "["+ s.next() + "], ";
-        }
-        System.out.println(log);
-        throw new CompilerException("Expected "+str);
-    }
 
 //    static Pattern IntegerPattern = Pattern.compile("-?\\d+"); // ("-?(0|[1-9][0-9]*)");
     static Pattern OpenParenthesis = Pattern.compile("\\(");
     static Pattern CloseParenthesis = Pattern.compile("\\)");
     static Pattern OpenBrace = Pattern.compile("\\{");
     static Pattern CloseBrace = Pattern.compile("}");
+    static Pattern OpenSquare = Pattern.compile("\\[");
+    static Pattern CloseSquare = Pattern.compile("]");
+
     static Pattern NewLine = Pattern.compile("\n");
 //    static Pattern SemiColon = Pattern.compile(";");
 
@@ -104,6 +81,34 @@ public class Parser {
     static Pattern Get =  Pattern.compile("get");
     static Pattern Type =  Pattern.compile("type");
 
+    static String defaultDelimiter = "[^\\S\\r\\n]|(?=[{}()\\[\\],;\"+\\-*/%#&|!<>=\\n])|(?<=[{}()\\[\\],;\"+\\-*/%#&|!<>=\\n])";
+
+    //Require scanner to have the following pattern.
+    static String require(Pattern p, Scanner s) {
+        if (s.hasNext(p)) {
+            return s.next();
+        }
+        //if the require fails:
+        String log = "Tokens received:";
+        for(int i=0;i<5;i++){
+            log += "["+ s.next() + "], ";
+        }
+        System.out.println(log);
+        throw new CompilerException("Expected "+p.toString());
+    }
+
+    static String require(String str, Scanner s) {
+        if (s.hasNext(str)) {
+            return s.next();
+        }
+        //if the require fails:
+        String log = "Tokens received:";
+        for(int i=0;i<5;i++){
+            log += "["+ s.next() + "], ";
+        }
+        System.out.println(log);
+        throw new CompilerException("Expected "+str);
+    }
 
     public ProgramNode parseScript(String script){
 
@@ -116,13 +121,13 @@ public class Parser {
             }
         }
 //        System.out.println(script);
-        System.out.println("=================Parsing================== \n"+commentRemovedScript);
+        System.out.println("\n=====================Parsing======================== \n"+commentRemovedScript);
 
         ProgramNode program = new ProgramNode();
         Scanner scanner = new Scanner(commentRemovedScript);
 
         //New delimiter that cuts each token before the \n character without consuming it.
-        scanner.useDelimiter("[^\\S\\r\\n]|(?=[{}(),;\\\"+\\-*\\/%#&|!\\n])|(?<=[{}(),;\\\"+\\-*\\/%#&|!\\n])");
+        scanner.useDelimiter(defaultDelimiter);
 
         while(scanner.hasNext()){
             program.addExecutableNode(parseExecutableNode(scanner));
@@ -324,7 +329,7 @@ public class Parser {
 
         }
 
-        else if (s.hasNext(OpenBrace)) { firstExpression = parseArrayExpression(s); }
+        else if (s.hasNext(OpenSquare)) { firstExpression = parseArrayExpression(s); }
         else if (s.hasNextInt()){firstExpression = new Expression(new IntegerVariable(s.nextInt()));}
         else if (s.hasNextFloat()){
             firstExpression = new Expression(new FloatVariable(s.nextFloat()));}
@@ -396,11 +401,11 @@ public class Parser {
                     //this case catches literally any other possible string
                     else {
                         firstExpression = new Expression(new StringVariable(nextString));
-                        s.useDelimiter("[^\\S\\r\\n]|(?=[{}(),;\\\"+\\-*\\/%#&|!\\n])|(?<=[{}(),;\\\"+\\-*\\/%#&|!\\n])");
+                        s.useDelimiter(defaultDelimiter);
                         require(DoubleQuotes, s);
                     }
                     //replace original delimiter regex
-                    s.useDelimiter("[^\\S\\r\\n]|(?=[{}(),;\\\"+\\-*\\/%#&|!\\n])|(?<=[{}(),;\\\"+\\-*\\/%#&|!\\n])");
+                    s.useDelimiter(defaultDelimiter);
 
                 }else{
                     throw new CompilerException("Unrecognised Expression: "+s.next());
@@ -415,6 +420,7 @@ public class Parser {
 
         //Detect the end of the expression if it exists. Otherwise, parse operators in the expression if it continues.
         if(s.hasNext(CloseBrace)){return firstExpression;}
+        if(s.hasNext(CloseSquare)){return firstExpression;}
         else if(s.hasNext(CloseParenthesis)){return firstExpression;}
         else if(s.hasNext(NewLine)){return firstExpression;}
         else if(s.hasNext(Comma)){return firstExpression;}
@@ -496,6 +502,7 @@ public class Parser {
 //        System.out.println("entering parseExp2");
 
         if(s.hasNext(CloseBrace)){return providedExpression;}
+        if(s.hasNext(CloseSquare)){return providedExpression;}
         else if(s.hasNext(CloseParenthesis)){return providedExpression;}
         else if(s.hasNext(NewLine)){return providedExpression;}
         else if(s.hasNext(Comma)){return providedExpression;}
@@ -560,7 +567,7 @@ public class Parser {
     }
 
     public Expression parseArrayExpression(Scanner s){
-        require(OpenBrace,s);
+        require(OpenSquare,s);
 
         ArrayList<Expression> elements = new ArrayList<>();
 
@@ -568,7 +575,7 @@ public class Parser {
             //ignore Newlines
             if(s.hasNext(NewLine)){ require(NewLine,s);}
 
-            if(s.hasNext(CloseBrace)){
+            if(s.hasNext(CloseSquare)){
                 break;
             }
             elements.add(parseExpression(s,false));
@@ -583,7 +590,7 @@ public class Parser {
             }
         }
 
-        require(CloseBrace,s);
+        require(CloseSquare,s);
 
         return new Expression(new ArrayVariable(elements));
     }

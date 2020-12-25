@@ -14,11 +14,26 @@ public class ArrayVariable implements Variable{
     }
 
     @Override
-    public String asString() {
-        String result = "[\n";
-        for(Variable v : valueArray){
-            //still prints commas for last element, close enough though. can fix later.
-            result = result + v.asString() + ",\n";
+    public String toString() {
+        if(valueArray==null){
+            String result = "[";
+            for(int i=0;i<expressionArray.size();i++){
+                result += expressionArray.get(i);
+                //Don't add a comma if it's the last element in the array.
+                if(i+1 != expressionArray.size()){
+                    result += ", ";
+                }
+            }
+            result += "]";
+            return result;
+        }
+        String result = "[";
+        for(int i=0;i<valueArray.size();i++){
+            result += valueArray.get(i);
+            //Don't add a comma if it's the last element in the array.
+            if(i+1 != valueArray.size()){
+                result += ", ";
+            }
         }
         result += "]";
         return result;

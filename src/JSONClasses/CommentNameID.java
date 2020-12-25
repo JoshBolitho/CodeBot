@@ -1,4 +1,4 @@
-package ResponseClasses;
+package JSONClasses;
 
 public class CommentNameID {
     String name;

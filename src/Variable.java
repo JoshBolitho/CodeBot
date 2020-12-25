@@ -1,7 +1,6 @@
 import java.util.ArrayList;
 
 public interface Variable {
-    public String asString();
     public Object getValue();
     public VariableType getType();
 

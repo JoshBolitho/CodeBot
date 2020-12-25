@@ -132,7 +132,7 @@ public class Expression {
                                 return new BooleanVariable((int) value1.getValue() > (int) value2.getValue());
                             }
                         }
-                        throw new ExecutionException(String.format("Failed to evaluate %s %s %s",value1.asString(),operation,value2.asString()));
+                        throw new ExecutionException(String.format("Failed to evaluate %s %s %s",value1,operation,value2));
 
                     case lessThan:
                         if (bothValuesAreNumbers(type1, type2)) {
@@ -149,7 +149,7 @@ public class Expression {
                                 return new BooleanVariable((int) value1.getValue() < (int) value2.getValue());
                             }
                         }
-                        throw new ExecutionException(String.format("Failed to evaluate %s %s %s",value1.asString(),operation,value2.asString()));
+                        throw new ExecutionException(String.format("Failed to evaluate %s %s %s",value1,operation,value2));
 
                     case equals:
 
@@ -192,9 +192,9 @@ public class Expression {
                         }
                         //String concatenation
                         if (type1 == VariableType.STRING || type2 == VariableType.STRING) {
-                            return new StringVariable(value1.asString() + value2.asString());
+                            return new StringVariable(value1.toString() + value2.toString());
                         }
-                        throw new ExecutionException(String.format("Failed to evaluate %s %s %s",value1.asString(),operation,value2.asString()));
+                        throw new ExecutionException(String.format("Failed to evaluate %s %s %s",value1,operation,value2));
 
                     case minus:
                         if (bothValuesAreNumbers(type1, type2)) {
@@ -210,7 +210,7 @@ public class Expression {
                             //both are ints
                             return new IntegerVariable((int) value1.getValue() - (int) value2.getValue());
                         }
-                        throw new ExecutionException(String.format("Failed to evaluate %s %s %s",value1.asString(),operation,value2.asString()));
+                        throw new ExecutionException(String.format("Failed to evaluate %s %s %s",value1,operation,value2));
 
                     case times:
                         if (bothValuesAreNumbers(type1, type2)) {
@@ -226,7 +226,7 @@ public class Expression {
                             //both are ints
                             return new IntegerVariable((int) value1.getValue() * (int) value2.getValue());
                         }
-                        throw new ExecutionException(String.format("Failed to evaluate %s %s %s",value1.asString(),operation,value2.asString()));
+                        throw new ExecutionException(String.format("Failed to evaluate %s %s %s",value1,operation,value2));
 
                     case divide:
                         if (bothValuesAreNumbers(type1, type2)) {
@@ -246,31 +246,31 @@ public class Expression {
                             }
                             return new FloatVariable((float) (int)value1.getValue() / (float) (int)value2.getValue());
                         }
-                        throw new ExecutionException(String.format("Failed to evaluate %s %s %s",value1.asString(),operation,value2.asString()));
+                        throw new ExecutionException(String.format("Failed to evaluate %s %s %s",value1,operation,value2));
 
                     case modulo:
                         if (type1 == VariableType.INTEGER && type2 == VariableType.INTEGER) {
                             return new IntegerVariable((int) value1.getValue() % (int) value2.getValue());
                         }
-                        throw new ExecutionException(String.format("Failed to evaluate %s %s %s",value1.asString(),operation,value2.asString()));
+                        throw new ExecutionException(String.format("Failed to evaluate %s %s %s",value1,operation,value2));
 
                     case and:
                         if (bothValuesAreBooleans(type1, type2)) {
                             return new BooleanVariable((Boolean) value1.getValue() && (Boolean) value2.getValue());
                         }
-                        throw new ExecutionException(String.format("Failed to evaluate %s %s %s",value1.asString(),operation,value2.asString()));
+                        throw new ExecutionException(String.format("Failed to evaluate %s %s %s",value1,operation,value2));
 
                     case or:
                         if (bothValuesAreBooleans(type1, type2)) {
                             return new BooleanVariable((Boolean) value1.getValue() || (Boolean) value2.getValue());
                         }
-                        throw new ExecutionException(String.format("Failed to evaluate %s %s %s",value1.asString(),operation,value2.asString()));
+                        throw new ExecutionException(String.format("Failed to evaluate %s %s %s",value1,operation,value2));
 
                     case not:
                         if (type1 == VariableType.BOOLEAN) {
                             return new BooleanVariable(!(Boolean) value1.getValue());
                         }
-                        throw new ExecutionException(String.format("Failed to evaluate %s %s",operation,value1.asString()));
+                        throw new ExecutionException(String.format("Failed to evaluate %s %s",operation,value1));
                     case castString:
                         return new StringVariable(value1.castString());
                     case castInteger:
@@ -336,12 +336,37 @@ public class Expression {
     public String toString() {
         switch (myMode){
             case Value :
-                return "Value(" + value.asString() + ')';
+                return "Value(" + value + ')';
             case Function:
                 return "Function";
             case Operation:
-                if(operation == Parser.Operation.not) return "not("+expression1.toString()+")";
-                return "("+expression1.toString() +" "+ operation +" "+ expression2.toString()+")";
+                switch (operation){
+                    case not:
+                        return "not("+expression1+")";
+                    case random:
+                        return "random()";
+                    case length:
+                        return "length("+expression1+")";
+                    case charAt:
+                        return "charAt("+expression1+","+expression2+")";
+                    case get:
+                        return "get("+expression1+","+expression2+")";
+                    case type:
+                        return "type("+expression1+")";
+                    case castString:
+                        return("castString("+expression1+")");
+                    case castInteger:
+                        return("castInteger("+expression1+")");
+                    case castFloat:
+                        return("castFloat("+expression1+")");
+                    case castBoolean:
+                        return("castBoolean("+expression1+")");
+
+                    default:
+                        return "("+expression1 +" "+ operation +" "+ expression2 +")";
+
+                }
+
             case Reference:
                 return "Reference("+variableReference+")";
         }

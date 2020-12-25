@@ -1,9 +1,8 @@
-package ResponseClasses;
+package JSONClasses;
 
 public class CommentData {
     Comment[] data;
     CommentResponseInfo paging;
-
 
     public Comment[] getData() {
         return data;

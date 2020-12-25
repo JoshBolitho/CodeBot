@@ -7,7 +7,7 @@ public class PrintNode implements ExecutableNode{
 
     @Override
     public void execute(ProgramState programState) {
-        programState.print(value.evaluate(programState).asString());
+        programState.print(value.evaluate(programState).toString());
     }
 
     @Override
