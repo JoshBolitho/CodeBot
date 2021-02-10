@@ -1,3 +1,5 @@
+import java.util.HashMap;
+
 public class PrintNode implements ExecutableNode{
     Expression value;
 
@@ -6,8 +8,8 @@ public class PrintNode implements ExecutableNode{
     }
 
     @Override
-    public void execute(ProgramState programState) {
-        programState.print(value.evaluate(programState).toString());
+    public void execute(ProgramState programState, HashMap<String,Variable> functionVariables) {
+        programState.print(value.evaluate(programState, functionVariables).toString());
     }
 
     @Override

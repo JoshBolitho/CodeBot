@@ -38,7 +38,7 @@ public class ScriptExecutor {
     //execute parsed ProgramNode
     public void executeProgram(){
         try {
-            program.execute(programState);
+            program.execute(programState, null);
         }catch (ExecutionException e){
             String message = e.getMessage();
             if(message != null){

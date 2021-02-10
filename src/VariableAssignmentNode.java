@@ -1,3 +1,5 @@
+import java.util.HashMap;
+
 public class VariableAssignmentNode implements ExecutableNode {
 
     String name;
@@ -9,8 +11,12 @@ public class VariableAssignmentNode implements ExecutableNode {
     }
 
     @Override
-    public void execute(ProgramState programState) {
-        programState.addProgramVariable(name,value.evaluate(programState));
+    public void execute(ProgramState programState, HashMap<String,Variable> functionVariables) {
+        if(functionVariables != null){
+            functionVariables.put(name,value.evaluate(programState, functionVariables));
+        }else {
+            programState.addProgramVariable(name, value.evaluate(programState, functionVariables));
+        }
     }
 
     @Override

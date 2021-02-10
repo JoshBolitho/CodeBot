@@ -11,6 +11,4 @@ public interface Variable {
     public Boolean castBoolean() throws ExecutionException;
     public ArrayList<Variable> castArray() throws ExecutionException;
 
-
-
 }

@@ -59,13 +59,9 @@ public class CodeBot {
         Gson gson = new GsonBuilder().setPrettyPrinting().create();
         String postJSON = gson.toJson(post);
 
-        System.out.println("writing post data:");
-        System.out.println(postJSON);
-
         Path fileName = Path.of("src/post.json");
         Files.writeString(fileName,postJSON);
     }
-
 
 
     public static void executeComments(String APIResponse) throws IOException, InterruptedException {
@@ -177,9 +173,34 @@ public class CodeBot {
     public static void main(String[] args) throws IOException, InterruptedException {
         loadConfig();
         loadPostData();
-//        String res = publishPost("NEW NEW NEW NEW POST");
+//        String res = publishPost("NEW POST 10 FEB");
 //        System.out.println(res);
         String commentData = requestComments(String.format("%s_%s",page_ID,postID));
         executeComments(commentData);
+
+
+
+
+
+
+        //Running a hardcoded test script instead of the CodeBot program
+//        String test = "function sum(a,b){\n" +
+//                "return a + b\n" +
+//                "}\n" +
+//                "print( sum(1,2) )\n";
+//                "function sumtwo(a,b){\n" +
+//                "print ( a+b )\n" +
+//                "return a+b\n" +
+//                "}\n" +
+//                "sumtwo(1,2)";
+//
+//        ScriptExecutor scriptExecutor = new ScriptExecutor(test);
+//        scriptExecutor.parseScript();
+//        scriptExecutor.displayProgram();
+//        System.out.println("\n=====================Execute========================");
+//        scriptExecutor.executeProgram();
+//
+//        String result = scriptExecutor.getConsoleOutput();
+//        System.out.println(result);
     }
 }

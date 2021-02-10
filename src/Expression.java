@@ -1,5 +1,6 @@
 import java.lang.Math;
 import java.util.ArrayList;
+import java.util.HashMap;
 
 public class Expression {
 
@@ -17,7 +18,8 @@ public class Expression {
     Variable value;
 
     //Function
-    Function function;
+    String functionName;
+    ArrayList<Expression> parameters;
 
     //Operation
     Expression expression1;
@@ -36,8 +38,9 @@ public class Expression {
     }
 
     //Expression represents a function call
-    public Expression(Function function){
-        this.function = function;
+    public Expression(String functionName, ArrayList<Expression> parameters){
+        this.functionName = functionName;
+        this.parameters = parameters;
         myMode = Mode.Function;
     }
 
@@ -58,7 +61,7 @@ public class Expression {
 
 
 
-    public Variable evaluate(ProgramState programState) throws RuntimeException{
+    public Variable evaluate(ProgramState programState, HashMap<String,Variable> functionVariables) throws RuntimeException{
 
         switch (myMode) {
 
@@ -72,7 +75,7 @@ public class Expression {
                         ArrayList<Variable> variables = new ArrayList<>();
                         ArrayVariable thisArrayVariable = (ArrayVariable)value;
                         for (Expression exp : thisArrayVariable.getExpressionArray()){
-                            variables.add(exp.evaluate(programState));
+                            variables.add(exp.evaluate(programState, functionVariables));
                         }
                         ((ArrayVariable) value).setValueArray(variables);
                     }
@@ -80,6 +83,11 @@ public class Expression {
                 return value;
 
             case Reference:
+                if(functionVariables != null){
+                    if(functionVariables.containsKey(variableReference)){
+                        return functionVariables.get(variableReference);
+                    }
+                }
                 return programState.getProgramVariable(variableReference);
 
             case Operation:
@@ -93,7 +101,7 @@ public class Expression {
                 if(expression1==null){
                     value1 = null;
                 }else{
-                    value1 = expression1.evaluate(programState);
+                    value1 = expression1.evaluate(programState, functionVariables);
                 }
 
                 if(value1==null){
@@ -107,7 +115,7 @@ public class Expression {
                 if(expression2==null){
                     value2 = null;
                 }else{
-                    value2 = expression2.evaluate(programState);
+                    value2 = expression2.evaluate(programState, functionVariables);
                 }
 
                 if(value2==null){
@@ -176,7 +184,7 @@ public class Expression {
                             for(int i=0; i<value1.castArray().size(); i++){
                                 Variable v1 = value1.castArray().get(i);
                                 Variable v2 = value2.castArray().get(i);
-                                Variable equalityTester = new Expression(new Expression(v1),new Expression(v2),Parser.Operation.equals).evaluate(programState);
+                                Variable equalityTester = new Expression(new Expression(v1),new Expression(v2),Parser.Operation.equals).evaluate(programState, functionVariables);
 
                                 if(equalityTester.getType() != VariableType.BOOLEAN ||
                                         !equalityTester.castBoolean()
@@ -324,8 +332,10 @@ public class Expression {
                 return new NullVariable();
 
             case Function:
-                return new NullVariable();
-
+                //evaluate the execution of the function.
+                Variable v = programState.getProgramFunction(functionName).executeFunction(parameters,programState);
+//                System.out.println("v: "+v);
+                return v;
             default:
                 //error
                 return new NullVariable();
