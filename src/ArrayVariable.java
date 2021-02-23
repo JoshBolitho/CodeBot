@@ -51,7 +51,8 @@ public class ArrayVariable implements Variable{
 
     @Override
     public String castString() throws ExecutionException{
-        throw new ExecutionException(String.format("Failed to cast array to string"));
+        return this.toString();
+//        throw new ExecutionException(String.format("Failed to cast array to string"));
     }
 
     @Override

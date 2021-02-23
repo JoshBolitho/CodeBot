@@ -131,7 +131,7 @@ public class Parser {
 
         //New delimiter that cuts each token before the \n character without consuming it.
         scanner.useDelimiter(defaultDelimiter);
-
+        
         while(scanner.hasNext()){
             program.addExecutableNode(parseExecutableNode(scanner, null));
         }
