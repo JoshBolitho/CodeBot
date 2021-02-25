@@ -7,6 +7,7 @@ public class Expression {
     enum Mode{
         Value,
         Function,
+        InternalFunction,
         Operation,
         Reference
     }
@@ -17,9 +18,10 @@ public class Expression {
     //Value
     Variable value;
 
-    //Function
+    //Function or "Internal Function" (Operations not directly available to users)
     String functionName;
     ArrayList<Expression> parameters;
+    boolean isInternalFunction;
 
     //Operation
     Expression expression1;
@@ -29,8 +31,6 @@ public class Expression {
     //Reference
     String variableReference;
 
-
-
     //Expression is simply a value
     public Expression(Variable value){
         this.value = value;
@@ -38,10 +38,11 @@ public class Expression {
     }
 
     //Expression represents a function call
-    public Expression(String functionName, ArrayList<Expression> parameters){
+    public Expression(String functionName, ArrayList<Expression> parameters, boolean isInternalFunction){
         this.functionName = functionName;
         this.parameters = parameters;
-        myMode = Mode.Function;
+
+        myMode = isInternalFunction? Mode.InternalFunction : Mode.Function;
     }
 
     //Expression is an operation on two expressions
@@ -333,9 +334,32 @@ public class Expression {
 
             case Function:
                 //evaluate the execution of the function.
-                Variable v = programState.getProgramFunction(functionName).executeFunction(parameters,programState);
+                if(programState.hasProgramFunction(functionName)){
+                    Variable v = programState.getProgramFunction(functionName).executeFunction(parameters,programState);
 //                System.out.println("v: "+v);
-                return v;
+                    return v;
+                }
+
+                throw new ExecutionException("No such function Exists: \""+functionName+"\"");
+
+
+            case InternalFunction:
+                switch (functionName){
+                    case "print":
+                        //check the correct number of parameters have been supplied
+                        if(parameters.size() != 1){
+                            throw new ExecutionException("Wrong number of parameters: expecting 1, received "+parameters.size());
+                        }
+                        Expression value = parameters.get(0);
+                        programState.print(value.evaluate(programState, functionVariables).toString());
+
+                        //print() returns nothing
+                        return new NullVariable();
+
+                    default:
+                        return new NullVariable();
+                }
+
             default:
                 //error
                 return new NullVariable();

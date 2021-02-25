@@ -37,9 +37,9 @@ public class Function {
         if(functionVariables.containsKey("_return")){
             return functionVariables.get("_return");
         }
-        System.out.println("in function execute: "+functionVariables);
+//        System.out.println("in function execute: "+functionVariables);
         //If this function has no return value, return null.
-        System.out.println("returning null");
+//        System.out.println("returning null");
         return new NullVariable();
     }
 

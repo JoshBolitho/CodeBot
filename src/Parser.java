@@ -1,4 +1,3 @@
-import java.lang.reflect.Array;
 import java.util.*;
 import java.util.regex.*;
 
@@ -131,7 +130,20 @@ public class Parser {
 
         //New delimiter that cuts each token before the \n character without consuming it.
         scanner.useDelimiter(defaultDelimiter);
-        
+
+        //Load Default functions
+        //Print(x)
+        ProgramNode printFunction = new ProgramNode();
+        printFunction.addExecutableNode(
+                //Assigns a placeholder variable to the output of the internal function print(x)
+                new VariableAssignmentNode("_", new Expression(
+                        "print",
+                        new ArrayList<Expression>(Arrays.asList(new Expression("x"))),
+                        true)));
+
+        program.addExecutableNode(new FunctionAssignmentNode("print", new Function("print",new String[]{"x"},printFunction)));
+        scriptFunctionNames.add("print");
+
         while(scanner.hasNext()){
             program.addExecutableNode(parseExecutableNode(scanner, null));
         }
@@ -144,9 +156,10 @@ public class Parser {
         if(s.hasNext("variable")){
             return parseVariableAssignment(s, functionVariables);
         }
-        else if(s.hasNext("print")){
-            return parsePrintNode(s, functionVariables);
-        }else if(s.hasNext(If)){
+//        else if(s.hasNext("print")){
+//            return parsePrintNode(s, functionVariables);
+//        }
+        else if(s.hasNext(If)){
             return parseIfNode(s, functionVariables);
         }else if(s.hasNext(While)){
             return parseWhileNode(s, functionVariables);
@@ -239,18 +252,18 @@ public class Parser {
             throw new CompilerException("Invalid variable name (Upper/Lower case alphabet characters only): "+s.next());
         }
     }
-
-    public PrintNode parsePrintNode(Scanner s, ArrayList<String> functionVariables){
-        require("print", s);
-        require(OpenParenthesis, s);
-
-        Expression value = parseExpression(s, false, functionVariables);
-
-        require(CloseParenthesis, s);
-        require(NewLine, s);
-
-        return new PrintNode(value);
-    }
+    
+//    public PrintNode parsePrintNode(Scanner s, ArrayList<String> functionVariables){
+//        require("print", s);
+//        require(OpenParenthesis, s);
+//
+//        Expression value = parseExpression(s, false, functionVariables);
+//
+//        require(CloseParenthesis, s);
+//        require(NewLine, s);
+//
+//        return new PrintNode(value);
+//    }
 
     public IfNode parseIfNode(Scanner s, ArrayList<String> functionVariables){
         require(If, s);
@@ -500,7 +513,7 @@ public class Parser {
                     }
                     require(CloseParenthesis,s);
 
-                    return new Expression(functionName, parameters);
+                    return new Expression(functionName, parameters, false);
                 }
             }
 

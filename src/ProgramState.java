@@ -38,6 +38,13 @@ public class ProgramState {
     public Function getProgramFunction(String key){
         return programFunctions.get(key);
     }
+
+    public boolean hasProgramFunction(String key){
+        return programFunctions.containsKey(key);
+    }
+
+
+
     public void addProgramFunction(String s, Function f){
         programFunctions.put(s,f);
     }
