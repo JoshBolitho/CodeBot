@@ -135,7 +135,7 @@ public class Parser {
         //Print(x)
         ProgramNode printFunction = new ProgramNode();
         printFunction.addExecutableNode(
-                //Assigns a placeholder variable to the output of the internal function print(x)
+                //Assigns a placeholder variable to the output of the internal function print()
                 new VariableAssignmentNode("_", new Expression(
                         "print",
                         new ArrayList<Expression>(Arrays.asList(new Expression("x"))),
@@ -143,6 +143,43 @@ public class Parser {
 
         program.addExecutableNode(new FunctionAssignmentNode("print", new Function("print",new String[]{"x"},printFunction)));
         scriptFunctionNames.add("print");
+
+        //add(array,value)
+        ProgramNode addFunction = new ProgramNode();
+        addFunction.addExecutableNode(
+                //Assigns a placeholder variable to the output of the internal function add()
+                new VariableAssignmentNode("_", new Expression(
+                        "add",
+                        new ArrayList<Expression>(Arrays.asList(new Expression("array"), new Expression("value"))),
+                        true)));
+
+        program.addExecutableNode(new FunctionAssignmentNode("add", new Function("add",new String[]{"array","value"},addFunction)));
+        scriptFunctionNames.add("add");
+
+        //remove(array,int)
+        ProgramNode removeFunction = new ProgramNode();
+        removeFunction.addExecutableNode(
+                //Assigns a placeholder variable to the output of the internal function remove()
+                new VariableAssignmentNode("_", new Expression(
+                        "remove",
+                        new ArrayList<Expression>(Arrays.asList(new Expression("array"), new Expression("int"))),
+                        true)));
+
+        program.addExecutableNode(new FunctionAssignmentNode("remove", new Function("remove",new String[]{"array","int"},removeFunction)));
+        scriptFunctionNames.add("remove");
+
+        //set(array,int,value)
+        ProgramNode setFunction = new ProgramNode();
+        setFunction.addExecutableNode(
+                //Assigns a placeholder variable to the output of the internal function set()
+                new VariableAssignmentNode("_", new Expression(
+                        "set",
+                        new ArrayList<Expression>(Arrays.asList(new Expression("array"), new Expression("int"), new Expression("value"))),
+                        true)));
+
+        program.addExecutableNode(new FunctionAssignmentNode("set", new Function("set",new String[]{"array","int","value"},setFunction)));
+        scriptFunctionNames.add("set");
+
 
         while(scanner.hasNext()){
             program.addExecutableNode(parseExecutableNode(scanner, null));
@@ -155,11 +192,7 @@ public class Parser {
     public ExecutableNode parseExecutableNode(Scanner s, ArrayList<String> functionVariables) {
         if(s.hasNext("variable")){
             return parseVariableAssignment(s, functionVariables);
-        }
-//        else if(s.hasNext("print")){
-//            return parsePrintNode(s, functionVariables);
-//        }
-        else if(s.hasNext(If)){
+        }else if(s.hasNext(If)){
             return parseIfNode(s, functionVariables);
         }else if(s.hasNext(While)){
             return parseWhileNode(s, functionVariables);
@@ -252,18 +285,6 @@ public class Parser {
             throw new CompilerException("Invalid variable name (Upper/Lower case alphabet characters only): "+s.next());
         }
     }
-    
-//    public PrintNode parsePrintNode(Scanner s, ArrayList<String> functionVariables){
-//        require("print", s);
-//        require(OpenParenthesis, s);
-//
-//        Expression value = parseExpression(s, false, functionVariables);
-//
-//        require(CloseParenthesis, s);
-//        require(NewLine, s);
-//
-//        return new PrintNode(value);
-//    }
 
     public IfNode parseIfNode(Scanner s, ArrayList<String> functionVariables){
         require(If, s);

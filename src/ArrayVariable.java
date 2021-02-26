@@ -79,6 +79,18 @@ public class ArrayVariable implements Variable{
         return expressionArray;
     }
 
+    //Might need to add some error handling stuff around these methods
+    public void addElement(Variable value){
+        valueArray.add(value);
+    }
+    public void removeElement(int i){
+        valueArray.remove(i);
+    }
+    public void setElement(int i, Variable value){
+        valueArray.set(i,value);
+    }
+
+
     public void setValueArray(ArrayList<Variable> valueArray) {
         this.valueArray = valueArray;
     }

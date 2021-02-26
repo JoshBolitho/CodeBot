@@ -356,6 +356,46 @@ public class Expression {
                         //print() returns nothing
                         return new NullVariable();
 
+                    case "add":
+                        //check the correct number of parameters have been supplied
+                        if(parameters.size() != 2){
+                            throw new ExecutionException("Wrong number of parameters: expecting 2 received "+parameters.size());
+                        }
+                        ArrayVariable addArray = (ArrayVariable)parameters.get(0).evaluate(programState, functionVariables);
+                        Variable addValue = parameters.get(1).evaluate(programState, functionVariables);
+
+                        addArray.addElement(addValue);
+
+                        //add() returns nothing
+                        return new NullVariable();
+
+                    case "remove":
+                        //check the correct number of parameters have been supplied
+                        if(parameters.size() != 2){
+                            throw new ExecutionException("Wrong number of parameters: expecting 2, received "+parameters.size());
+                        }
+                        ArrayVariable removeArray = (ArrayVariable)parameters.get(0).evaluate(programState, functionVariables);
+                        int removeInt = (Integer) ((IntegerVariable)parameters.get(1).evaluate(programState, functionVariables)).getValue();
+                        removeArray.removeElement(removeInt);
+
+                        //remove() returns nothing
+                        return new NullVariable();
+
+                    case "set":
+                        //check the correct number of parameters have been supplied
+                        if(parameters.size() != 3){
+                            throw new ExecutionException("Wrong number of parameters: expecting 3, received "+parameters.size());
+                        }
+                        ArrayVariable setArray = (ArrayVariable)parameters.get(0).evaluate(programState, functionVariables);
+                        int setInt = (Integer) ((IntegerVariable)parameters.get(1).evaluate(programState, functionVariables)).getValue();
+                        Variable setValue = parameters.get(2).evaluate(programState, functionVariables);
+
+                        setArray.setElement(setInt, setValue);
+
+                        //set() returns nothing
+                        return new NullVariable();
+
+
                     default:
                         return new NullVariable();
                 }
@@ -386,7 +426,9 @@ public class Expression {
             case Value :
                 return "Value(" + value + ')';
             case Function:
-                return "Function";
+                return "Function: "+functionName;
+            case InternalFunction:
+                return "InternalFunction: "+functionName;
             case Operation:
                 switch (operation){
                     case not:
