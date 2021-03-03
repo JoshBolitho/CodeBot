@@ -73,6 +73,7 @@ public class Parser {
     static Pattern If = Pattern.compile("if");
     static Pattern Else = Pattern.compile("else");
     static Pattern Function = Pattern.compile("function");
+    static Pattern Variable = Pattern.compile("variable");
     static Pattern Comma =  Pattern.compile(",");
 
     static Pattern Random =  Pattern.compile("random");
@@ -97,6 +98,16 @@ public class Parser {
         }
         System.out.println(log);
         throw new CompilerException("Expected "+p.toString());
+    }
+
+    //Return true if scanner has the following pattern.
+    //Consumes the pattern if it exists.
+    static boolean optionalRequire(Pattern p, Scanner s) {
+        if (s.hasNext(p)) {
+            s.next();
+            return true;
+        }
+        return false;
     }
 
     static String require(String str, Scanner s) {
@@ -190,7 +201,7 @@ public class Parser {
 
 
     public ExecutableNode parseExecutableNode(Scanner s, ArrayList<String> functionVariables) {
-        if(s.hasNext("variable")){
+        if(s.hasNext(Variable)){
             return parseVariableAssignment(s, functionVariables);
         }else if(s.hasNext(If)){
             return parseIfNode(s, functionVariables);
@@ -265,7 +276,7 @@ public class Parser {
         String variableName;
         Expression value;
 
-        require("variable", s);
+        require(Variable, s);
         if(s.hasNext("[a-z,A-Z]+")){
             variableName = s.next();
 
@@ -294,9 +305,9 @@ public class Parser {
 
         require(CloseParenthesis, s);
         require(OpenBrace, s);
-        require(NewLine, s);
+        optionalRequire(NewLine, s);
 
-//        while scanner doesn't have close brace
+        //while the scanner doesn't have close brace:
         ProgramNode ifBlock = new ProgramNode();
         while(!s.hasNext(CloseBrace)){
             ifBlock.addExecutableNode(parseExecutableNode(s, functionVariables));
@@ -308,7 +319,7 @@ public class Parser {
             require(Else, s);
             require(OpenBrace, s);
 
-//            while doesn't have close brace
+            //while the scanner doesn't have close brace:
             ProgramNode elseBlock = new ProgramNode();
             while(!s.hasNext(CloseBrace)){
                 elseBlock.addExecutableNode(parseExecutableNode(s, functionVariables));
@@ -330,7 +341,7 @@ public class Parser {
 
         require(CloseParenthesis, s);
         require(OpenBrace, s);
-        require(NewLine, s);
+        optionalRequire(NewLine, s);
 
 //        while scanner doesn't have close brace
         ProgramNode whileBlock = new ProgramNode();
@@ -367,7 +378,7 @@ public class Parser {
 
         require(CloseParenthesis,s);
         require(OpenBrace,s);
-        require(NewLine,s);
+        optionalRequire(NewLine,s);
         while(!s.hasNext(CloseBrace)){
             //Add new function name to list of recognised variables, so the compiler can reference them later.
             functionScript.addExecutableNode(parseExecutableNode(s, functionVariables));
