@@ -1,3 +1,4 @@
+import java.awt.image.BufferedImage;
 import java.util.ArrayList;
 
 public class FloatVariable implements Variable{
@@ -46,5 +47,10 @@ public class FloatVariable implements Variable{
     @Override
     public ArrayList<Variable> castArray() throws ExecutionException {
         throw new ExecutionException(String.format("Failed to cast %s to array",value));
+    }
+
+    @Override
+    public BufferedImage castImage() throws ExecutionException {
+        throw new ExecutionException(String.format("Failed to cast %s to image",value));
     }
 }

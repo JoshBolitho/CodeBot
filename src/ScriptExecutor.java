@@ -54,6 +54,10 @@ public class ScriptExecutor {
         return programState.getConsoleOutput();
     }
 
+    public ProgramState getProgramState() {
+        return programState;
+    }
+
     public static void main (String[] Args){
         String testScript = "";
 

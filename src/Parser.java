@@ -1,3 +1,7 @@
+import javax.imageio.ImageIO;
+import java.awt.image.BufferedImage;
+import java.io.File;
+import java.io.IOException;
 import java.util.*;
 import java.util.regex.*;
 
@@ -134,25 +138,33 @@ public class Parser {
             }
         }
 
-        System.out.println("\n=====================Parsing======================== \n"+commentRemovedScript);
-
         ProgramNode program = new ProgramNode();
         Scanner scanner = new Scanner(commentRemovedScript);
 
         //New delimiter that cuts each token before the \n character without consuming it.
         scanner.useDelimiter(defaultDelimiter);
 
-        //Load Default functions
+
+
+        //Load Default functions: This is the template for adding "Internal Functions" to parsing logic.
+        //Essentially manually defining functions in the program tree before the user's script is parsed.
+
         //Print(x)
+        //Create a new program node to hold the function definition.
         ProgramNode printFunction = new ProgramNode();
         printFunction.addExecutableNode(
-                //Assigns a placeholder variable to the output of the internal function print()
-                new VariableAssignmentNode("_", new Expression(
-                        "print",
-                        new ArrayList<Expression>(Arrays.asList(new Expression("x"))),
-                        true)));
+            //Assigns a placeholder variable to the output of the internal function print().
+            new VariableAssignmentNode("_", new Expression(
+                "print",
+                //The reference to "x" here assumes that there will be a variable in the function scope with the name "x".
+                new ArrayList<Expression>(Arrays.asList(new Expression("x"))),
+                true)));
 
-        program.addExecutableNode(new FunctionAssignmentNode("print", new Function("print",new String[]{"x"},printFunction)));
+        program.addExecutableNode(
+            //Besides for the toString() method, the name of the function parameter "x" doesn't matter.
+            // It just has to be consistent with what the Internal Function reference expects  (in the Internal Function reference Expression above).
+            new FunctionAssignmentNode("print", new Function("print",new String[]{"x"},printFunction)));
+        //Ensure the program knows it now has a function called print
         scriptFunctionNames.add("print");
 
         //add(array,value)
@@ -191,7 +203,106 @@ public class Parser {
         program.addExecutableNode(new FunctionAssignmentNode("set", new Function("set",new String[]{"array","int","value"},setFunction)));
         scriptFunctionNames.add("set");
 
+        //createImage(int,int)
+        ProgramNode createImageFunction = new ProgramNode();
+        createImageFunction.addExecutableNode(
+                //Assigns a placeholder variable to the output of the internal function createImage()
+                new VariableAssignmentNode("_return", new Expression(
+                        "createImage",
+                        new ArrayList<Expression>(Arrays.asList(new Expression("x"), new Expression("y"))),
+                        true)));
 
+        program.addExecutableNode(new FunctionAssignmentNode("createImage", new Function("createImage",new String[]{"x","y"},createImageFunction)));
+        scriptFunctionNames.add("createImage");
+
+        //setPixel(image,int x,int y,int r,int g,int b)
+        ProgramNode setPixelFunction = new ProgramNode();
+        setPixelFunction.addExecutableNode(
+                //Assigns a placeholder variable to the output of the internal function setPixel()
+                new VariableAssignmentNode("_", new Expression(
+                        "setPixel",
+                        new ArrayList<Expression>(Arrays.asList(new Expression("image"), new Expression("x"), new Expression("y"), new Expression("r"), new Expression("g"), new Expression("b"))),
+                        true)));
+
+        program.addExecutableNode(new FunctionAssignmentNode("setPixel", new Function("setPixel",new String[]{"image","x","y","r","g","b"},setPixelFunction)));
+        scriptFunctionNames.add("setPixel");
+
+        //setCanvas(image)
+        ProgramNode setCanvasFunction = new ProgramNode();
+        setCanvasFunction.addExecutableNode(
+                //Assigns a placeholder variable to the output of the internal function setCanvas()
+                new VariableAssignmentNode("_", new Expression(
+                        "setCanvas",
+                        new ArrayList<Expression>(Arrays.asList(new Expression("img"))),
+                        true)));
+
+        program.addExecutableNode(new FunctionAssignmentNode("setCanvas", new Function("setCanvas",new String[]{"img"},setCanvasFunction)));
+        scriptFunctionNames.add("setCanvas");
+
+        //canvasVisible(boolean)
+        ProgramNode canvasVisibleFunction = new ProgramNode();
+        canvasVisibleFunction.addExecutableNode(
+                //Assigns a placeholder variable to the output of the internal function canvasVisible()
+                new VariableAssignmentNode("_", new Expression(
+                        "canvasVisible",
+                        new ArrayList<Expression>(Arrays.asList(new Expression("bool"))),
+                        true)));
+
+        program.addExecutableNode(new FunctionAssignmentNode("canvasVisible", new Function("canvasVisible",new String[]{"bool"},canvasVisibleFunction)));
+        scriptFunctionNames.add("canvasVisible");
+
+        //getPixel(image,int x,int y)
+        ProgramNode getPixelFunction = new ProgramNode();
+        getPixelFunction.addExecutableNode(
+                //Assigns a placeholder variable to the output of the internal function getPixel()
+                new VariableAssignmentNode("_return", new Expression(
+                        "getPixel",
+                        new ArrayList<Expression>(Arrays.asList(new Expression("image"), new Expression("x"), new Expression("y"))),
+                        true)));
+
+        program.addExecutableNode(new FunctionAssignmentNode("getPixel", new Function("getPixel",new String[]{"image","x","y"},getPixelFunction)));
+        scriptFunctionNames.add("getPixel");
+
+
+        //Initialise canvas as ImageVariable called "_canvas"
+        //default size is 100x100
+        ProgramNode canvasVariable = new ProgramNode();
+        canvasVariable.addExecutableNode(
+            new VariableAssignmentNode("_canvas",
+                    new Expression(new ImageVariable(100,100))
+            )
+        );
+        program.addExecutableNode(canvasVariable);
+
+        //Initialise canvas visibility as boolean called "_canvasVisibility"
+        ProgramNode canvasVisibilityVariable = new ProgramNode();
+        canvasVisibilityVariable.addExecutableNode(
+                new VariableAssignmentNode("_canvasVisibility",
+                        //Canvas is not visible by default
+                        new Expression(new BooleanVariable(false))
+                )
+        );
+        program.addExecutableNode(canvasVisibilityVariable);
+
+        //Add monky image as "monky"
+        var image = "src\\monky.png";
+        BufferedImage monkyImage = new BufferedImage(100,100,BufferedImage.TYPE_INT_RGB);
+        try {
+            monkyImage = ImageIO.read(new File(image));
+        } catch (IOException e) {
+        }
+        ProgramNode monkyVariable = new ProgramNode();
+        monkyVariable.addExecutableNode(
+                new VariableAssignmentNode("monky",
+                        new Expression(new ImageVariable(monkyImage))
+                )
+        );
+        program.addExecutableNode(monkyVariable);
+        scriptVariableNames.add("monky");
+
+
+        //Parse the user's script
+        System.out.println("\n=====================Parsing======================== \n"+commentRemovedScript);
         while(scanner.hasNext()){
             program.addExecutableNode(parseExecutableNode(scanner, null));
         }

@@ -1,3 +1,4 @@
+import java.awt.image.BufferedImage;
 import java.util.ArrayList;
 
 public class NullVariable implements Variable{
@@ -42,5 +43,10 @@ public class NullVariable implements Variable{
     @Override
     public ArrayList<Variable> castArray() throws ExecutionException {
         throw new ExecutionException(String.format("Failed to cast null to array"));
+    }
+
+    @Override
+    public BufferedImage castImage() throws ExecutionException {
+        throw new ExecutionException(String.format("Failed to cast null to image"));
     }
 }

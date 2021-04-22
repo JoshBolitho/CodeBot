@@ -1,3 +1,4 @@
+import java.awt.*;
 import java.lang.Math;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -18,10 +19,9 @@ public class Expression {
     //Value
     Variable value;
 
-    //Function or "Internal Function" (Operations not directly available to users)
+    //Reference to a Function or "Internal Function" (Internal Functions are operations not directly available to users)
     String functionName;
     ArrayList<Expression> parameters;
-    boolean isInternalFunction;
 
     //Operation
     Expression expression1;
@@ -322,7 +322,19 @@ public class Expression {
                         //error invalid arguments
                     case get:
                         if(type1 == VariableType.ARRAY && type2 == VariableType.INTEGER){
+
                             Integer i = value2.castInteger();
+
+                            //if the Variable array is null, evaluate the Expression array, and set the Variable array.
+                            if (value1.getValue() == null){
+                                ArrayList<Variable> variables = new ArrayList<>();
+                                ArrayVariable thisArrayVariable = (ArrayVariable)value1;
+                                for (Expression exp : thisArrayVariable.getExpressionArray()){
+                                    variables.add(exp.evaluate(programState, functionVariables));
+                                }
+                                ((ArrayVariable) value1).setValueArray(variables);
+                            }
+
                             return value1.castArray().get(i);
                         }
                         //error invalid arguments
@@ -395,6 +407,75 @@ public class Expression {
                         //set() returns nothing
                         return new NullVariable();
 
+                    case "createImage":
+                        //check the correct number of parameters have been supplied
+                        if(parameters.size() != 2){
+                            throw new ExecutionException(functionName+" Wrong number of parameters: expecting 2, received "+parameters.size());
+                        }
+                        IntegerVariable x = (IntegerVariable)parameters.get(0).evaluate(programState, functionVariables);
+                        IntegerVariable y = (IntegerVariable)parameters.get(1).evaluate(programState, functionVariables);
+
+                        //createImage() returns an image variable
+                        return new ImageVariable((int)x.getValue(),(int)y.getValue());
+
+                    case "setPixel":
+                        //check the correct number of parameters have been supplied
+                        if(parameters.size() != 6){
+                            throw new ExecutionException(functionName+" Wrong number of parameters: expecting 6, received "+parameters.size());
+                        }
+                        ImageVariable setPixel_img = (ImageVariable) parameters.get(0).evaluate(programState, functionVariables);
+                        IntegerVariable setPixel_x = (IntegerVariable)parameters.get(1).evaluate(programState, functionVariables);
+                        IntegerVariable setPixel_y = (IntegerVariable)parameters.get(2).evaluate(programState, functionVariables);
+
+                        IntegerVariable setPixel_r = (IntegerVariable)parameters.get(3).evaluate(programState, functionVariables);
+                        IntegerVariable setPixel_g = (IntegerVariable)parameters.get(4).evaluate(programState, functionVariables);
+                        IntegerVariable setPixel_b = (IntegerVariable)parameters.get(5).evaluate(programState, functionVariables);
+
+                        Color setPixel_colour = new Color(
+                                setPixel_r.castInteger(),
+                                setPixel_g.castInteger(),
+                                setPixel_b.castInteger()
+                        );
+                        setPixel_img.setPixel((int)setPixel_x.getValue(),(int)setPixel_y.getValue(),setPixel_colour);
+
+                        //setPixel() returns nothing
+                        return new NullVariable();
+
+                    case "getPixel":
+                        //check the correct number of parameters have been supplied
+                        if(parameters.size() != 3){
+                            throw new ExecutionException(functionName+" Wrong number of parameters: expecting 3, received "+parameters.size());
+                        }
+
+                        ImageVariable getPixel_img = (ImageVariable) parameters.get(0).evaluate(programState, functionVariables);
+                        Integer getPixel_x = parameters.get(1).evaluate(programState, functionVariables).castInteger();
+                        Integer getPixel_y = parameters.get(2).evaluate(programState, functionVariables).castInteger();
+
+//                        System.out.println(parameters.get(0).evaluate(programState, functionVariables));
+//                        System.out.println("got pixel ("+ getPixel_x+","+getPixel_y+"): "+getPixel_img.getPixel(getPixel_x, getPixel_y));
+                        return getPixel_img.getPixel(getPixel_x, getPixel_y);
+
+                    case "setCanvas":
+                        //check the correct number of parameters have been supplied
+                        if(parameters.size() != 1){
+                            throw new ExecutionException(functionName+" Wrong number of parameters: expecting 1, received "+parameters.size());
+                        }
+                        ImageVariable setCanvas_img = (ImageVariable) parameters.get(0).evaluate(programState, functionVariables);
+                        programState.addProgramVariable("_canvas",setCanvas_img);
+
+                        //setCanvas() returns nothing
+                        return new NullVariable();
+
+                    case "canvasVisible":
+                        //check the correct number of parameters have been supplied
+                        if(parameters.size() != 1){
+                            throw new ExecutionException(functionName+" Wrong number of parameters: expecting 1, received "+parameters.size());
+                        }
+                        Boolean canvasVisible_bool = parameters.get(0).evaluate(programState, functionVariables).castBoolean();
+                        programState.addProgramVariable("_canvasVisibility",new BooleanVariable(canvasVisible_bool));
+
+                        //canvasVisible() returns nothing
+                        return new NullVariable();
 
                     default:
                         return new NullVariable();

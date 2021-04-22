@@ -1,3 +1,4 @@
+import java.awt.image.BufferedImage;
 import java.util.ArrayList;
 
 public interface Variable {
@@ -10,5 +11,6 @@ public interface Variable {
     public Float castFloat() throws ExecutionException;
     public Boolean castBoolean() throws ExecutionException;
     public ArrayList<Variable> castArray() throws ExecutionException;
+    public BufferedImage castImage() throws ExecutionException;
 
 }

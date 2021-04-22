@@ -1,3 +1,4 @@
+import java.awt.image.BufferedImage;
 import java.util.ArrayList;
 
 public class ArrayVariable implements Variable{
@@ -41,6 +42,9 @@ public class ArrayVariable implements Variable{
 
     @Override
     public Object getValue() {
+        if(valueArray == null){
+            System.out.println("Warning: valueArray is null, may not have been initialised yet.");
+        }
         return valueArray;
     }
 
@@ -73,6 +77,11 @@ public class ArrayVariable implements Variable{
     @Override
     public ArrayList<Variable> castArray() throws ExecutionException {
         return valueArray;
+    }
+
+    @Override
+    public BufferedImage castImage() throws ExecutionException {
+        throw new ExecutionException(String.format("Failed to cast array to image"));
     }
 
     public ArrayList<Expression> getExpressionArray() {

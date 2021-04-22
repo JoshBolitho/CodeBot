@@ -4,5 +4,6 @@ public enum VariableType {
     STRING,
     BOOLEAN,
     ARRAY,
-    NULL
+    NULL,
+    IMAGE
 }

@@ -12,9 +12,12 @@ public class VariableAssignmentNode implements ExecutableNode {
 
     @Override
     public void execute(ProgramState programState, HashMap<String,Variable> functionVariables) {
+        //If currently within a function, add this variable within the function's scope
         if(functionVariables != null){
             functionVariables.put(name,value.evaluate(programState, functionVariables));
-        }else {
+        }
+        //otherwise, add this variable in the global scope.
+        else {
             programState.addProgramVariable(name, value.evaluate(programState, functionVariables));
         }
     }

@@ -9,7 +9,6 @@ public class WhileNode implements ExecutableNode{
         this.whileBlock = whileBlock;
     }
 
-
     @Override
     public void execute(ProgramState programState, HashMap<String,Variable>functionVariables) {
         Variable conditionResult = condition.evaluate(programState, functionVariables);
