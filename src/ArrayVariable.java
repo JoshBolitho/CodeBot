@@ -6,7 +6,7 @@ public class ArrayVariable implements Variable{
     //Stores all parsed expressions in the array, ready to be evaluated once the program is running.
     private ArrayList<Expression> expressionArray;
 
-    //When the Array needs to be Evaluated during execution, probably to assign to a variable,
+    //When the Array needs to be Evaluated during execution, probably to assign to a variable or to print the array,
     //Expressions in expressionArray will be evaluated and valueArray will be set.
     private ArrayList<Variable> valueArray;
 
@@ -43,7 +43,7 @@ public class ArrayVariable implements Variable{
     @Override
     public Object getValue() {
         if(valueArray == null){
-            System.out.println("Warning: valueArray is null, may not have been initialised yet.");
+            System.out.println("Warning: Accessing valueArray, which is null and may not have been initialised yet.");
         }
         return valueArray;
     }
@@ -55,7 +55,21 @@ public class ArrayVariable implements Variable{
 
     @Override
     public String castString() throws ExecutionException{
-        return this.toString();
+        if(valueArray==null){
+            throw new ExecutionException("Trying to cast array to string that has not yet been evaluated");
+        }
+
+        String result = "[";
+        for(int i=0;i<valueArray.size();i++){
+            result += valueArray.get(i).castString();
+            //Don't add a comma if it's the last element in the array.
+            if(i+1 != valueArray.size()){
+                result += ", ";
+            }
+        }
+        result += "]";
+        return result;
+
 //        throw new ExecutionException(String.format("Failed to cast array to string"));
     }
 

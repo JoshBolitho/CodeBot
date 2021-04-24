@@ -86,7 +86,29 @@ public class Expression {
             case Reference:
                 if(functionVariables != null){
                     if(functionVariables.containsKey(variableReference)){
+                        Variable v = functionVariables.get(variableReference);
+                        if (v.getType()==VariableType.ARRAY){
+                            if (v.getValue() == null){
+                                ArrayList<Variable> variables = new ArrayList<>();
+                                ArrayVariable thisArrayVariable = (ArrayVariable)v;
+                                for (Expression exp : thisArrayVariable.getExpressionArray()){
+                                    variables.add(exp.evaluate(programState, functionVariables));
+                                }
+                                ((ArrayVariable) v).setValueArray(variables);
+                            }
+                        }
                         return functionVariables.get(variableReference);
+                    }
+                }
+                Variable v = programState.getProgramVariable(variableReference);
+                if (v.getType()==VariableType.ARRAY){
+                    if (v.getValue() == null){
+                        ArrayList<Variable> variables = new ArrayList<>();
+                        ArrayVariable thisArrayVariable = (ArrayVariable)v;
+                        for (Expression exp : thisArrayVariable.getExpressionArray()){
+                            variables.add(exp.evaluate(programState, functionVariables));
+                        }
+                        ((ArrayVariable) v).setValueArray(variables);
                     }
                 }
                 return programState.getProgramVariable(variableReference);
@@ -347,9 +369,9 @@ public class Expression {
             case Function:
                 //evaluate the execution of the function.
                 if(programState.hasProgramFunction(functionName)){
-                    Variable v = programState.getProgramFunction(functionName).executeFunction(parameters,programState);
+                    Variable var = programState.getProgramFunction(functionName).executeFunction(parameters,programState);
 //                System.out.println("v: "+v);
-                    return v;
+                    return var;
                 }
 
                 throw new ExecutionException("No such function Exists: \""+functionName+"\"");
@@ -363,7 +385,8 @@ public class Expression {
                             throw new ExecutionException("Wrong number of parameters: expecting 1, received "+parameters.size());
                         }
                         Expression value = parameters.get(0);
-                        programState.print(value.evaluate(programState, functionVariables).toString());
+
+                        programState.print(value.evaluate(programState, functionVariables).castString());
 
                         //print() returns nothing
                         return new NullVariable();
