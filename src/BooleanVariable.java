@@ -1,3 +1,6 @@
+import java.awt.image.BufferedImage;
+import java.util.ArrayList;
+
 public class BooleanVariable implements Variable{
 
     private boolean value;
@@ -7,8 +10,8 @@ public class BooleanVariable implements Variable{
     }
 
     @Override
-    public String asString() {
-        return Boolean.toString(value);
+    public String toString() {
+        return value ? "true" : "false";
     }
 
     @Override
@@ -23,21 +26,31 @@ public class BooleanVariable implements Variable{
 
     @Override
     public String castString() {
-        return null;
+        return Boolean.toString(value);
     }
 
     @Override
-    public Integer castInteger() {
-        return null;
+    public Integer castInteger() throws ScriptException{
+        throw new ScriptException(String.format("Failed to cast %s to integer",value));
     }
 
     @Override
-    public Float castFloat() {
-        return null;
+    public Float castFloat() throws ScriptException{
+        throw new ScriptException(String.format("Failed to cast %s to float",value));
     }
 
     @Override
     public Boolean castBoolean() {
-        return null;
+        return value;
+    }
+
+    @Override
+    public ArrayList<Variable> castArray() throws ScriptException {
+        throw new ScriptException(String.format("Failed to cast %s to array",value));
+    }
+
+    @Override
+    public BufferedImage castImage() throws ScriptException {
+        throw new ScriptException(String.format("Failed to cast %s to image",value));
     }
 }

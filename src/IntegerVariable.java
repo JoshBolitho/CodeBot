@@ -1,3 +1,6 @@
+import java.awt.image.BufferedImage;
+import java.util.ArrayList;
+
 public class IntegerVariable implements Variable{
 
     private int value;
@@ -7,7 +10,7 @@ public class IntegerVariable implements Variable{
     }
 
     @Override
-    public String asString() {
+    public String toString() {
         return Integer.toString(value);
     }
 
@@ -23,21 +26,31 @@ public class IntegerVariable implements Variable{
 
     @Override
     public String castString() {
-        return null;
+        return Integer.toString(value);
     }
 
     @Override
     public Integer castInteger() {
-        return null;
+        return value;
     }
 
     @Override
     public Float castFloat() {
-        return null;
+        return value * 1.0f;
     }
 
     @Override
     public Boolean castBoolean() {
-        return null;
+        return value != 0;
+    }
+
+    @Override
+    public ArrayList<Variable> castArray() throws ScriptException {
+        throw new ScriptException(String.format("Failed to cast %s to array",value));
+    }
+
+    @Override
+    public BufferedImage castImage() throws ScriptException {
+        throw new ScriptException(String.format("Failed to cast %s to image",value));
     }
 }

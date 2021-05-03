@@ -15,7 +15,7 @@ public class ProgramState {
 
     //Print a string line to console output
     public void print(String s){
-        System.out.println("Adding to console output: " + s);
+//        System.out.println("Adding to console output: " + s);
         consoleOutput = consoleOutput + s + "\n";
     }
 
@@ -26,7 +26,14 @@ public class ProgramState {
 
     //retrieve a variable by name
     public Variable getProgramVariable(String key){
-        return programVariables.get(key);
+        if(programVariables.containsKey(key)){
+            return programVariables.get(key);
+        }
+        throw new ScriptException("Unable to get program variable \""+key+"\" as it doesn't exist.");
+    }
+
+    public Boolean hasProgramVariable(String key){
+        return programVariables.containsKey(key);
     }
 
     //add a variable,
@@ -38,6 +45,13 @@ public class ProgramState {
     public Function getProgramFunction(String key){
         return programFunctions.get(key);
     }
+
+    public boolean hasProgramFunction(String key){
+        return programFunctions.containsKey(key);
+    }
+
+
+
     public void addProgramFunction(String s, Function f){
         programFunctions.put(s,f);
     }

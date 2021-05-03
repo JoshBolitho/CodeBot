@@ -1,9 +1,12 @@
+import java.awt.image.BufferedImage;
+import java.util.ArrayList;
+
 public class NullVariable implements Variable{
 
     public NullVariable() {}
 
     @Override
-    public String asString() {
+    public String toString() {
         return "null";
     }
 
@@ -19,21 +22,31 @@ public class NullVariable implements Variable{
 
     @Override
     public String castString() {
-        return null;
+        return "null";
     }
 
     @Override
-    public Integer castInteger() {
-        return null;
+    public Integer castInteger()throws ScriptException {
+        throw new ScriptException(String.format("Failed to null to integer"));
     }
 
     @Override
-    public Float castFloat() {
-        return null;
+    public Float castFloat() throws ScriptException{
+        throw new ScriptException(String.format("Failed to cast null to float"));
     }
 
     @Override
-    public Boolean castBoolean() {
-        return null;
+    public Boolean castBoolean() throws ScriptException{
+        throw new ScriptException(String.format("Failed to cast null to boolean"));
+    }
+
+    @Override
+    public ArrayList<Variable> castArray() throws ScriptException {
+        throw new ScriptException(String.format("Failed to cast null to array"));
+    }
+
+    @Override
+    public BufferedImage castImage() throws ScriptException {
+        throw new ScriptException(String.format("Failed to cast null to image"));
     }
 }

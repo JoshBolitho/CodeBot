@@ -6,32 +6,54 @@ import java.util.HashMap;
 public class Function {
 
     //Initialised when function is defined
-    String[] variableNames;
-    ArrayList<ExecutableNode> executableNodes;
-    VariableType returnType;
+    String name;
+    String[] parameterNames;
+    ProgramNode functionScript;
 
-    public Function (String[] variableNames, ArrayList<ExecutableNode> executableNodes, VariableType returnType) {
-        this.variableNames = variableNames;
-        this.executableNodes = executableNodes;
-        this.returnType = returnType;
+    public Function(String name, String[] parameterNames, ProgramNode functionScript) {
+        this.name = name;
+        this.parameterNames = parameterNames;
+        this.functionScript = functionScript;
     }
 
-    //Initialised when function is called
-    HashMap<String,Variable> functionVariables;
-    Variable returnVariable;
+    //A called instance of this function, functionParameters are the inputs.
+    public Variable executeFunction( ArrayList<Expression> functionParameters, ProgramState programState){
 
-    //A called instance of this function. functionVariables are passed
-    public Variable executeFunction( ArrayList<Variable> functionVariables, Variable returnVariable){
+        //Ensure the right number of parameters were passed
+        if(functionParameters.size() != parameterNames.length){
+            throw new ScriptException("Wrong number of parameters: expecting "+ parameterNames.length+", received "+functionParameters.size());
+        }
+
+        //functionVariables tracks functionParameters + any variables defined within the function.
+        HashMap<String,Variable> functionVariables = new HashMap<>();
+        //Evaluate and add parameters to local variable list
+        for (int i = 0; i< parameterNames.length; i++){
+            functionVariables.put(parameterNames[i],functionParameters.get(i).evaluate(programState,null));
+        }
+        //Now the parameters are ready to use, run the script.
+        functionScript.execute(programState, functionVariables);
+
+        //return the output of execution if it exists.
+        if(functionVariables.containsKey("_return")){
+            return functionVariables.get("_return");
+        }
+//        System.out.println("in function execute: "+functionVariables);
+        //If this function has no return value, return null.
+//        System.out.println("returning null");
         return new NullVariable();
     }
 
 
-    public String asString() {
-        return "{TODO}";
-    }
+    public String toString() {
+        String out = name+" (";
+        for (int i=0;i<parameterNames.length;i++){
+            out += parameterNames[i];
+            if(i< parameterNames.length-1) out += ", ";
+        }
+        out += "){\n";
+        out += functionScript.toString();
+        out+="\n}";
 
-    public Function(String[] variableNames) {
-        this.variableNames = variableNames;
+        return out;
     }
-
 }
