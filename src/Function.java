@@ -21,7 +21,7 @@ public class Function {
 
         //Ensure the right number of parameters were passed
         if(functionParameters.size() != parameterNames.length){
-            throw new ExecutionException("Wrong number of parameters: expecting "+ parameterNames.length+", received "+functionParameters.size());
+            throw new ScriptException("Wrong number of parameters: expecting "+ parameterNames.length+", received "+functionParameters.size());
         }
 
         //functionVariables tracks functionParameters + any variables defined within the function.

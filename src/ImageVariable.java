@@ -1,7 +1,6 @@
 import java.awt.*;
 import java.awt.image.BufferedImage;
 import java.util.ArrayList;
-import java.util.Arrays;
 
 public class ImageVariable implements Variable{
 
@@ -32,7 +31,7 @@ public class ImageVariable implements Variable{
         if(x<image.getWidth() && y< image.getHeight()) {
             image.setRGB(x, y, colour.getRGB());
         }else{
-            throw new ExecutionException(String.format("Coordinates (%s,%s) don't fit within image dimensions (%s,%s)",x,y,image.getWidth(),image.getHeight()));
+            throw new ScriptException(String.format("Coordinates (%s,%s) don't fit within image dimensions (%s,%s)",x,y,image.getWidth(),image.getHeight()));
         }
     }
 
@@ -49,7 +48,7 @@ public class ImageVariable implements Variable{
             return new ArrayVariable(elements);
 
         }else{
-            throw new ExecutionException(String.format("Coordinates (%s,%s) don't fit within image dimensions (%s,%s)",x,y,image.getWidth(),image.getHeight()));
+            throw new ScriptException(String.format("Coordinates (%s,%s) don't fit within image dimensions (%s,%s)",x,y,image.getWidth(),image.getHeight()));
         }
 
 
@@ -72,32 +71,32 @@ public class ImageVariable implements Variable{
     }
 
     @Override
-    public String castString() throws ExecutionException{
+    public String castString() throws ScriptException{
         return this.toString();
     }
 
     @Override
-    public Integer castInteger() throws ExecutionException{
-        throw new ExecutionException(String.format("Failed to cast image to integer"));
+    public Integer castInteger() throws ScriptException{
+        throw new ScriptException(String.format("Failed to cast image to integer"));
     }
 
     @Override
-    public Float castFloat() throws ExecutionException{
-        throw new ExecutionException(String.format("Failed to cast image to float"));
+    public Float castFloat() throws ScriptException{
+        throw new ScriptException(String.format("Failed to cast image to float"));
     }
 
     @Override
-    public Boolean castBoolean() throws ExecutionException{
-        throw new ExecutionException(String.format("Failed to cast image to boolean"));
+    public Boolean castBoolean() throws ScriptException{
+        throw new ScriptException(String.format("Failed to cast image to boolean"));
     }
 
     @Override
-    public ArrayList<Variable> castArray() throws ExecutionException {
-        throw new ExecutionException(String.format("Failed to cast image to array"));
+    public ArrayList<Variable> castArray() throws ScriptException {
+        throw new ScriptException(String.format("Failed to cast image to array"));
     }
 
     @Override
-    public BufferedImage castImage() throws ExecutionException {
+    public BufferedImage castImage() throws ScriptException {
         return image;
     }
 }

@@ -12,7 +12,7 @@ public class WhileNode implements ExecutableNode{
     @Override
     public void execute(ProgramState programState, HashMap<String,Variable>functionVariables) {
         Variable conditionResult = condition.evaluate(programState, functionVariables);
-        if(conditionResult.getType() != VariableType.BOOLEAN){throw new ExecutionException("while statement's condition didn't evaluate to a boolean value");}
+        if(conditionResult.getType() != VariableType.BOOLEAN){throw new ScriptException("while statement's condition didn't evaluate to a boolean value");}
         Boolean runWhileBlock = conditionResult.castBoolean();
 
         while(runWhileBlock){
@@ -21,7 +21,7 @@ public class WhileNode implements ExecutableNode{
 
             //test the while condition again
             conditionResult = condition.evaluate(programState, functionVariables);
-            if(conditionResult.getType() != VariableType.BOOLEAN){throw new ExecutionException("while statement's condition didn't evaluate to a boolean value");}
+            if(conditionResult.getType() != VariableType.BOOLEAN){throw new ScriptException("while statement's condition didn't evaluate to a boolean value");}
             runWhileBlock = conditionResult.castBoolean();
         }
 

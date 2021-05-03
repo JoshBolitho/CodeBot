@@ -91,7 +91,7 @@ public class Parser {
     static String defaultDelimiter = "[^\\S\\r\\n]|(?=[{}()\\[\\],;\"+\\-*/%#&|!<>=\\n])|(?<=[{}()\\[\\],;\"+\\-*/%#&|!<>=\\n])";
 
     //Require scanner to have the following pattern.
-    static String require(Pattern p, Scanner s) {
+    static String require (Pattern p, Scanner s) throws ScriptException {
         if (s.hasNext(p)) {
             return s.next();
         }
@@ -101,7 +101,7 @@ public class Parser {
             log += "["+ s.next() + "], ";
         }
         System.out.println(log);
-        throw new CompilerException("Expected "+p.toString());
+        throw new ScriptException("Expected "+p.toString());
     }
 
     //Return true if scanner has the following pattern.
@@ -114,7 +114,7 @@ public class Parser {
         return false;
     }
 
-    static String require(String str, Scanner s) {
+    static String require(String str, Scanner s) throws ScriptException {
         if (s.hasNext(str)) {
             return s.next();
         }
@@ -124,7 +124,7 @@ public class Parser {
             log += "["+ s.next() + "], ";
         }
         System.out.println(log);
-        throw new CompilerException("Expected "+str);
+        throw new ScriptException("Expected "+str);
     }
 
     //Creates a function assignment node, and adds it to the program.
@@ -137,8 +137,8 @@ public class Parser {
         //Convert the String[] to an ArrayList of variable reference expressions.
         //(As required in the internal function expression below)
         ArrayList<Expression> args = new ArrayList<>();
-        for(int i=0;i< arguments.length;i++){
-            args.add(new Expression(arguments[i]));
+        for (String argument : arguments) {
+            args.add(new Expression(argument));
         }
 
         //Create a variable assignment node which accesses and runs an internal function,
@@ -167,6 +167,30 @@ public class Parser {
         );
         //Ensure the program knows it now has the function functionName
         scriptFunctionNames.add(functionName);
+    }
+
+    //Creates a variable assignment node, and adds it to the program.
+    //As a result, executing the program will add the variable to the scripting environment.
+    public void addProgramVariable(ProgramNode program, String name, Variable variable){
+        ProgramNode myVariable = new ProgramNode();
+        myVariable.addExecutableNode(
+                new VariableAssignmentNode(name,
+                        new Expression(variable)
+                )
+        );
+        program.addExecutableNode(myVariable);
+        scriptVariableNames.add("name");
+    }
+
+    //Load an image as a BufferedImage, given known dimensions.
+    public BufferedImage loadImage(String source, int x, int y){
+        BufferedImage bi = new BufferedImage(x,y,BufferedImage.TYPE_INT_RGB);
+        try {
+            bi = ImageIO.read(new File(source));
+        } catch (IOException e) {
+            System.out.println("loadImage failed:" + source);
+        }
+        return bi;
     }
 
     public ProgramNode parseScript(String script){
@@ -200,52 +224,29 @@ public class Parser {
 
         //Initialise canvas as ImageVariable called "_canvas"
         //default size is 100x100
-        ProgramNode canvasVariable = new ProgramNode();
-        canvasVariable.addExecutableNode(
-            new VariableAssignmentNode("_canvas",
-                    new Expression(new ImageVariable(100,100))
-            )
-        );
-        program.addExecutableNode(canvasVariable);
+        addProgramVariable(program, "_canvas",new ImageVariable(100,100));
 
         //Initialise canvas visibility as boolean called "_canvasVisibility"
-        ProgramNode canvasVisibilityVariable = new ProgramNode();
-        canvasVisibilityVariable.addExecutableNode(
-                new VariableAssignmentNode("_canvasVisibility",
-                        //Canvas is not visible by default
-                        new Expression(new BooleanVariable(false))
-                )
-        );
-        program.addExecutableNode(canvasVisibilityVariable);
+        addProgramVariable(program, "_canvasVisibility",new BooleanVariable(false));
 
-        //Add monky image as "monky"
-        var image = "src\\monky.png";
-        BufferedImage monkyImage = new BufferedImage(100,100,BufferedImage.TYPE_INT_RGB);
-        try {
-            monkyImage = ImageIO.read(new File(image));
-        } catch (IOException e) {
-        }
-        ProgramNode monkyVariable = new ProgramNode();
-        monkyVariable.addExecutableNode(
-                new VariableAssignmentNode("monky",
-                        new Expression(new ImageVariable(monkyImage))
-                )
-        );
-        program.addExecutableNode(monkyVariable);
-        scriptVariableNames.add("monky");
-
+        //Add monky image
+        BufferedImage monkyImage = loadImage("src\\Images\\monky.png",100 ,100);
+        addProgramVariable(program,"monky",new ImageVariable(monkyImage));
 
         //Parse the user's script
         System.out.println("\n=====================Parsing======================== \n"+commentRemovedScript);
-        while(scanner.hasNext()){
-            program.addExecutableNode(parseExecutableNode(scanner, null));
-        }
-
+//        try {
+            while (scanner.hasNext()) {
+                program.addExecutableNode(parseExecutableNode(scanner, null));
+            }
+//        }catch (ScriptException c){
+//            throw new ScriptException()
+//        }
         return program;
     }
 
 
-    public ExecutableNode parseExecutableNode(Scanner s, ArrayList<String> functionVariables) {
+    public ExecutableNode parseExecutableNode (Scanner s, ArrayList<String> functionVariables) throws ScriptException {
         if(s.hasNext(Variable)){
             return parseVariableAssignment(s, functionVariables);
         }else if(s.hasNext(If)){
@@ -258,7 +259,7 @@ public class Parser {
             if(functionVariables!=null){
                 return parseReturn(s, functionVariables);
             }
-            throw new CompilerException("Can't return when not inside a function");
+            throw new ScriptException("Can't return when not inside a function");
         }else{
 
             //test whether scanner.next() has a variable name already defined in the function
@@ -305,7 +306,7 @@ public class Parser {
                 }
             }
             //error
-            throw new CompilerException("Invalid statement");
+            throw new ScriptException("Invalid statement");
         }
     }
 
@@ -317,7 +318,7 @@ public class Parser {
         return new VariableAssignmentNode("_return",value);
     }
 
-    public VariableAssignmentNode parseVariableAssignment(Scanner s, ArrayList<String> functionVariables) throws CompilerException{
+    public VariableAssignmentNode parseVariableAssignment(Scanner s, ArrayList<String> functionVariables) throws ScriptException {
         String variableName;
         Expression value;
 
@@ -338,7 +339,7 @@ public class Parser {
 //            System.out.println("setting "+variableName+" to "+value.myMode);
             return new VariableAssignmentNode(variableName,value);
         }else{
-            throw new CompilerException("Invalid variable name (Upper/Lower case alphabet characters only): "+s.next());
+            throw new ScriptException("Invalid variable name (Upper/Lower case alphabet characters only): "+s.next());
         }
     }
 
@@ -399,7 +400,7 @@ public class Parser {
         return new WhileNode(condition,whileBlock);
     }
 
-    public FunctionAssignmentNode parseFunctionAssignment(Scanner s){
+    public FunctionAssignmentNode parseFunctionAssignment(Scanner s) throws ScriptException {
         String name;
         ProgramNode functionScript = new ProgramNode();
 
@@ -407,7 +408,7 @@ public class Parser {
         if(s.hasNext("[a-z,A-Z]+")) {
             name = s.next();
         }else{
-            throw new CompilerException("Invalid function name (Upper/Lower case alphabet characters only): "+s.next());
+            throw new ScriptException("Invalid function name (Upper/Lower case alphabet characters only): "+s.next());
         }
         require(OpenParenthesis,s);
         ArrayList<String> functionVariables = new ArrayList<>();
@@ -441,7 +442,7 @@ public class Parser {
 
     //operationPriority defines the behaviour for parsing lower priority operations (+,-)
     //true = ignore lower priority operations
-    public Expression parseExpression(Scanner s, boolean operationPriority, ArrayList<String> functionVariables){
+    public Expression parseExpression (Scanner s, boolean operationPriority, ArrayList<String> functionVariables) throws ScriptException{
 //        System.out.println("entering parseExp1");
 
 //      Parse the left side of the expression.
@@ -598,7 +599,7 @@ public class Parser {
 
                 if (s.hasNext(DoubleQuotes)){
                     require(DoubleQuotes, s);
-                    //end token just before the next " character, and just after it aswell
+                    //end token just before the next " character, and just after it as well
                     s.useDelimiter("(?=[\"])|(?<=[\"])");
                     String nextString = s.next();
 
@@ -616,7 +617,7 @@ public class Parser {
                     s.useDelimiter(defaultDelimiter);
 
                 }else{
-                    throw new CompilerException("Unrecognised Expression: "+s.next());
+                    throw new ScriptException("Unrecognised Expression");
                 }
             }
         }
@@ -697,7 +698,7 @@ public class Parser {
         }
 
         //Error
-        throw new CompilerException("Unrecognised operation");
+        throw new ScriptException("Unrecognised operation");
     }
 
 
@@ -706,7 +707,7 @@ public class Parser {
     //This is used after a higher priority order of operations call of parseExpression is made for multiplication, division or modulo operation.
     //Because the higher priority call ignores + and -, we must use this method, ensuring that if it hasn't finished parsing, it can continue.
     //the boolean operationPriority used by the other version of this method is redundant here, as the priority will be false by default.
-    public Expression parseExpression(Scanner s, Expression providedExpression, ArrayList<String> functionVariables){
+    public Expression parseExpression(Scanner s, Expression providedExpression, ArrayList<String> functionVariables) throws ScriptException {
 //        System.out.println("entering parseExp2");
 
         if(s.hasNext(CloseBrace)){return providedExpression;}
@@ -771,10 +772,10 @@ public class Parser {
 
 
         //Error
-        throw new CompilerException("Unrecognised operation");
+        throw new ScriptException("Unrecognised operation");
     }
 
-    public Expression parseArrayExpression(Scanner s, ArrayList<String> functionVariables){
+    public Expression parseArrayExpression (Scanner s, ArrayList<String> functionVariables){
         require(OpenSquare,s);
 
         ArrayList<Expression> elements = new ArrayList<>();

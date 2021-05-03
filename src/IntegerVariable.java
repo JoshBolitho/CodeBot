@@ -45,12 +45,12 @@ public class IntegerVariable implements Variable{
     }
 
     @Override
-    public ArrayList<Variable> castArray() throws ExecutionException {
-        throw new ExecutionException(String.format("Failed to cast %s to array",value));
+    public ArrayList<Variable> castArray() throws ScriptException {
+        throw new ScriptException(String.format("Failed to cast %s to array",value));
     }
 
     @Override
-    public BufferedImage castImage() throws ExecutionException {
-        throw new ExecutionException(String.format("Failed to cast %s to image",value));
+    public BufferedImage castImage() throws ScriptException {
+        throw new ScriptException(String.format("Failed to cast %s to image",value));
     }
 }

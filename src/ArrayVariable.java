@@ -54,9 +54,9 @@ public class ArrayVariable implements Variable{
     }
 
     @Override
-    public String castString() throws ExecutionException{
+    public String castString() throws ScriptException{
         if(valueArray==null){
-            throw new ExecutionException("Trying to cast array to string that has not yet been evaluated");
+            throw new ScriptException("Trying to cast array to string that has not yet been evaluated");
         }
 
         String result = "[";
@@ -70,32 +70,32 @@ public class ArrayVariable implements Variable{
         result += "]";
         return result;
 
-//        throw new ExecutionException(String.format("Failed to cast array to string"));
+//        throw new ScriptException(String.format("Failed to cast array to string"));
     }
 
     @Override
-    public Integer castInteger() throws ExecutionException{
-        throw new ExecutionException(String.format("Failed to cast array to integer"));
+    public Integer castInteger() throws ScriptException{
+        throw new ScriptException(String.format("Failed to cast array to integer"));
     }
 
     @Override
-    public Float castFloat() throws ExecutionException{
-        throw new ExecutionException(String.format("Failed to cast array to float"));
+    public Float castFloat() throws ScriptException{
+        throw new ScriptException(String.format("Failed to cast array to float"));
     }
 
     @Override
-    public Boolean castBoolean() throws ExecutionException{
-        throw new ExecutionException(String.format("Failed to cast array to boolean"));
+    public Boolean castBoolean() throws ScriptException{
+        throw new ScriptException(String.format("Failed to cast array to boolean"));
     }
 
     @Override
-    public ArrayList<Variable> castArray() throws ExecutionException {
+    public ArrayList<Variable> castArray() throws ScriptException {
         return valueArray;
     }
 
     @Override
-    public BufferedImage castImage() throws ExecutionException {
-        throw new ExecutionException(String.format("Failed to cast array to image"));
+    public BufferedImage castImage() throws ScriptException {
+        throw new ScriptException(String.format("Failed to cast array to image"));
     }
 
     public ArrayList<Expression> getExpressionArray() {

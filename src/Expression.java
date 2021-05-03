@@ -163,7 +163,7 @@ public class Expression {
                                 return new BooleanVariable((int) value1.getValue() > (int) value2.getValue());
                             }
                         }
-                        throw new ExecutionException(String.format("Failed to evaluate %s %s %s",value1,operation,value2));
+                        throw new ScriptException(String.format("Failed to evaluate %s %s %s",value1,operation,value2));
 
                     case lessThan:
                         if (bothValuesAreNumbers(type1, type2)) {
@@ -180,7 +180,7 @@ public class Expression {
                                 return new BooleanVariable((int) value1.getValue() < (int) value2.getValue());
                             }
                         }
-                        throw new ExecutionException(String.format("Failed to evaluate %s %s %s",value1,operation,value2));
+                        throw new ScriptException(String.format("Failed to evaluate %s %s %s",value1,operation,value2));
 
                     case equals:
 
@@ -239,7 +239,7 @@ public class Expression {
                         if (type1 == VariableType.STRING || type2 == VariableType.STRING) {
                             return new StringVariable(value1.toString() + value2.toString());
                         }
-                        throw new ExecutionException(String.format("Failed to evaluate %s %s %s",value1,operation,value2));
+                        throw new ScriptException(String.format("Failed to evaluate %s %s %s",value1,operation,value2));
 
                     case minus:
                         if (bothValuesAreNumbers(type1, type2)) {
@@ -255,7 +255,7 @@ public class Expression {
                             //both are ints
                             return new IntegerVariable((int) value1.getValue() - (int) value2.getValue());
                         }
-                        throw new ExecutionException(String.format("Failed to evaluate %s %s %s",value1,operation,value2));
+                        throw new ScriptException(String.format("Failed to evaluate %s %s %s",value1,operation,value2));
 
                     case times:
                         if (bothValuesAreNumbers(type1, type2)) {
@@ -271,7 +271,7 @@ public class Expression {
                             //both are ints
                             return new IntegerVariable((int) value1.getValue() * (int) value2.getValue());
                         }
-                        throw new ExecutionException(String.format("Failed to evaluate %s %s %s",value1,operation,value2));
+                        throw new ScriptException(String.format("Failed to evaluate %s %s %s",value1,operation,value2));
 
                     case divide:
                         if (bothValuesAreNumbers(type1, type2)) {
@@ -291,31 +291,31 @@ public class Expression {
                             }
                             return new FloatVariable((float) (int)value1.getValue() / (float) (int)value2.getValue());
                         }
-                        throw new ExecutionException(String.format("Failed to evaluate %s %s %s",value1,operation,value2));
+                        throw new ScriptException(String.format("Failed to evaluate %s %s %s",value1,operation,value2));
 
                     case modulo:
                         if (type1 == VariableType.INTEGER && type2 == VariableType.INTEGER) {
                             return new IntegerVariable((int) value1.getValue() % (int) value2.getValue());
                         }
-                        throw new ExecutionException(String.format("Failed to evaluate %s %s %s",value1,operation,value2));
+                        throw new ScriptException(String.format("Failed to evaluate %s %s %s",value1,operation,value2));
 
                     case and:
                         if (bothValuesAreBooleans(type1, type2)) {
                             return new BooleanVariable((Boolean) value1.getValue() && (Boolean) value2.getValue());
                         }
-                        throw new ExecutionException(String.format("Failed to evaluate %s %s %s",value1,operation,value2));
+                        throw new ScriptException(String.format("Failed to evaluate %s %s %s",value1,operation,value2));
 
                     case or:
                         if (bothValuesAreBooleans(type1, type2)) {
                             return new BooleanVariable((Boolean) value1.getValue() || (Boolean) value2.getValue());
                         }
-                        throw new ExecutionException(String.format("Failed to evaluate %s %s %s",value1,operation,value2));
+                        throw new ScriptException(String.format("Failed to evaluate %s %s %s",value1,operation,value2));
 
                     case not:
                         if (type1 == VariableType.BOOLEAN) {
                             return new BooleanVariable(!(Boolean) value1.getValue());
                         }
-                        throw new ExecutionException(String.format("Failed to evaluate %s %s",operation,value1));
+                        throw new ScriptException(String.format("Failed to evaluate %s %s",operation,value1));
                     case castString:
                         return new StringVariable(value1.castString());
                     case castInteger:
@@ -374,7 +374,7 @@ public class Expression {
                     return var;
                 }
 
-                throw new ExecutionException("No such function Exists: \""+functionName+"\"");
+                throw new ScriptException("No such function Exists: \""+functionName+"\"");
 
 
             case InternalFunction:
@@ -382,7 +382,7 @@ public class Expression {
                     case "print":
                         //check the correct number of parameters have been supplied
                         if(parameters.size() != 1){
-                            throw new ExecutionException("Wrong number of parameters: expecting 1, received "+parameters.size());
+                            throw new ScriptException("Wrong number of parameters: expecting 1, received "+parameters.size());
                         }
                         Expression value = parameters.get(0);
 
@@ -394,7 +394,7 @@ public class Expression {
                     case "add":
                         //check the correct number of parameters have been supplied
                         if(parameters.size() != 2){
-                            throw new ExecutionException("Wrong number of parameters: expecting 2 received "+parameters.size());
+                            throw new ScriptException("Wrong number of parameters: expecting 2 received "+parameters.size());
                         }
                         ArrayVariable addArray = (ArrayVariable)parameters.get(0).evaluate(programState, functionVariables);
                         Variable addValue = parameters.get(1).evaluate(programState, functionVariables);
@@ -407,7 +407,7 @@ public class Expression {
                     case "remove":
                         //check the correct number of parameters have been supplied
                         if(parameters.size() != 2){
-                            throw new ExecutionException("Wrong number of parameters: expecting 2, received "+parameters.size());
+                            throw new ScriptException("Wrong number of parameters: expecting 2, received "+parameters.size());
                         }
                         ArrayVariable removeArray = (ArrayVariable)parameters.get(0).evaluate(programState, functionVariables);
                         int removeInt = (Integer) ((IntegerVariable)parameters.get(1).evaluate(programState, functionVariables)).getValue();
@@ -419,7 +419,7 @@ public class Expression {
                     case "set":
                         //check the correct number of parameters have been supplied
                         if(parameters.size() != 3){
-                            throw new ExecutionException("Wrong number of parameters: expecting 3, received "+parameters.size());
+                            throw new ScriptException("Wrong number of parameters: expecting 3, received "+parameters.size());
                         }
                         ArrayVariable setArray = (ArrayVariable)parameters.get(0).evaluate(programState, functionVariables);
                         int setInt = (Integer) ((IntegerVariable)parameters.get(1).evaluate(programState, functionVariables)).getValue();
@@ -433,7 +433,7 @@ public class Expression {
                     case "createImage":
                         //check the correct number of parameters have been supplied
                         if(parameters.size() != 2){
-                            throw new ExecutionException(functionName+" Wrong number of parameters: expecting 2, received "+parameters.size());
+                            throw new ScriptException(functionName+" Wrong number of parameters: expecting 2, received "+parameters.size());
                         }
                         IntegerVariable x = (IntegerVariable)parameters.get(0).evaluate(programState, functionVariables);
                         IntegerVariable y = (IntegerVariable)parameters.get(1).evaluate(programState, functionVariables);
@@ -444,7 +444,7 @@ public class Expression {
                     case "setPixel":
                         //check the correct number of parameters have been supplied
                         if(parameters.size() != 6){
-                            throw new ExecutionException(functionName+" Wrong number of parameters: expecting 6, received "+parameters.size());
+                            throw new ScriptException(functionName+" Wrong number of parameters: expecting 6, received "+parameters.size());
                         }
                         ImageVariable setPixel_img = (ImageVariable) parameters.get(0).evaluate(programState, functionVariables);
                         IntegerVariable setPixel_x = (IntegerVariable)parameters.get(1).evaluate(programState, functionVariables);
@@ -467,7 +467,7 @@ public class Expression {
                     case "getPixel":
                         //check the correct number of parameters have been supplied
                         if(parameters.size() != 3){
-                            throw new ExecutionException(functionName+" Wrong number of parameters: expecting 3, received "+parameters.size());
+                            throw new ScriptException(functionName+" Wrong number of parameters: expecting 3, received "+parameters.size());
                         }
 
                         ImageVariable getPixel_img = (ImageVariable) parameters.get(0).evaluate(programState, functionVariables);
@@ -481,7 +481,7 @@ public class Expression {
                     case "setCanvas":
                         //check the correct number of parameters have been supplied
                         if(parameters.size() != 1){
-                            throw new ExecutionException(functionName+" Wrong number of parameters: expecting 1, received "+parameters.size());
+                            throw new ScriptException(functionName+" Wrong number of parameters: expecting 1, received "+parameters.size());
                         }
                         ImageVariable setCanvas_img = (ImageVariable) parameters.get(0).evaluate(programState, functionVariables);
                         programState.addProgramVariable("_canvas",setCanvas_img);
@@ -492,7 +492,7 @@ public class Expression {
                     case "canvasVisible":
                         //check the correct number of parameters have been supplied
                         if(parameters.size() != 1){
-                            throw new ExecutionException(functionName+" Wrong number of parameters: expecting 1, received "+parameters.size());
+                            throw new ScriptException(functionName+" Wrong number of parameters: expecting 1, received "+parameters.size());
                         }
                         Boolean canvasVisible_bool = parameters.get(0).evaluate(programState, functionVariables).castBoolean();
                         programState.addProgramVariable("_canvasVisibility",new BooleanVariable(canvasVisible_bool));

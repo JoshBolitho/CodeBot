@@ -6,11 +6,11 @@ public interface Variable {
     public VariableType getType();
 
     //Used for casting attempts, if failed, these will throw errors to the user.
-    public String castString() throws ExecutionException;
-    public Integer castInteger() throws ExecutionException;
-    public Float castFloat() throws ExecutionException;
-    public Boolean castBoolean() throws ExecutionException;
-    public ArrayList<Variable> castArray() throws ExecutionException;
-    public BufferedImage castImage() throws ExecutionException;
+    public String castString() throws ScriptException;
+    public Integer castInteger() throws ScriptException;
+    public Float castFloat() throws ScriptException;
+    public Boolean castBoolean() throws ScriptException;
+    public ArrayList<Variable> castArray() throws ScriptException;
+    public BufferedImage castImage() throws ScriptException;
 
 }

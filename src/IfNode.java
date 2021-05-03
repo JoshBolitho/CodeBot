@@ -32,7 +32,7 @@ public class IfNode implements ExecutableNode{
     @Override
     public void execute(ProgramState programState, HashMap<String,Variable> functionVariables) {
         Variable conditionResult = condition.evaluate(programState, functionVariables);
-        if(conditionResult.getType() != VariableType.BOOLEAN){throw new ExecutionException("if statement's condition didn't evaluate to a boolean value");}
+        if(conditionResult.getType() != VariableType.BOOLEAN){throw new ScriptException("if statement's condition didn't evaluate to a boolean value");}
 
         if(conditionResult.castBoolean()){
             //if condition evaluates to true

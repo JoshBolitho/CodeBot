@@ -17,18 +17,8 @@ public class ScriptExecutor {
     }
 
     //Parse script to ProgramNode
-    public void parseScript(){
-        try {
-            program = parser.parseScript(script);
-        }catch (CompilerException e){
-            e.printStackTrace();
-            String message = e.getMessage();
-            if(message != null){
-                programState.print("Error: "+e.getMessage());
-            }else{
-                programState.print("Error: Unspecified Compilation error.");
-            }
-        }
+    public void parseScript() throws ScriptException{
+        program = parser.parseScript(script);
     }
 
     public void displayProgram(){
@@ -39,7 +29,7 @@ public class ScriptExecutor {
     public void executeProgram(){
         try {
             program.execute(programState, null);
-        }catch (ExecutionException e){
+        }catch (ScriptException e){
             String message = e.getMessage();
             if(message != null){
                 programState.print("Error: "+e.getMessage());
@@ -59,13 +49,21 @@ public class ScriptExecutor {
     }
 
     public static void main (String[] Args){
-        String testScript = "";
-
+        String testScript = "print(";
         ScriptExecutor myScriptExecutor = new ScriptExecutor(testScript);
-        myScriptExecutor.parseScript();
-        myScriptExecutor.displayProgram();
-        myScriptExecutor.executeProgram();
-
+        try{
+            myScriptExecutor.parseScript();
+            myScriptExecutor.displayProgram();
+            myScriptExecutor.executeProgram();
+        }catch (ScriptException e){
+            e.printStackTrace();
+            String message = e.getMessage();
+            if(message != null){
+                myScriptExecutor.getProgramState().print("Error: "+e.getMessage());
+            }else{
+                myScriptExecutor.getProgramState().print("Error: Unspecified error.");
+            }
+        }
         System.out.println("\n===================Console Output==========================\n"+myScriptExecutor.getConsoleOutput());
 
 //        System.out.println("Variables assigned:");

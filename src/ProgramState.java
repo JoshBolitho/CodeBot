@@ -26,7 +26,14 @@ public class ProgramState {
 
     //retrieve a variable by name
     public Variable getProgramVariable(String key){
-        return programVariables.get(key);
+        if(programVariables.containsKey(key)){
+            return programVariables.get(key);
+        }
+        throw new ScriptException("Unable to get program variable \""+key+"\" as it doesn't exist.");
+    }
+
+    public Boolean hasProgramVariable(String key){
+        return programVariables.containsKey(key);
     }
 
     //add a variable,

@@ -77,19 +77,27 @@ public class CodeBot {
         CommentData messageWrapper = gson.fromJson(APIResponse, CommentData.class);
         Comment[] comments = messageWrapper.getData();
 
-        //whether any changes need to be written to post.json
-        boolean updatePostJSON = false;
-
         for(Comment c : comments){
 
             //if this comment has been replied to already, ignore it.
             if(repliedComments.contains(c.getId())){continue;}
 
             ScriptExecutor scriptExecutor = new ScriptExecutor(c.getMessage());
-            scriptExecutor.parseScript();
-            scriptExecutor.displayProgram();
-            System.out.println("\n=====================Execute========================");
-            scriptExecutor.executeProgram();
+            try {
+                scriptExecutor.parseScript();
+                scriptExecutor.displayProgram();
+                System.out.println("\n=====================Execute========================");
+                scriptExecutor.executeProgram();
+
+            }catch (ScriptException e){
+                e.printStackTrace();
+                String message = e.getMessage();
+                if(message != null){
+                    scriptExecutor.getProgramState().print("Error: "+e.getMessage());
+                }else{
+                    scriptExecutor.getProgramState().print("Error: Unspecified error.");
+                }
+            }
 
             String result = scriptExecutor.getConsoleOutput();
             System.out.println(result);
@@ -98,18 +106,18 @@ public class CodeBot {
 
             System.out.println("replying to comment: "+c.getId());
 
-            if(scriptExecutor.getProgramState().getProgramVariable("_canvasVisibility").castBoolean()){
+
+            if( scriptExecutor.getProgramState().hasProgramVariable("_canvasVisibility")
+                    && scriptExecutor.getProgramState().getProgramVariable("_canvasVisibility").castBoolean()
+                    && scriptExecutor.getProgramState().hasProgramVariable("_canvas")
+            ){
                 replyCommentImage(c.getId(), result,((ImageVariable)scriptExecutor.getProgramState().getProgramVariable("_canvas")).getImage(), cloudinary_upload_preset);
-            }else{
+            } else{
                 replyComment(c.getId(), result);
             }
 
+            //update repliedComments and write to post.json
             repliedComments.add(c.getId());
-            updatePostJSON = true;
-        }
-
-        if(updatePostJSON){
-            //write updated list of replied comments to post.json
             writePostData();
         }
 
@@ -237,8 +245,10 @@ public class CodeBot {
     public static void main(String[] args) throws IOException, InterruptedException {
         loadConfig();
         loadPostData();
-//        String res = publishPost("NEW POST 10 FEB");
+
+//        String res = publishPost("NEW POST 24 APR !!!");
 //        System.out.println(res);
+
         String commentData = requestComments(String.format("%s_%s",page_ID,postID));
         executeComments(commentData);
 

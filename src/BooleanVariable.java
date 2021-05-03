@@ -30,13 +30,13 @@ public class BooleanVariable implements Variable{
     }
 
     @Override
-    public Integer castInteger() throws ExecutionException{
-        throw new ExecutionException(String.format("Failed to cast %s to integer",value));
+    public Integer castInteger() throws ScriptException{
+        throw new ScriptException(String.format("Failed to cast %s to integer",value));
     }
 
     @Override
-    public Float castFloat() throws ExecutionException{
-        throw new ExecutionException(String.format("Failed to cast %s to float",value));
+    public Float castFloat() throws ScriptException{
+        throw new ScriptException(String.format("Failed to cast %s to float",value));
     }
 
     @Override
@@ -45,12 +45,12 @@ public class BooleanVariable implements Variable{
     }
 
     @Override
-    public ArrayList<Variable> castArray() throws ExecutionException {
-        throw new ExecutionException(String.format("Failed to cast %s to array",value));
+    public ArrayList<Variable> castArray() throws ScriptException {
+        throw new ScriptException(String.format("Failed to cast %s to array",value));
     }
 
     @Override
-    public BufferedImage castImage() throws ExecutionException {
-        throw new ExecutionException(String.format("Failed to cast %s to image",value));
+    public BufferedImage castImage() throws ScriptException {
+        throw new ScriptException(String.format("Failed to cast %s to image",value));
     }
 }
