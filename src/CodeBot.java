@@ -203,7 +203,7 @@ public class CodeBot {
 
         // use the client to send the request
         HttpResponse<String> facebookResponse = facebookClient.send(publishComment, HttpResponse.BodyHandlers.ofString());
-        System.out.println(facebookBody);
+//        System.out.println(facebookBody);
         System.out.println(facebookResponse);
 
     }

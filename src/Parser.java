@@ -179,7 +179,7 @@ public class Parser {
                 )
         );
         program.addExecutableNode(myVariable);
-        scriptVariableNames.add("name");
+        scriptVariableNames.add(name);
     }
 
     //Load an image as a BufferedImage, given known dimensions.
@@ -617,6 +617,7 @@ public class Parser {
                     s.useDelimiter(defaultDelimiter);
 
                 }else{
+                    System.out.println(scriptVariableNames);
                     throw new ScriptException("Unrecognised Expression");
                 }
             }
