@@ -90,6 +90,27 @@ public class Parser {
 
     static String defaultDelimiter = "[^\\S\\r\\n]|(?=[{}()\\[\\],;\"+\\-*/%#&|!<>=\\n])|(?<=[{}()\\[\\],;\"+\\-*/%#&|!<>=\\n])";
 
+    ArrayList<String> reservedKeywords = new ArrayList<>(Arrays.asList(
+            "if",
+            "else",
+            "while",
+
+            "function",
+            "variable",
+
+            "string",
+            "integer",
+            "boolean",
+            "float",
+
+            "random",
+            "length",
+            "charAt",
+            "get",
+            "type",
+            "return"
+    ));
+
     //Require scanner to have the following pattern.
     static String require (Pattern p, Scanner s) throws ScriptException {
         if (s.hasNext(p)) {
@@ -235,13 +256,10 @@ public class Parser {
 
         //Parse the user's script
         System.out.println("\n=====================Parsing======================== \n"+commentRemovedScript);
-//        try {
-            while (scanner.hasNext()) {
-                program.addExecutableNode(parseExecutableNode(scanner, null));
-            }
-//        }catch (ScriptException c){
-//            throw new ScriptException()
-//        }
+
+        while (scanner.hasNext()) {
+            program.addExecutableNode(parseExecutableNode(scanner, null));
+        }
         return program;
     }
 
@@ -331,6 +349,10 @@ public class Parser {
             value = parseExpression(s,false, functionVariables);
 
             require(NewLine, s);
+
+            if(reservedKeywords.contains(variableName)){
+                throw new ScriptException("Invalid variable name (trying to use reserved keyword): "+variableName);
+            }
 
             if(!scriptVariableNames.contains(variableName)){
                 //Add new variable name to list of recognised variables, so the compiler can reference them later
@@ -431,6 +453,10 @@ public class Parser {
         }
         require(CloseBrace,s);
         require(NewLine,s);
+
+        if(reservedKeywords.contains(name)){
+            throw new ScriptException("Invalid function name (trying to use reserved keyword): "+name);
+        }
 
         if(!scriptFunctionNames.contains(name)){
             scriptFunctionNames.add(name);
