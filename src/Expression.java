@@ -72,9 +72,9 @@ public class Expression {
                 //Only then, can the variables be accessed.
                 if(value.getType() == VariableType.ARRAY){
                     //if the Variable array is null, evaluate the Expression array, and set the Variable array.
-                    if (value.getValue() == null){
+                    ArrayVariable thisArrayVariable = (ArrayVariable)value;
+                    if (!thisArrayVariable.hasValue()){
                         ArrayList<Variable> variables = new ArrayList<>();
-                        ArrayVariable thisArrayVariable = (ArrayVariable)value;
                         for (Expression exp : thisArrayVariable.getExpressionArray()){
                             variables.add(exp.evaluate(programState, functionVariables));
                         }
@@ -84,27 +84,26 @@ public class Expression {
                 return value;
 
             case Reference:
-                if(functionVariables != null){
-                    if(functionVariables.containsKey(variableReference)){
-                        Variable v = functionVariables.get(variableReference);
-                        if (v.getType()==VariableType.ARRAY){
-                            if (v.getValue() == null){
-                                ArrayList<Variable> variables = new ArrayList<>();
-                                ArrayVariable thisArrayVariable = (ArrayVariable)v;
-                                for (Expression exp : thisArrayVariable.getExpressionArray()){
-                                    variables.add(exp.evaluate(programState, functionVariables));
-                                }
-                                ((ArrayVariable) v).setValueArray(variables);
+                if(functionVariables != null && functionVariables.containsKey(variableReference)){
+                    Variable v = functionVariables.get(variableReference);
+                    if (v.getType()==VariableType.ARRAY){
+                        ArrayVariable thisArrayVariable = (ArrayVariable)v;
+                        if (!thisArrayVariable.hasValue()){
+                            ArrayList<Variable> variables = new ArrayList<>();
+                            for (Expression exp : thisArrayVariable.getExpressionArray()){
+                                variables.add(exp.evaluate(programState, functionVariables));
                             }
+                            ((ArrayVariable) v).setValueArray(variables);
                         }
-                        return functionVariables.get(variableReference);
                     }
+                    return functionVariables.get(variableReference);
                 }
+
                 Variable v = programState.getProgramVariable(variableReference);
                 if (v.getType()==VariableType.ARRAY){
-                    if (v.getValue() == null){
+                    ArrayVariable thisArrayVariable = (ArrayVariable)v;
+                    if (!thisArrayVariable.hasValue()){
                         ArrayList<Variable> variables = new ArrayList<>();
-                        ArrayVariable thisArrayVariable = (ArrayVariable)v;
                         for (Expression exp : thisArrayVariable.getExpressionArray()){
                             variables.add(exp.evaluate(programState, functionVariables));
                         }

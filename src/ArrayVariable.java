@@ -47,6 +47,9 @@ public class ArrayVariable implements Variable{
         }
         return valueArray;
     }
+    public Boolean hasValue(){
+        return !(valueArray == null);
+    }
 
     @Override
     public VariableType getType() {

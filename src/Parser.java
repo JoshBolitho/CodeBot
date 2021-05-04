@@ -119,7 +119,7 @@ public class Parser {
         //if the require fails:
         String log = "Tokens received:";
         for(int i=0;i<5;i++){
-            log += "["+ s.next() + "], ";
+            if(s.hasNext()){ log += "["+ s.next() + "], ";}
         }
         System.out.println(log);
         throw new ScriptException("Expected "+p.toString());
@@ -142,7 +142,7 @@ public class Parser {
         //if the require fails:
         String log = "Tokens received:";
         for(int i=0;i<5;i++){
-            log += "["+ s.next() + "], ";
+            if(s.hasNext()){log += "["+ s.next() + "], ";}
         }
         System.out.println(log);
         throw new ScriptException("Expected "+str);
@@ -203,13 +203,16 @@ public class Parser {
         scriptVariableNames.add(name);
     }
 
-    //Load an image as a BufferedImage, given known dimensions.
-    public BufferedImage loadImage(String source, int x, int y){
-        BufferedImage bi = new BufferedImage(x,y,BufferedImage.TYPE_INT_RGB);
+    //Load an image as a BufferedImage
+    public BufferedImage loadImage(String source){
+        BufferedImage bi = null;
         try {
             bi = ImageIO.read(new File(source));
         } catch (IOException e) {
             System.out.println("loadImage failed:" + source);
+        }
+        if(bi==null){
+            System.out.println("Warning: loaded image is null: " + source);
         }
         return bi;
     }
@@ -251,8 +254,12 @@ public class Parser {
         addProgramVariable(program, "_canvasVisibility",new BooleanVariable(false));
 
         //Add monky image
-        BufferedImage monkyImage = loadImage("src\\Images\\monky.png",100 ,100);
+        BufferedImage monkyImage = loadImage("src\\Images\\monky.png");
         addProgramVariable(program,"monky",new ImageVariable(monkyImage));
+
+        //Add sun image
+        BufferedImage sunImage = loadImage("src\\Images\\sun.png");
+        addProgramVariable(program,"sun",new ImageVariable(sunImage));
 
         //Parse the user's script
         System.out.println("\n=====================Parsing======================== \n"+commentRemovedScript);
@@ -361,7 +368,7 @@ public class Parser {
 //            System.out.println("setting "+variableName+" to "+value.myMode);
             return new VariableAssignmentNode(variableName,value);
         }else{
-            throw new ScriptException("Invalid variable name (Upper/Lower case alphabet characters only): "+s.next());
+            throw new ScriptException("Invalid variable name (Upper/Lower case alphabet characters only)"+(s.hasNext() ? ": "+s.next() : ""));
         }
     }
 
@@ -386,6 +393,7 @@ public class Parser {
         if(s.hasNext(Else)){
             require(Else, s);
             require(OpenBrace, s);
+            optionalRequire(NewLine,s);
 
             //while the scanner doesn't have close brace:
             ProgramNode elseBlock = new ProgramNode();
@@ -430,7 +438,7 @@ public class Parser {
         if(s.hasNext("[a-z,A-Z]+")) {
             name = s.next();
         }else{
-            throw new ScriptException("Invalid function name (Upper/Lower case alphabet characters only): "+s.next());
+            throw new ScriptException("Invalid function name (Upper/Lower case alphabet characters only)"+(s.hasNext() ? ": "+s.next() : ""));
         }
         require(OpenParenthesis,s);
         ArrayList<String> functionVariables = new ArrayList<>();
@@ -644,7 +652,7 @@ public class Parser {
 
                 }else{
                     System.out.println(scriptVariableNames);
-                    throw new ScriptException("Unrecognised Expression");
+                    throw new ScriptException("Unrecognised Expression"+(s.hasNext() ? ": "+s.next() : ""));
                 }
             }
         }
