@@ -1,3 +1,5 @@
 .idea/
 out/
 *.iml
+src/canvas.png
+src/testScript.txt
