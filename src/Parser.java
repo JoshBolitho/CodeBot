@@ -440,6 +440,14 @@ public class Parser {
         }else{
             throw new ScriptException("Invalid function name (Upper/Lower case alphabet characters only)"+(s.hasNext() ? ": "+s.next() : ""));
         }
+
+        if(reservedKeywords.contains(name)){
+            throw new ScriptException("Invalid function name (trying to use reserved keyword): "+name);
+        }
+        if(!scriptFunctionNames.contains(name)){
+            scriptFunctionNames.add(name);
+        }
+
         require(OpenParenthesis,s);
         ArrayList<String> functionVariables = new ArrayList<>();
         if(s.hasNext("[a-z,A-Z]+")) {
@@ -462,14 +470,6 @@ public class Parser {
         require(CloseBrace,s);
         require(NewLine,s);
 
-        if(reservedKeywords.contains(name)){
-            throw new ScriptException("Invalid function name (trying to use reserved keyword): "+name);
-        }
-
-        if(!scriptFunctionNames.contains(name)){
-            scriptFunctionNames.add(name);
-
-        }
         return new FunctionAssignmentNode(name, new Function(name,parameters, functionScript));
     }
 

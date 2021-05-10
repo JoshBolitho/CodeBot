@@ -1,3 +1,8 @@
+import javax.imageio.ImageIO;
+import java.awt.image.BufferedImage;
+import java.io.File;
+import java.util.Scanner;
+
 //Parse the script, execute the parsed program, and return the console result
 public class ScriptExecutor {
 
@@ -30,6 +35,8 @@ public class ScriptExecutor {
         try {
             program.execute(programState, null);
         }catch (ScriptException e){
+            e.printStackTrace();
+
             String message = e.getMessage();
             if(message != null){
                 programState.print("Error: "+e.getMessage());
@@ -49,35 +56,55 @@ public class ScriptExecutor {
     }
 
     public static void main (String[] Args){
-        String testScript = "print(";
-        ScriptExecutor myScriptExecutor = new ScriptExecutor(testScript);
-        try{
-            myScriptExecutor.parseScript();
-            myScriptExecutor.displayProgram();
-            myScriptExecutor.executeProgram();
-        }catch (ScriptException e){
+        String testScript = "";
+        try {
+            File myObj = new File("src\\testScript.txt");
+            Scanner myReader = new Scanner(myObj);
+            while (myReader.hasNextLine()) {
+                String data = myReader.nextLine();
+                testScript += data +"\n";
+            }
+            myReader.close();
+        } catch (Exception e) {
+            System.out.println("error loading testScript.txt");
+            e.printStackTrace();
+        }
+
+        ScriptExecutor scriptExecutor = new ScriptExecutor(testScript);
+        try {
+            scriptExecutor.parseScript();
+            scriptExecutor.displayProgram();
+            System.out.println("\n=====================Execute========================");
+            scriptExecutor.executeProgram();
+
+        } catch (ScriptException e){
             e.printStackTrace();
             String message = e.getMessage();
             if(message != null){
-                myScriptExecutor.getProgramState().print("Error: "+e.getMessage());
+                scriptExecutor.getProgramState().print("Error: "+e.getMessage());
             }else{
-                myScriptExecutor.getProgramState().print("Error: Unspecified error.");
+                scriptExecutor.getProgramState().print("Error: Unspecified error.");
             }
         }
-        System.out.println("\n===================Console Output==========================\n"+myScriptExecutor.getConsoleOutput());
 
-//        System.out.println("Variables assigned:");
-//        for(String s : programState.getProgramVariables().keySet()){
-//            System.out.println(s+" : " + programState.getProgramVariables().get(s).toString());
-//        }
-//        System.out.println();
-//
-//        System.out.println("Functions assigned:");
-//        for(String s : programState.getProgramFunctions().keySet()){
-//            System.out.println(s+" : " + programState.getProgramFunctions().get(s).toString());
-//        }
+        String result = scriptExecutor.getConsoleOutput();
+        System.out.println(result);
+        System.out.println("Variables assigned: "+scriptExecutor.getProgramState().getProgramVariables().keySet());
+        System.out.println("Functions assigned: "+scriptExecutor.getProgramState().getProgramFunctions().keySet()+"\n");
+
+
+        if( scriptExecutor.getProgramState().hasProgramVariable("_canvasVisibility")
+                && scriptExecutor.getProgramState().getProgramVariable("_canvasVisibility").castBoolean()
+                && scriptExecutor.getProgramState().hasProgramVariable("_canvas")
+        ){
+            try {
+                File outputFile = new File("src\\canvas.png");
+                ImageIO.write(((ImageVariable) scriptExecutor.getProgramState().getProgramVariable("_canvas")).getImage(), "png", outputFile);
+
+            }catch(Exception e){
+                e.printStackTrace();
+            }
+        }
     }
-
-
 
 }
