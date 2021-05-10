@@ -2,6 +2,9 @@ import java.awt.*;
 import java.lang.Math;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.Map;
+
+import static java.util.Map.entry;
 
 public class Expression {
 
@@ -27,6 +30,19 @@ public class Expression {
     Expression expression1;
     Expression expression2;
     Parser.Operation operation;
+    Map<Parser.Operation, String> operations = Map.ofEntries(
+            entry(Parser.Operation.equals, "="),
+            entry(Parser.Operation.plus, "+"),
+            entry(Parser.Operation.minus, "-"),
+            entry(Parser.Operation.times, "*"),
+            entry(Parser.Operation.divide, "/"),
+            entry(Parser.Operation.modulo, "%"),
+            entry(Parser.Operation.and, "&"),
+            entry(Parser.Operation.or, "|"),
+            entry(Parser.Operation.lessThan, "<"),
+            entry(Parser.Operation.greaterThan, ">")
+    );
+
 
     //Reference
     String variableReference;
@@ -527,11 +543,27 @@ public class Expression {
     public String toString() {
         switch (myMode){
             case Value :
-                return "Value(" + value + ')';
+                return value.toString();
             case Function:
-                return "Function: "+functionName;
+                StringBuilder res = new StringBuilder(functionName+"(");
+                for(int i = 0; i<parameters.size();i++){
+                    res.append(parameters.get(i));
+                    if(i != parameters.size()-1){
+                        res.append(", ");
+                    }
+                }
+                res.append(")\n");
+                return res.toString();
             case InternalFunction:
-                return "InternalFunction: "+functionName;
+            StringBuilder res2 = new StringBuilder("[Internal]"+functionName+"(");
+            for(int i = 0; i<parameters.size();i++){
+                res2.append(parameters.get(i));
+                if(i != parameters.size()-1){
+                    res2.append(", ");
+                }
+            }
+            res2.append(")\n");
+            return res2.toString();
             case Operation:
                 switch (operation){
                     case not:
@@ -556,12 +588,15 @@ public class Expression {
                         return("castBoolean("+expression1+")");
 
                     default:
+                        if(operations.containsKey(operation)){
+                            return "("+expression1 +" " + operations.get(operation) +" "+ expression2 +")";
+                        }
                         return "("+expression1 +" "+ operation +" "+ expression2 +")";
 
                 }
 
             case Reference:
-                return "Reference("+variableReference+")";
+                return variableReference;
         }
         return "Expression(" +
                 myMode +

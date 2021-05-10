@@ -28,7 +28,7 @@ public class ScriptExecutor {
 
     public void displayProgram(){
         System.out.println("\n=====================Program========================");
-        System.out.println(program+"\n");
+        System.out.println(program.display(0));
     }
     //execute parsed ProgramNode
     public void executeProgram(){

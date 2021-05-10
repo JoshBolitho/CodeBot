@@ -56,4 +56,28 @@ public class Function {
 
         return out;
     }
+
+    public String display(int depth) {
+        StringBuilder res = new StringBuilder();
+
+        for(int i=0; i<=depth; i++){
+            res.append("    ");
+        }
+        res.append("function "+name+"(");
+        for(int i=0; i< parameterNames.length;i++){
+            res.append(parameterNames[i]);
+            if(i != parameterNames.length-1){
+                res.append(", ");
+            }
+        }
+        res.append("){\n");
+
+        res.append(functionScript.display(depth+1));
+
+        for(int i=0; i<=depth; i++){
+            res.append("    ");
+        }
+        res.append("}\n");
+        return res.toString();
+    }
 }

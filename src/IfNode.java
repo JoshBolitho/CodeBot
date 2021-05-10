@@ -2,12 +2,6 @@ import java.util.HashMap;
 
 public class IfNode implements ExecutableNode{
 
-//    if(condition){
-//        ifBlock.execute()
-//    }else{
-//        elseBlock.execute()
-//    }
-
     Expression condition;
     ProgramNode ifBlock;
 
@@ -53,5 +47,31 @@ public class IfNode implements ExecutableNode{
             return "if("+ condition.toString() +"){\n"+ ifBlock.toString() +"\n}";
 
         }
+    }
+
+    public String display(int depth) {
+        StringBuilder res = new StringBuilder();
+        for(int i=0; i<=depth; i++){
+            res.append("    ");
+        }
+        res.append("if("+condition+"){\n");
+        res.append(ifBlock.display(depth+1));
+
+        for(int i=0; i<=depth; i++){
+            res.append("    ");
+        }
+        res.append("}");
+
+        if(hasElseBlock){
+            res.append("else{\n");
+
+            res.append(elseBlock.display(depth+1));
+
+            for(int i=0; i<=depth; i++){
+                res.append("    ");
+            }
+            res.append("}\n");
+        }
+        return res.toString();
     }
 }
