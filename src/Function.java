@@ -17,7 +17,10 @@ public class Function {
     }
 
     //A called instance of this function, functionParameters are the inputs.
-    public Variable executeFunction( ArrayList<Expression> functionParameters, ProgramState programState){
+    public Variable executeFunction( ArrayList<Expression> functionParameters, ProgramState programState, HashMap<String,Variable> functionVariables){
+
+        //Ensure functionVariables is initialised
+        if(functionVariables==null){ functionVariables = new HashMap<>();}
 
         //Ensure the right number of parameters were passed
         if(functionParameters.size() != parameterNames.length){
@@ -25,10 +28,9 @@ public class Function {
         }
 
         //functionVariables tracks functionParameters + any variables defined within the function.
-        HashMap<String,Variable> functionVariables = new HashMap<>();
-        //Evaluate and add parameters to local variable list
+        //Evaluate and add parameters to functionVariables
         for (int i = 0; i< parameterNames.length; i++){
-            functionVariables.put(parameterNames[i],functionParameters.get(i).evaluate(programState,null));
+            functionVariables.put(parameterNames[i],functionParameters.get(i).evaluate(programState,functionVariables));
         }
         //Now the parameters are ready to use, run the script.
         functionScript.execute(programState, functionVariables);

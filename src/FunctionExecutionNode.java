@@ -25,7 +25,7 @@ public class FunctionExecutionNode implements ExecutableNode{
 
     @Override
     public void execute(ProgramState programState, HashMap<String, Variable> functionVariables) {
-        programState.getProgramFunction(name).executeFunction(parameters,programState);
+        programState.getProgramFunction(name).executeFunction(parameters,programState, functionVariables);
     }
 
     public String display(int depth) {

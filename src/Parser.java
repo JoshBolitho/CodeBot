@@ -332,7 +332,7 @@ public class Parser {
                 }
             }
             //error
-            throw new ScriptException("Invalid statement");
+            throw new ScriptException("Invalid statement"+(s.hasNext() ? ": "+s.next() : ""));
         }
     }
 

@@ -384,7 +384,7 @@ public class Expression {
             case Function:
                 //evaluate the execution of the function.
                 if(programState.hasProgramFunction(functionName)){
-                    Variable var = programState.getProgramFunction(functionName).executeFunction(parameters,programState);
+                    Variable var = programState.getProgramFunction(functionName).executeFunction(parameters,programState, functionVariables);
 //                System.out.println("v: "+v);
                     return var;
                 }
