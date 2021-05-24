@@ -552,18 +552,20 @@ public class Expression {
                         res.append(", ");
                     }
                 }
-                res.append(")\n");
+                res.append(")");
                 return res.toString();
+
             case InternalFunction:
-            StringBuilder res2 = new StringBuilder("[Internal]"+functionName+"(");
-            for(int i = 0; i<parameters.size();i++){
-                res2.append(parameters.get(i));
-                if(i != parameters.size()-1){
-                    res2.append(", ");
+                StringBuilder res2 = new StringBuilder("[Internal]"+functionName+"(");
+                for(int i = 0; i<parameters.size();i++){
+                    res2.append(parameters.get(i));
+                    if(i != parameters.size()-1){
+                        res2.append(", ");
+                    }
                 }
-            }
-            res2.append(")\n");
-            return res2.toString();
+                res2.append(")");
+                return res2.toString();
+
             case Operation:
                 switch (operation){
                     case not:

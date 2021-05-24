@@ -282,6 +282,7 @@ public class Parser {
             return parseFunctionAssignment(s);
         }else if(s.hasNext(Return)){
             if(functionVariables!=null){
+//                System.out.println("made it here");
                 return parseReturn(s, functionVariables);
             }
             throw new ScriptException("Can't return when not inside a function");
@@ -338,7 +339,7 @@ public class Parser {
     public VariableAssignmentNode parseReturn(Scanner s, ArrayList<String> functionVariables){
         require(Return,s);
         Expression value = parseExpression(s,false, functionVariables);
-        require(NewLine, s);
+        optionalRequire(NewLine, s);
 
         return new VariableAssignmentNode("_return",value);
     }
@@ -617,11 +618,11 @@ public class Parser {
                     require(OpenParenthesis,s);
                     ArrayList<Expression> parameters = new ArrayList<>();
                     if(!s.hasNext(CloseParenthesis)){
-                        parameters.add(parseExpression(s,false,null));
+                        parameters.add(parseExpression(s,false,functionVariables));
                     }
                     while(s.hasNext(Comma)){
                         require(Comma,s);
-                        parameters.add(parseExpression(s,false,null));
+                        parameters.add(parseExpression(s,false,functionVariables));
                     }
                     require(CloseParenthesis,s);
 
