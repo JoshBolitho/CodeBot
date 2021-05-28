@@ -72,8 +72,6 @@ public class ArrayVariable implements Variable{
         }
         result += "]";
         return result;
-
-//        throw new ScriptException(String.format("Failed to cast array to string"));
     }
 
     @Override

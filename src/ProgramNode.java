@@ -18,7 +18,6 @@ public class ProgramNode implements ExecutableNode{
         for(ExecutableNode e : executableNodes){
             e.execute(programState, functionVariables);
         }
-//        System.out.println("in prognode execute: "+functionVariables);
     }
 
     @Override

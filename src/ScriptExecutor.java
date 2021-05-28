@@ -55,6 +55,8 @@ public class ScriptExecutor {
         return programState;
     }
 
+    //Test code in testScript.txt, rather than on facebook.
+    //output canvas is saved to canvas.png.
     public static void main (String[] Args){
         String testScript = "";
         try {

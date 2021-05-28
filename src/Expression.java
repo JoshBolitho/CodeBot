@@ -489,8 +489,6 @@ public class Expression {
                         Integer getPixel_x = parameters.get(1).evaluate(programState, functionVariables).castInteger();
                         Integer getPixel_y = parameters.get(2).evaluate(programState, functionVariables).castInteger();
 
-//                        System.out.println(parameters.get(0).evaluate(programState, functionVariables));
-//                        System.out.println("got pixel ("+ getPixel_x+","+getPixel_y+"): "+getPixel_img.getPixel(getPixel_x, getPixel_y));
                         return getPixel_img.getPixel(getPixel_x, getPixel_y);
 
                     case "setCanvas":

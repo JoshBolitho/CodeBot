@@ -252,29 +252,5 @@ public class CodeBot {
         String commentData = requestComments(String.format("%s_%s",page_ID,postID));
         executeComments(commentData);
 
-
-
-
-
-
-        //Running a hardcoded test script instead of the CodeBot program
-//        String test = "function sum(a,b){\n" +
-//                "return a + b\n" +
-//                "}\n" +
-//                "print( sum(1,2) )\n";
-//                "function sumtwo(a,b){\n" +
-//                "print ( a+b )\n" +
-//                "return a+b\n" +
-//                "}\n" +
-//                "sumtwo(1,2)";
-//
-//        ScriptExecutor scriptExecutor = new ScriptExecutor(test);
-//        scriptExecutor.parseScript();
-//        scriptExecutor.displayProgram();
-//        System.out.println("\n=====================Execute========================");
-//        scriptExecutor.executeProgram();
-//
-//        String result = scriptExecutor.getConsoleOutput();
-//        System.out.println(result);
     }
 }

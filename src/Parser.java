@@ -38,8 +38,6 @@ public class Parser {
         type
     }
 
-
-//    static Pattern IntegerPattern = Pattern.compile("-?\\d+"); // ("-?(0|[1-9][0-9]*)");
     static Pattern OpenParenthesis = Pattern.compile("\\(");
     static Pattern CloseParenthesis = Pattern.compile("\\)");
     static Pattern OpenBrace = Pattern.compile("\\{");
@@ -48,7 +46,6 @@ public class Parser {
     static Pattern CloseSquare = Pattern.compile("]");
 
     static Pattern NewLine = Pattern.compile("\n");
-//    static Pattern SemiColon = Pattern.compile(";");
 
     static Pattern Plus = Pattern.compile("\\+");
     static Pattern Minus = Pattern.compile("-");
@@ -286,22 +283,6 @@ public class Parser {
             return parseReturn(s);
 //            throw new ScriptException("Can't return when not inside a function");
         }else{
-
-            //This code is deprecated now as functionVariables was removed.
-            //Commented out code will be removed in next commit.
-            //test whether scanner.next() has a variable name already defined in the function
-//            if(functionVariables != null){
-//                for(String str : functionVariables){
-//                    if(s.hasNext(str)){
-//                        require(str, s);
-//                        require(Equals, s);
-//                        VariableAssignmentNode variableAssignmentNode = new VariableAssignmentNode(str,parseExpression(s,false));
-//                        require(NewLine, s);
-//                        return variableAssignmentNode;
-//                    }
-//                }
-//            }
-
             //test whether scanner.next() has a variable name already defined in the script
             for(String str : variableNames){
                 if(s.hasNext(str)){
@@ -488,7 +469,6 @@ public class Parser {
         return new FunctionAssignmentNode(name, new Function(name,parameterArray,functionScript));
     }
 
-
     //operationPriority defines the behaviour for parsing lower priority operations (+,-)
     //true = ignore lower priority operations
     public Expression parseExpression (Scanner s, boolean operationPriority) throws ScriptException{
@@ -604,16 +584,6 @@ public class Parser {
         else {
             boolean firstVariableSet = false;
 
-//            if(functionVariables != null) {
-//                for (String functionVariable : functionVariables) {
-//                    if (s.hasNext(functionVariable)) {
-//                        String recognisedVariableName = s.next();
-//                        firstExpression = new Expression(recognisedVariableName);
-//                        firstVariableSet = true;
-//                        break;
-//                    }
-//                }
-//            }
             for(String variableName : variableNames){
                 if(s.hasNext(variableName)){
                     String recognisedVariableName = s.next();
@@ -816,7 +786,6 @@ public class Parser {
             require(LessThan, s);
             return new Expression(providedExpression,parseExpression(s,false),Operation.lessThan);
         }
-
 
         //Error
         throw new ScriptException("Unrecognised operation");

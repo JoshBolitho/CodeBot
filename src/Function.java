@@ -21,7 +21,6 @@ public class Function {
     //any variables defined in the scope of the parent function call.
 
     public Variable executeFunction( ArrayList<Expression> functionParameters, ProgramState programState, HashMap<String,Variable> parentFunctionVariables){
-
         //functionVariables
         HashMap<String,Variable> functionVariables = new HashMap<>();
 
