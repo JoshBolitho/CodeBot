@@ -16,11 +16,14 @@ public class Function {
         this.functionScript = functionScript;
     }
 
-    //A called instance of this function, functionParameters are the inputs.
-    public Variable executeFunction( ArrayList<Expression> functionParameters, ProgramState programState, HashMap<String,Variable> functionVariables){
+    //executeFunction() represents A called instance of this function, functionParameters are the inputs.
+    //If this function call was called from within another function call, parentFunctionVariables are
+    //any variables defined in the scope of the parent function call.
 
-        //Ensure functionVariables is initialised
-        if(functionVariables==null){ functionVariables = new HashMap<>();}
+    public Variable executeFunction( ArrayList<Expression> functionParameters, ProgramState programState, HashMap<String,Variable> parentFunctionVariables){
+
+        //functionVariables
+        HashMap<String,Variable> functionVariables = new HashMap<>();
 
         //Ensure the right number of parameters were passed
         if(functionParameters.size() != parameterNames.length){
@@ -30,8 +33,9 @@ public class Function {
         //functionVariables tracks functionParameters + any variables defined within the function.
         //Evaluate and add parameters to functionVariables
         for (int i = 0; i< parameterNames.length; i++){
-            functionVariables.put(parameterNames[i],functionParameters.get(i).evaluate(programState,functionVariables));
+            functionVariables.put(parameterNames[i],functionParameters.get(i).evaluate(programState,parentFunctionVariables));
         }
+
         //Now the parameters are ready to use, run the script.
         functionScript.execute(programState, functionVariables);
 
@@ -39,9 +43,7 @@ public class Function {
         if(functionVariables.containsKey("_return")){
             return functionVariables.get("_return");
         }
-//        System.out.println("in function execute: "+functionVariables);
         //If this function has no return value, return null.
-//        System.out.println("returning null");
         return new NullVariable();
     }
 
