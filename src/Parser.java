@@ -74,7 +74,7 @@ public class Parser {
     static Pattern If = Pattern.compile("if");
     static Pattern Else = Pattern.compile("else");
     static Pattern Function = Pattern.compile("function");
-    static Pattern Variable = Pattern.compile("variable");
+//    static Pattern Variable = Pattern.compile("variable");
     static Pattern Comma =  Pattern.compile(",");
 
     static Pattern Random =  Pattern.compile("random");
@@ -93,7 +93,7 @@ public class Parser {
             "while",
 
             "function",
-            "variable",
+//            "variable",
 
             "string",
             "integer",
@@ -269,9 +269,10 @@ public class Parser {
 
 
     public ExecutableNode parseExecutableNode (Scanner s) throws ScriptException {
-        if(s.hasNext(Variable)){
-            return parseVariableAssignment(s);
-        }else if(s.hasNext(If)){
+//        if(s.hasNext(Variable)){
+//            return parseVariableAssignment(s);
+//        }else
+        if(s.hasNext(If)){
             return parseIfNode(s);
         }else if(s.hasNext(While)){
             return parseWhileNode(s);
@@ -313,6 +314,12 @@ public class Parser {
                     return new FunctionExecutionNode(str, parameters);
                 }
             }
+
+            //Finally, if no known variable or function names are found, attempt to parse a new variable name.
+            if(s.hasNext("[a-z,A-Z]+")){
+                return parseVariableAssignment(s);
+            }
+
             //error
             throw new ScriptException("Invalid statement"+(s.hasNext() ? ": "+s.next() : ""));
         }
@@ -330,7 +337,8 @@ public class Parser {
         String variableName;
         Expression value;
 
-        require(Variable, s);
+        //deprecating the "variable" keyword
+//        require(Variable, s);
         if(s.hasNext("[a-z,A-Z]+")){
             variableName = s.next();
 

@@ -16,6 +16,10 @@ public class ProgramNode implements ExecutableNode{
     @Override
     public void execute(ProgramState programState, HashMap<String,Variable> functionVariables) {
         for(ExecutableNode e : executableNodes){
+            //If in a function, and a return statement has been reached, break from the function execution.
+            if(functionVariables != null && functionVariables.containsKey("_return")){
+                return;
+            }
             e.execute(programState, functionVariables);
         }
     }
