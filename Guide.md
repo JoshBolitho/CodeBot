@@ -300,7 +300,7 @@ print("casting successful")
 }
 ```
 This table shows what types can be cast to each other
-|**↓** To From **→**|String  |Boolean  |Integer  |Float| Array |
+|From **→** **↓** To |String  |Boolean  |Integer  |Float| Array |
 |--|--|--|--|--|--|
 |String   |Yes|Yes|Yes|Yes|Yes|
 |Boolean  |Yes - If string is "true" or "false" |Yes |Yes - returns true if integer is not 0 |Yes - casts float to integer and returns true if not 0  |No  |
