@@ -58,13 +58,13 @@ public class ScriptExecutor {
     //Test code in testScript.txt, rather than on facebook.
     //output canvas is saved to canvas.png.
     public static void main (String[] Args){
-        String testScript = "";
+        StringBuilder testScript = new StringBuilder();
         try {
             File myObj = new File("src\\testScript.txt");
             Scanner myReader = new Scanner(myObj);
             while (myReader.hasNextLine()) {
                 String data = myReader.nextLine();
-                testScript += data +"\n";
+                testScript.append(data).append("\n");
             }
             myReader.close();
         } catch (Exception e) {
@@ -72,7 +72,7 @@ public class ScriptExecutor {
             e.printStackTrace();
         }
 
-        ScriptExecutor scriptExecutor = new ScriptExecutor(testScript);
+        ScriptExecutor scriptExecutor = new ScriptExecutor(testScript.toString());
         try {
             scriptExecutor.parseScript();
             scriptExecutor.displayProgram();

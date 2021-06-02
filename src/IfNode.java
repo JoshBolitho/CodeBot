@@ -60,7 +60,7 @@ public class IfNode implements ExecutableNode{
         for(int i=0; i<=depth; i++){
             res.append("    ");
         }
-        res.append("}\n");
+        res.append("}");
 
         if(hasElseBlock){
             res.append("else{\n");
@@ -71,6 +71,8 @@ public class IfNode implements ExecutableNode{
                 res.append("    ");
             }
             res.append("}\n");
+        }else{
+            res.append("\n");
         }
         return res.toString();
     }

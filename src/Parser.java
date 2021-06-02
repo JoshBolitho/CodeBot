@@ -91,17 +91,6 @@ public class Parser {
             "while",
 
             "function",
-
-            "string",
-            "integer",
-            "boolean",
-            "float",
-
-            "random",
-            "length",
-            "charAt",
-            "get",
-            "type",
             "return"
     ));
 
@@ -282,9 +271,6 @@ public class Parser {
 
 
     public ExecutableNode parseExecutableNode (Scanner s) throws ScriptException {
-//        if(s.hasNext(Variable)){
-//            return parseVariableAssignment(s);
-//        }else
         if(s.hasNext(If)){
             return parseIfNode(s);
         }else if(s.hasNext(While)){
@@ -322,7 +308,7 @@ public class Parser {
                         parameters.add(parseExpression(s,null,null));
                     }
                     require(CloseParenthesis,s);
-                    require(NewLine,s);
+                    optionalRequire(NewLine,s);
 
                     return new FunctionExecutionNode(str, parameters);
                 }
@@ -350,8 +336,6 @@ public class Parser {
         String variableName;
         Expression value;
 
-        //deprecating the "variable" keyword
-//        require(Variable, s);
         if(s.hasNext("[a-z,A-Z]+")){
             variableName = s.next();
 
@@ -364,11 +348,14 @@ public class Parser {
             if(reservedKeywords.contains(variableName)){
                 throw new ScriptException("Invalid variable name (trying to use reserved keyword): "+variableName);
             }
-
+            if(functionNames.contains(variableName)){
+                throw new ScriptException("Invalid variable name (trying to use name of an already defined function): "+variableName);
+            }
             if(!variableNames.contains(variableName)){
                 //Add new variable name to list of recognised variables, so the compiler can reference them later
                 variableNames.add(variableName);
             }
+
             return new VariableAssignmentNode(variableName,value);
         }else{
             throw new ScriptException("Invalid variable name (Upper/Lower case alphabet characters only)"+(s.hasNext() ? ": "+s.next() : ""));
@@ -447,9 +434,13 @@ public class Parser {
         if(reservedKeywords.contains(name)){
             throw new ScriptException("Invalid function name (trying to use reserved keyword): "+name);
         }
-        if(!functionNames.contains(name)){
-            functionNames.add(name);
+        if(variableNames.contains(name)){
+            throw new ScriptException("Invalid function name (trying to use name of already defined variable): "+name);
         }
+        if(functionNames.contains(name)){
+            throw new ScriptException("Invalid function name (trying to use name of already defined function): "+name);
+        }
+        functionNames.add(name);
 
         require(OpenParenthesis,s);
         ArrayList<String> parameters = new ArrayList<>();
