@@ -1,6 +1,8 @@
 import java.awt.*;
+import java.awt.image.BufferedImage;
 import java.lang.Math;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -551,6 +553,38 @@ public class Expression {
                         //canvasVisible() returns nothing
                         return new NullVariable();
 
+                    case "sin":
+                        if(parameters.size() != 1){
+                            throw new ScriptException(functionName+" Wrong number of parameters: expecting 1, received "+parameters.size());
+                        }
+                        float sinFloat = parameters.get(0).evaluate(programState, functionVariables).castFloat();
+                        return new FloatVariable((float)Math.sin(sinFloat));
+
+                    case "cos":
+                        if(parameters.size() != 1){
+                            throw new ScriptException(functionName+" Wrong number of parameters: expecting 1, received "+parameters.size());
+                        }
+                        float cosFloat = parameters.get(0).evaluate(programState, functionVariables).castFloat();
+                        return new FloatVariable((float)Math.cos(cosFloat));
+
+                    case "pow":
+                        if(parameters.size() != 2){
+                            throw new ScriptException(functionName+" Wrong number of parameters: expecting 2, received "+parameters.size());
+                        }
+                        float powBase = parameters.get(0).evaluate(programState, functionVariables).castFloat();
+                        float powExponent = parameters.get(1).evaluate(programState, functionVariables).castFloat();
+                        return new FloatVariable((float)Math.pow(powBase,powExponent));
+
+                    case "getDimensions":
+                        if(parameters.size() != 1){
+                            throw new ScriptException(functionName+" Wrong number of parameters: expecting 1, received "+parameters.size());
+                        }
+                        BufferedImage sizeImage = parameters.get(0).evaluate(programState, functionVariables).castImage();
+                        ArrayList<Expression> sizeArray = new ArrayList<>(Arrays.asList(
+                                new Expression(new IntegerVariable(sizeImage.getWidth())),
+                                new Expression(new IntegerVariable(sizeImage.getHeight()))
+                        ));
+                        return new ArrayVariable(sizeArray);
                     default:
                         return new NullVariable();
                 }

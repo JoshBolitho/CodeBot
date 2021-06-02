@@ -244,12 +244,17 @@ public class Parser {
         addInternalFunction(program,"castInteger",new String[]{"x"},true);
         addInternalFunction(program,"castFloat",new String[]{"x"},true);
         addInternalFunction(program,"castBoolean",new String[]{"x"},true);
+
         addInternalFunction(program,"random",new String[]{},true);
         addInternalFunction(program,"length",new String[]{"x"},true);
         addInternalFunction(program,"charAt",new String[]{"string","int"},true);
         addInternalFunction(program,"get",new String[]{"array","int"},true);
         addInternalFunction(program,"type",new String[]{"x"},true);
 
+        addInternalFunction(program,"sin",new String[]{"x"},true);
+        addInternalFunction(program,"cos",new String[]{"x"},true);
+        addInternalFunction(program,"pow",new String[]{"b","p"},true);
+        addInternalFunction(program,"getDimensions",new String[]{"x"},true);
 
         //Initialise canvas as ImageVariable called "_canvas"
         //default size is 100x100
