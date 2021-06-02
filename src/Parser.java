@@ -36,7 +36,7 @@ public class Parser {
         length,
         charAt,
         get,
-        type;
+        type
 
     }
     static String defaultDelimiter = "[^\\S\\r\\n]|(?=[{}()\\[\\],;\"+\\-*/%#&|!<>=\\n])|(?<=[{}()\\[\\],;\"+\\-*/%#&|!<>=\\n])";
@@ -84,26 +84,6 @@ public class Parser {
                     new Operator(Or,Operation.or,0)
             )
     );
-
-    //These should all be deprecated and be rewritten as internal functions.
-    static Pattern Random =  Pattern.compile("random");
-    static Pattern Length =  Pattern.compile("length");
-    static Pattern CharAt =  Pattern.compile("charAt");
-    static Pattern Get =  Pattern.compile("get");
-    static Pattern Type =  Pattern.compile("type");
-
-    //considering deprecating these and turning them into internal functions too.
-    //e.g. users will call "castString(x)" instad of "(string)x"
-    static Pattern StringCast = Pattern.compile("string");
-    static Pattern IntegerCast= Pattern.compile("integer");
-    static Pattern FloatCast = Pattern.compile("float");
-    static Pattern BooleanCast = Pattern.compile("boolean");
-    static HashMap<Pattern,Operation> castPatterns = new HashMap<>(Map.ofEntries(
-            Map.entry(StringCast,Operation.castString),
-            Map.entry(IntegerCast,Operation.castInteger),
-            Map.entry(FloatCast,Operation.castFloat),
-            Map.entry(BooleanCast,Operation.castBoolean)
-    ));
 
     ArrayList<String> reservedKeywords = new ArrayList<>(Arrays.asList(
             "if",
@@ -154,9 +134,10 @@ public class Parser {
             return s.next();
         }
         //if the require fails:
-        String log = "Tokens received:";
+        StringBuilder log = new StringBuilder("Tokens received:");
         for(int i=0;i<5;i++){
-            if(s.hasNext()){log += "["+ s.next() + "], ";}
+            if(s.hasNext()){
+                log.append("[").append(s.next()).append("], ");}
         }
         System.out.println(log);
         throw new ScriptException("Expected "+str);
@@ -258,6 +239,16 @@ public class Parser {
         addInternalFunction(program,"setCanvas",new String[]{"image"},false);
         addInternalFunction(program,"canvasVisible",new String[]{"boolean"},false);
         addInternalFunction(program,"getPixel",new String[]{"image","x","y"},true);
+
+        addInternalFunction(program,"castString",new String[]{"x"},true);
+        addInternalFunction(program,"castInteger",new String[]{"x"},true);
+        addInternalFunction(program,"castFloat",new String[]{"x"},true);
+        addInternalFunction(program,"castBoolean",new String[]{"x"},true);
+        addInternalFunction(program,"random",new String[]{},true);
+        addInternalFunction(program,"length",new String[]{"x"},true);
+        addInternalFunction(program,"charAt",new String[]{"string","int"},true);
+        addInternalFunction(program,"get",new String[]{"array","int"},true);
+        addInternalFunction(program,"type",new String[]{"x"},true);
 
 
         //Initialise canvas as ImageVariable called "_canvas"
@@ -373,7 +364,6 @@ public class Parser {
                 //Add new variable name to list of recognised variables, so the compiler can reference them later
                 variableNames.add(variableName);
             }
-//            System.out.println("setting "+variableName+" to "+value.myMode);
             return new VariableAssignmentNode(variableName,value);
         }else{
             throw new ScriptException("Invalid variable name (Upper/Lower case alphabet characters only)"+(s.hasNext() ? ": "+s.next() : ""));
@@ -507,7 +497,7 @@ public class Parser {
         Expression expression;
 
         //Parse n "!" characters
-        while (s.hasNext(Not)){
+        if (s.hasNext(Not)){
             require(Not, s);
             expression = new Expression(parseExpression(s,null,null), null, Operation.not);
             return expression;
@@ -603,7 +593,6 @@ public class Parser {
 
     //priorityLevel stores the operation priority level handled by the current function call.
     public Expression parseExpression(Scanner s, Expression firstOperand, Integer priorityLevel){
-//        System.out.println("");
 
         //This is run the first time parseExpression is called.
         //Initialises firstOperand and priority level for recursive calls.
@@ -611,12 +600,8 @@ public class Parser {
         if(firstOperand==null){ firstOperand = parseOperand(s); }
         if(expressionEndDetected(s)){ return firstOperand; }
 
-
         //Only parse operators of the correct priority level.
         Operator operator1 = parseOperator(s);
-
-//        System.out.println("priority: "+priorityLevel);
-//        System.out.println("op1: "+operator1.getPriority());
 
         if(operator1.getPriority() < priorityLevel) {
             //The first operator we parsed is of a lower priority, so we ignore it and
@@ -628,7 +613,6 @@ public class Parser {
             //If the first operator we parse is of the correct priority level, we take it,
             //take the next operand, and then the following operator. We decide what to do
             //next, based on the following operator's relative priority
-//            System.out.println("here");
 
             //this is the only case where we consume the operator1 token
             require(operator1.getPattern(),s);
@@ -644,7 +628,6 @@ public class Parser {
             if(operator2.getPriority() > operator1.getPriority()){
                 //parse the higher priority operation in a new parseExpression() call with higher priority
                 Expression nextExpression = new Expression(firstOperand,parseExpression(s,operand2,priorityLevel+1),operator1.getOperation());
-//                System.out.println("nextExpression:"+nextExpression);
                 return parseExpression(s,nextExpression,priorityLevel);
             }else if (operator2.getPriority() == operator1.getPriority()){
                 //create an Expression to represented the equal quality operation,
@@ -657,7 +640,6 @@ public class Parser {
             }
 
         }
-//        else if(operator1.getPriority() > priorityLevel){
         else {
             //If you are parsing at a lower priority level and you reach an operation
             //of a higher priority level, you must recursively call parseExpression() with
@@ -680,8 +662,6 @@ public class Parser {
             else if(operator2.getPriority() < priorityLevel){
                 return operand1;
             }else{
-//                System.out.println("\n------\npriority: "+priorityLevel);
-//                System.out.println("op2: "+operator2.getPriority()+"\n------");
                 throw new ScriptException("Operation priority error!");
             }
 

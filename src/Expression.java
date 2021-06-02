@@ -331,52 +331,6 @@ public class Expression {
                             return new BooleanVariable(!(Boolean) value1.getValue());
                         }
                         throw new ScriptException(String.format("Failed to evaluate %s %s",operation,value1));
-                    case castString:
-                        return new StringVariable(value1.castString());
-                    case castInteger:
-                        return new IntegerVariable(value1.castInteger());
-                    case castFloat:
-                        return new FloatVariable(value1.castFloat());
-                    case castBoolean:
-                        return new BooleanVariable(value1.castBoolean());
-
-                    case random:
-                        return new FloatVariable((float)Math.random());
-                    case length:
-                        if(type1==VariableType.STRING){
-                            return new IntegerVariable(value1.castString().length());
-                        }else if(type1==VariableType.ARRAY){
-                            return new IntegerVariable(value1.castArray().size());
-                        }
-                        //error invalid argument
-                        return new NullVariable();
-                    case charAt:
-                        if(type1 == VariableType.STRING && type2 == VariableType.INTEGER){
-                            String s = value1.castString();
-                            Integer i = value2.castInteger();
-                            return new StringVariable(Character.toString(s.charAt(i)));
-                        }
-                        //error invalid arguments
-                    case get:
-                        if(type1 == VariableType.ARRAY && type2 == VariableType.INTEGER){
-
-                            Integer i = value2.castInteger();
-
-                            //if the Variable array is null, evaluate the Expression array, and set the Variable array.
-                            if (value1.getValue() == null){
-                                ArrayList<Variable> variables = new ArrayList<>();
-                                ArrayVariable thisArrayVariable = (ArrayVariable)value1;
-                                for (Expression exp : thisArrayVariable.getExpressionArray()){
-                                    variables.add(exp.evaluate(programState, functionVariables));
-                                }
-                                ((ArrayVariable) value1).setValueArray(variables);
-                            }
-
-                            return value1.castArray().get(i);
-                        }
-                        //error invalid arguments
-                    case type:
-                        return new StringVariable(type1.toString());
                 }
                 //error
                 return new NullVariable();
@@ -445,6 +399,90 @@ public class Expression {
                         //set() returns nothing
                         return new NullVariable();
 
+                    case "castString":
+                        if(parameters.size() != 1){
+                            throw new ScriptException("Wrong number of parameters: expecting 1, received "+parameters.size());
+                        }
+                        Variable stringCast = parameters.get(0).evaluate(programState, functionVariables);
+                        return new StringVariable(stringCast.castString());
+                    case "castInteger":
+                        if(parameters.size() != 1){
+                            throw new ScriptException("Wrong number of parameters: expecting 1, received "+parameters.size());
+                        }
+                        Variable integerCast = parameters.get(0).evaluate(programState, functionVariables);
+                        return new IntegerVariable(integerCast.castInteger());
+                    case "castFloat":
+                        if(parameters.size() != 1){
+                            throw new ScriptException("Wrong number of parameters: expecting 1, received "+parameters.size());
+                        }
+                        Variable floatCast = parameters.get(0).evaluate(programState, functionVariables);
+                        return new FloatVariable(floatCast.castFloat());
+                    case "castBoolean":
+                        if(parameters.size() != 1){
+                            throw new ScriptException("Wrong number of parameters: expecting 1, received "+parameters.size());
+                        }
+                        Variable booleanCast = parameters.get(0).evaluate(programState, functionVariables);
+                        return new BooleanVariable(booleanCast.castBoolean());
+                    case "random":
+                        if(parameters.size() != 0){
+                            throw new ScriptException("Wrong number of parameters: expecting 0, received "+parameters.size());
+                        }
+                        return new FloatVariable((float)Math.random());
+                    case "length":
+                        if(parameters.size() != 1){
+                            throw new ScriptException("Wrong number of parameters: expecting 1, received "+parameters.size());
+                        }
+                        Variable lengthVariable = parameters.get(0).evaluate(programState, functionVariables);
+                        VariableType lengthType = lengthVariable.getType();
+
+                        if(lengthType==VariableType.STRING){
+                            return new IntegerVariable(lengthVariable.castString().length());
+                        }else if(lengthType==VariableType.ARRAY){
+                            return new IntegerVariable(lengthVariable.castArray().size());
+                        }
+                        throw new ScriptException("Unable to get length of "+lengthType+" object");
+                    case "charAt":
+                        if(parameters.size() != 2){
+                            throw new ScriptException("Wrong number of parameters: expecting 2, received "+parameters.size());
+                        }
+                        Variable charAtString = parameters.get(0).evaluate(programState, functionVariables);
+                        Variable charAtInteger = parameters.get(1).evaluate(programState, functionVariables);
+
+                        if(charAtString.getType() == VariableType.STRING && charAtInteger.getType() == VariableType.INTEGER){
+                            String s = charAtString.castString();
+                            Integer i = charAtInteger.castInteger();
+                            return new StringVariable(Character.toString(s.charAt(i)));
+                        }
+                        throw new ScriptException("Unable to call charAt() with parameters of type: "+charAtString.getType()+", "+charAtInteger.getType());
+                    case "get":
+                        if(parameters.size() != 2){
+                            throw new ScriptException("Wrong number of parameters: expecting 2, received "+parameters.size());
+                        }
+                        Variable getArray = parameters.get(0).evaluate(programState, functionVariables);
+                        Variable getInteger = parameters.get(1).evaluate(programState, functionVariables);
+                        if(getArray.getType() == VariableType.ARRAY && getInteger.getType() == VariableType.INTEGER){
+
+                            Integer i = getInteger.castInteger();
+
+                            //if the Variable array is null, evaluate the Expression array, and set the Variable array.
+                            if (getArray.getValue() == null){
+                                ArrayList<Variable> variables = new ArrayList<>();
+                                ArrayVariable thisArrayVariable = (ArrayVariable)getArray;
+                                for (Expression exp : thisArrayVariable.getExpressionArray()){
+                                    variables.add(exp.evaluate(programState, functionVariables));
+                                }
+                                ((ArrayVariable) getArray).setValueArray(variables);
+                            }
+
+                            return getArray.castArray().get(i);
+                        }
+                        throw new ScriptException("Unable to call get() with parameters of type: "+getArray.getType()+", "+getInteger.getType());
+                    case "type":
+                        if(parameters.size() != 1){
+                            throw new ScriptException("Wrong number of parameters: expecting 1, received "+parameters.size());
+                        }
+                        Variable typeVariable = parameters.get(0).evaluate(programState, functionVariables);
+                        return new StringVariable(typeVariable.toString());
                     case "createImage":
                         //check the correct number of parameters have been supplied
                         if(parameters.size() != 2){
