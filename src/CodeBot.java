@@ -70,7 +70,6 @@ public class CodeBot {
         Files.writeString(fileName,postJSON);
     }
 
-
     public static void executeComments(String APIResponse) throws IOException, InterruptedException {
 
         Gson gson = new Gson();

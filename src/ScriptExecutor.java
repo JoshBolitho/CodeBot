@@ -1,6 +1,6 @@
 import javax.imageio.ImageIO;
-import java.awt.image.BufferedImage;
 import java.io.File;
+import java.util.ArrayList;
 import java.util.Scanner;
 
 //Parse the script, execute the parsed program, and return the console result
@@ -28,22 +28,16 @@ public class ScriptExecutor {
 
     public void displayProgram(){
         System.out.println("\n=====================Program========================");
-        System.out.println(program.display(0));
+        ArrayList<ExecutableNode> nodes = program.getExecutableNodes();
+
+        //Print the last Executable node of program, which stores the parsed script.
+        //This skips printing all the internally/pre defined functions and variables.
+        System.out.println(nodes.get(nodes.size()-1).display(0));
     }
     //execute parsed ProgramNode
     public void executeProgram(){
-        try {
-            program.execute(programState, null);
-        }catch (ScriptException e){
-            e.printStackTrace();
-
-            String message = e.getMessage();
-            if(message != null){
-                programState.print("Error: "+e.getMessage());
-            }else{
-                programState.print("Error: Unspecified Execution error.");
-            }
-        }
+        try { program.execute(programState, null); }
+        catch (EndExecutionException e){ }
     }
 
     //retrieve program console output
@@ -73,26 +67,27 @@ public class ScriptExecutor {
         }
 
         ScriptExecutor scriptExecutor = new ScriptExecutor(testScript.toString());
-        try {
-            scriptExecutor.parseScript();
-            scriptExecutor.displayProgram();
-            System.out.println("\n=====================Execute========================");
-            scriptExecutor.executeProgram();
+        try { scriptExecutor.parseScript();
 
-        } catch (ScriptException e){
-            e.printStackTrace();
-            String message = e.getMessage();
-            if(message != null){
-                scriptExecutor.getProgramState().print("Error: "+e.getMessage());
-            }else{
-                scriptExecutor.getProgramState().print("Error: Unspecified error.");
-            }
+            try{
+                scriptExecutor.displayProgram();
+                System.out.println("\n=====================Execute========================");
+                scriptExecutor.executeProgram();
+            } catch (EndExecutionException e){}
+
+        } catch (ScriptException err){
+            err.printStackTrace();
         }
+
+
+
+
 
         String result = scriptExecutor.getConsoleOutput();
         System.out.println(result);
-        System.out.println("Variables assigned: "+scriptExecutor.getProgramState().getProgramVariables().keySet());
-        System.out.println("Functions assigned: "+scriptExecutor.getProgramState().getProgramFunctions().keySet()+"\n");
+
+//        System.out.println("Variables assigned: "+scriptExecutor.getProgramState().getProgramVariables().keySet());
+//        System.out.println("Functions assigned: "+scriptExecutor.getProgramState().getProgramFunctions().keySet()+"\n");
 
 
         if( scriptExecutor.getProgramState().hasProgramVariable("_canvasVisibility")

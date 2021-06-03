@@ -31,7 +31,7 @@ public class VariableAssignmentNode implements ExecutableNode {
 
     public String display(int depth) {
         StringBuilder res = new StringBuilder();
-        for(int i=0; i<=depth; i++){
+        for(int i=0; i<depth; i++){
             res.append("    ");
         }
         res.append("variable "+name +" = "+value+"\n");

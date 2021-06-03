@@ -63,7 +63,7 @@ public class Function {
     public String display(int depth) {
         StringBuilder res = new StringBuilder();
 
-        for(int i=0; i<=depth; i++){
+        for(int i=0; i<depth; i++){
             res.append("    ");
         }
         res.append("function "+name+"(");
@@ -77,7 +77,7 @@ public class Function {
 
         res.append(functionScript.display(depth+1));
 
-        for(int i=0; i<=depth; i++){
+        for(int i=0; i<depth; i++){
             res.append("    ");
         }
         res.append("}\n");

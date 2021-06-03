@@ -8,7 +8,12 @@ public class ProgramNode implements ExecutableNode{
     // This is how a script is stored and run using a ProgramNode.
     public ProgramNode() {}
 
-    public ArrayList<ExecutableNode> executableNodes = new ArrayList<>();
+    private ArrayList<ExecutableNode> executableNodes = new ArrayList<>();
+
+    public ArrayList<ExecutableNode> getExecutableNodes() {
+        return executableNodes;
+    }
+
     public void addExecutableNode(ExecutableNode e){
         executableNodes.add(e);
     }
@@ -20,34 +25,34 @@ public class ProgramNode implements ExecutableNode{
             if(functionVariables != null && functionVariables.containsKey("_return")){
                 return;
             }
-            e.execute(programState, functionVariables);
+            //Catch errors and print current line with error message to programState.
+            //Also print stack trace and end execution with an EndExecutionException.
+            try {
+                e.execute(programState, functionVariables);
+            }catch (ScriptException err){
+                programState.print("Execution error at: "+e.display(0).split("\n")[0]);
+                programState.print(err.getMessage());
+                err.printStackTrace();
+                throw new EndExecutionException(err.getMessage());
+            }
         }
     }
 
     @Override
     public String toString() {
-        String res = "ProgramNode{";
+        StringBuilder res = new StringBuilder("ProgramNode{");
         for(ExecutableNode ex : executableNodes){
-            res += "\n    "+ex;
+            res.append("\n    ").append(ex);
         }
         return res + "\n}";
     }
 
     public String display(int depth){
         StringBuilder res = new StringBuilder();
-        for(int i=0; i<=depth; i++){
-            res.append("    ");
-        }
-        res.append("ProgramNode{\n");
-
         for(ExecutableNode ex : executableNodes){
-            res.append(ex.display(depth+1));
+            res.append(ex.display(depth));
 
         }
-        for(int i=0; i<=depth; i++){
-            res.append("    ");
-        }
-        res.append("}\n");
         return res.toString();
     }
 }

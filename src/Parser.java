@@ -10,7 +10,6 @@ public class Parser {
     ArrayList<String> variableNames = new ArrayList<>();
     ArrayList<String> functionNames = new ArrayList<>();
 
-
     enum Operation{
 
         greaterThan,
@@ -85,7 +84,7 @@ public class Parser {
             )
     );
 
-    ArrayList<String> reservedKeywords = new ArrayList<>(Arrays.asList(
+    static ArrayList<String> reservedKeywords = new ArrayList<>(Arrays.asList(
             "if",
             "else",
             "while",
@@ -94,24 +93,25 @@ public class Parser {
             "return"
     ));
 
+    //Keep track of what line the parser is up to
+    int linesParsed = 0;
+
     //Require scanner to have the following pattern.
-    static String require (Pattern p, Scanner s) throws ScriptException {
+    String require (Pattern p, Scanner s) throws ScriptException {
         if (s.hasNext(p)) {
+            if(p.equals(NewLine)){linesParsed++;}
             return s.next();
         }
         //if the require fails:
-        StringBuilder log = new StringBuilder("Tokens received:");
-        for(int i=0;i<5;i++){
-            if(s.hasNext()){ log.append("[").append(s.next()).append("], ");}
-        }
-        System.out.println(log);
-        throw new ScriptException("Expected "+p.toString());
+        if(p.equals(NewLine)){throw new ScriptException("Expected \"\\n\"");}
+        throw new ScriptException("Expected \""+p.toString()+"\"");
     }
 
     //Return true if scanner has the following pattern.
     //Consumes the pattern if it exists.
-    static boolean optionalRequire(Pattern p, Scanner s) {
+    boolean optionalRequire(Pattern p, Scanner s) {
         if (s.hasNext(p)) {
+            if(p.equals(NewLine)){linesParsed++;}
             s.next();
             return true;
         }
@@ -203,11 +203,11 @@ public class Parser {
 
     public ProgramNode parseScript(String script){
 
-        //Remove any lines beginning with "#". These lines are treated as comments by the parser.
+        //Remove any lines beginning with "%". These lines are treated as comments by the parser.
         String[] lines = script.split("\n");
         StringBuilder commentRemovedScript = new StringBuilder();
         for(String s : lines){
-            if( s.length()>0 && ! (s.charAt(0) == '#') ){
+            if( s.length()>0 && ! (s.charAt(0) == '%') ){
                 commentRemovedScript.append(s).append("\n");
             }
         }
@@ -260,12 +260,29 @@ public class Parser {
         BufferedImage sunImage = loadImage("src\\Images\\sun.png");
         addProgramVariable(program,"sun",new ImageVariable(sunImage));
 
-        //Parse the user's script
         System.out.println("\n=====================Parsing======================== \n"+commentRemovedScript);
-
+        //Parse the user's script in a separate ProgramNode "scriptNode" and append to the main ProgramNode, "program"
+        //to distinguish internal functions/variables from the user's script.
+        //(helps when printing the program)
+        ProgramNode scriptNode = new ProgramNode();
         while (scanner.hasNext()) {
-            program.addExecutableNode(parseExecutableNode(scanner));
+            try {
+                scriptNode.addExecutableNode(parseExecutableNode(scanner));
+            }catch (ScriptException err){
+                String[] scriptArray = commentRemovedScript.toString().split("\n");
+                if (linesParsed<scriptArray.length){
+                    String currentLine = scriptArray[linesParsed];
+                    System.out.println("Parsing error at: "+currentLine);
+                }else{
+                    System.out.println("Parsing error");
+                }
+                System.out.println(err.getMessage());
+
+                throw err;
+            }
         }
+        program.addExecutableNode(scriptNode);
+
         return program;
     }
 
@@ -308,7 +325,7 @@ public class Parser {
                         parameters.add(parseExpression(s,null,null));
                     }
                     require(CloseParenthesis,s);
-                    optionalRequire(NewLine,s);
+                    require(NewLine,s);
 
                     return new FunctionExecutionNode(str, parameters);
                 }

@@ -34,13 +34,13 @@ public class WhileNode implements ExecutableNode{
 
     public String display(int depth) {
         StringBuilder res = new StringBuilder();
-        for(int i=0; i<=depth; i++){
+        for(int i=0; i<depth; i++){
             res.append("    ");
         }
         res.append("while("+condition+"){\n");
         res.append(whileBlock.display(depth+1));
 
-        for(int i=0; i<=depth; i++){
+        for(int i=0; i<depth; i++){
             res.append("    ");
         }
         res.append("}\n");
