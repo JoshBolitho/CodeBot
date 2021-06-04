@@ -70,7 +70,6 @@ public class CodeBot {
         Files.writeString(fileName,postJSON);
     }
 
-
     public static void executeComments(String APIResponse) throws IOException, InterruptedException {
 
         Gson gson = new Gson();
@@ -82,30 +81,29 @@ public class CodeBot {
             //if this comment has been replied to already, ignore it.
             if(repliedComments.contains(c.getId())){continue;}
 
+            String result = "";
+            boolean parseFailed = false;
             ScriptExecutor scriptExecutor = new ScriptExecutor(c.getMessage());
             try {
                 scriptExecutor.parseScript();
-                scriptExecutor.displayProgram();
-                System.out.println("\n=====================Execute========================");
-                scriptExecutor.executeProgram();
 
-            }catch (ScriptException e){
-                e.printStackTrace();
-                String message = e.getMessage();
-                if(message != null){
-                    scriptExecutor.getProgramState().print("Error: "+e.getMessage());
-                }else{
-                    scriptExecutor.getProgramState().print("Error: Unspecified error.");
+                try{
+                    scriptExecutor.displayProgram();
+                    System.out.println("\n=====================Execute========================");
+                    scriptExecutor.executeProgram();
+                } catch (StopException e){
+                    //if execution fails, the error message is already appended to console output
                 }
+
+            } catch (StopException e){
+                //if parsing fails, result is set to the error message output
+                result = e.getMessage();
+                parseFailed = true;
             }
 
-            String result = scriptExecutor.getConsoleOutput();
+            if(!parseFailed){result = scriptExecutor.getConsoleOutput();}
             System.out.println(result);
-            System.out.println("Variables assigned: "+scriptExecutor.getProgramState().getProgramVariables().keySet());
-            System.out.println("Functions assigned: "+scriptExecutor.getProgramState().getProgramFunctions().keySet()+"\n");
-
             System.out.println("replying to comment: "+c.getId());
-
 
             if( scriptExecutor.getProgramState().hasProgramVariable("_canvasVisibility")
                     && scriptExecutor.getProgramState().getProgramVariable("_canvasVisibility").castBoolean()
@@ -141,7 +139,8 @@ public class CodeBot {
     }
 
     public static void replyComment(String objectID, String message) throws IOException, InterruptedException {
-        message = "=====Result=====\n"+message;
+        if(message.equals("")){message = "No Console Output";}
+        message = URLEncoder.encode(message,StandardCharsets.UTF_8.toString());
 
         // Create a client
         var client = HttpClient.newHttpClient();
@@ -159,7 +158,8 @@ public class CodeBot {
     }
 
     public static void replyCommentImage(String objectID, String message, BufferedImage bufferedImage,String uploadPreset) throws IOException, InterruptedException {
-        message = "=====Result=====\n"+message;
+        if(message.equals("")){message = "No Console Output";}
+        message = URLEncoder.encode(message,StandardCharsets.UTF_8.toString());
 
         //write bufferedImage to byte array
         ByteArrayOutputStream out = new ByteArrayOutputStream();
@@ -252,29 +252,5 @@ public class CodeBot {
         String commentData = requestComments(String.format("%s_%s",page_ID,postID));
         executeComments(commentData);
 
-
-
-
-
-
-        //Running a hardcoded test script instead of the CodeBot program
-//        String test = "function sum(a,b){\n" +
-//                "return a + b\n" +
-//                "}\n" +
-//                "print( sum(1,2) )\n";
-//                "function sumtwo(a,b){\n" +
-//                "print ( a+b )\n" +
-//                "return a+b\n" +
-//                "}\n" +
-//                "sumtwo(1,2)";
-//
-//        ScriptExecutor scriptExecutor = new ScriptExecutor(test);
-//        scriptExecutor.parseScript();
-//        scriptExecutor.displayProgram();
-//        System.out.println("\n=====================Execute========================");
-//        scriptExecutor.executeProgram();
-//
-//        String result = scriptExecutor.getConsoleOutput();
-//        System.out.println(result);
     }
 }

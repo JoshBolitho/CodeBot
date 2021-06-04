@@ -28,4 +28,14 @@ public class VariableAssignmentNode implements ExecutableNode {
                 name + ',' +
                 value + '}';
     }
+
+    public String display(int depth) {
+        StringBuilder res = new StringBuilder();
+        for(int i=0; i<depth; i++){
+            res.append("    ");
+        }
+        res.append(name +" = "+value+"\n");
+
+        return res.toString();
+    }
 }

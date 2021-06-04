@@ -7,8 +7,8 @@ import java.util.regex.*;
 
 public class Parser {
 
-    ArrayList<String> scriptVariableNames = new ArrayList<>();
-    ArrayList<String> scriptFunctionNames = new ArrayList<>();
+    ArrayList<String> variableNames = new ArrayList<>();
+    ArrayList<String> functionNames = new ArrayList<>();
 
     enum Operation{
 
@@ -36,10 +36,10 @@ public class Parser {
         charAt,
         get,
         type
+
     }
+    static String defaultDelimiter = "[^\\S\\r\\n]|(?=[{}()\\[\\],;\"+\\-*/%#&|!<>=\\n])|(?<=[{}()\\[\\],;\"+\\-*/%#&|!<>=\\n])";
 
-
-//    static Pattern IntegerPattern = Pattern.compile("-?\\d+"); // ("-?(0|[1-9][0-9]*)");
     static Pattern OpenParenthesis = Pattern.compile("\\(");
     static Pattern CloseParenthesis = Pattern.compile("\\)");
     static Pattern OpenBrace = Pattern.compile("\\{");
@@ -48,66 +48,70 @@ public class Parser {
     static Pattern CloseSquare = Pattern.compile("]");
 
     static Pattern NewLine = Pattern.compile("\n");
-//    static Pattern SemiColon = Pattern.compile(";");
-
-    static Pattern Plus = Pattern.compile("\\+");
-    static Pattern Minus = Pattern.compile("-");
-    static Pattern Times = Pattern.compile("\\*");
-    static Pattern Divide = Pattern.compile("/");
-    static Pattern Modulo = Pattern.compile("%");
-
-    static Pattern And = Pattern.compile("&");
-    static Pattern Or = Pattern.compile("\\|");
-    static Pattern Not = Pattern.compile("!");
-
     static Pattern DoubleQuotes = Pattern.compile("\"");
-
-    static Pattern Equals = Pattern.compile("=");
-
-    static Pattern GreaterThan = Pattern.compile(">");
-    static Pattern LessThan = Pattern.compile("<");
-
-    static Pattern StringCast = Pattern.compile("string");
-    static Pattern IntegerCast= Pattern.compile("integer");
-    static Pattern FloatCast = Pattern.compile("float");
-    static Pattern BooleanCast = Pattern.compile("boolean");
-
+    static Pattern Not = Pattern.compile("!");
 
     static Pattern While = Pattern.compile("while");
     static Pattern If = Pattern.compile("if");
     static Pattern Else = Pattern.compile("else");
     static Pattern Function = Pattern.compile("function");
-    static Pattern Variable = Pattern.compile("variable");
     static Pattern Comma =  Pattern.compile(",");
-
-    static Pattern Random =  Pattern.compile("random");
-    static Pattern Length =  Pattern.compile("length");
-    static Pattern CharAt =  Pattern.compile("charAt");
-    static Pattern Get =  Pattern.compile("get");
-    static Pattern Type =  Pattern.compile("type");
-
     static Pattern Return =  Pattern.compile("return");
 
-    static String defaultDelimiter = "[^\\S\\r\\n]|(?=[{}()\\[\\],;\"+\\-*/%#&|!<>=\\n])|(?<=[{}()\\[\\],;\"+\\-*/%#&|!<>=\\n])";
+    static Pattern Times = Pattern.compile("\\*");
+    static Pattern Divide = Pattern.compile("/");
+    static Pattern Modulo = Pattern.compile("%");
+    static Pattern Plus = Pattern.compile("\\+");
+    static Pattern Minus = Pattern.compile("-");
+    static Pattern GreaterThan = Pattern.compile(">");
+    static Pattern LessThan = Pattern.compile("<");
+    static Pattern Equals = Pattern.compile("=");
+    static Pattern And = Pattern.compile("&");
+    static Pattern Or = Pattern.compile("\\|");
+
+    static ArrayList<Operator> operators = new ArrayList<>(
+            Set.of(
+                    new Operator(Times,Operation.times,5),
+                    new Operator(Divide,Operation.divide,5),
+                    new Operator(Modulo,Operation.modulo,5),
+                    new Operator(Plus,Operation.plus,4),
+                    new Operator(Minus,Operation.minus,4),
+                    new Operator(GreaterThan,Operation.greaterThan,3),
+                    new Operator(LessThan,Operation.lessThan,3),
+                    new Operator(Equals,Operation.equals,2),
+                    new Operator(And,Operation.and,1),
+                    new Operator(Or,Operation.or,0)
+            )
+    );
+
+    static ArrayList<String> reservedKeywords = new ArrayList<>(Arrays.asList(
+            "if",
+            "else",
+            "while",
+
+            "function",
+            "return"
+    ));
+
+    //Keep track of what line the parser is up to
+    int linesParsed = 0;
 
     //Require scanner to have the following pattern.
-    static String require (Pattern p, Scanner s) throws ScriptException {
+    String require (Pattern p, Scanner s) throws ScriptException {
         if (s.hasNext(p)) {
+            if(p.equals(NewLine)){linesParsed++;}
             return s.next();
         }
         //if the require fails:
-        String log = "Tokens received:";
-        for(int i=0;i<5;i++){
-            log += "["+ s.next() + "], ";
-        }
-        System.out.println(log);
-        throw new ScriptException("Expected "+p.toString());
+        if(p.equals(NewLine)){throw new ScriptException("Expected \"\\n\"");}
+        throw new ScriptException("Expected \""+p.toString()+"\"");
     }
 
     //Return true if scanner has the following pattern.
     //Consumes the pattern if it exists.
-    static boolean optionalRequire(Pattern p, Scanner s) {
+    boolean optionalRequire(Pattern p, Scanner s) {
         if (s.hasNext(p)) {
+            if(p.equals(NewLine)){linesParsed++;}
             s.next();
             return true;
         }
@@ -119,9 +123,10 @@ public class Parser {
             return s.next();
         }
         //if the require fails:
-        String log = "Tokens received:";
+        StringBuilder log = new StringBuilder("Tokens received:");
         for(int i=0;i<5;i++){
-            log += "["+ s.next() + "], ";
+            if(s.hasNext()){
+                log.append("[").append(s.next()).append("], ");}
         }
         System.out.println(log);
         throw new ScriptException("Expected "+str);
@@ -166,7 +171,7 @@ public class Parser {
                 )
         );
         //Ensure the program knows it now has the function functionName
-        scriptFunctionNames.add(functionName);
+        functionNames.add(functionName);
     }
 
     //Creates a variable assignment node, and adds it to the program.
@@ -179,48 +184,71 @@ public class Parser {
                 )
         );
         program.addExecutableNode(myVariable);
-        scriptVariableNames.add(name);
+        variableNames.add(name);
     }
 
-    //Load an image as a BufferedImage, given known dimensions.
-    public BufferedImage loadImage(String source, int x, int y){
-        BufferedImage bi = new BufferedImage(x,y,BufferedImage.TYPE_INT_RGB);
+    //Load an image as a BufferedImage
+    public BufferedImage loadImage(String source){
+        BufferedImage bi = null;
         try {
             bi = ImageIO.read(new File(source));
         } catch (IOException e) {
             System.out.println("loadImage failed:" + source);
         }
+        if(bi==null){
+            System.out.println("Warning: loaded image is null: " + source);
+        }
         return bi;
     }
 
-    public ProgramNode parseScript(String script){
+    public ProgramNode parseScript(String script) throws StopException{
 
-        //Remove any lines beginning with "#". These lines are treated as comments by the parser.
+        //Remove any lines beginning with "%". These lines are treated as comments by the parser.
         String[] lines = script.split("\n");
-        String commentRemovedScript = "";
+        StringBuilder commentRemovedScript = new StringBuilder();
         for(String s : lines){
-            if( s.length()>0 && ! (s.charAt(0) == '#') ){
-                commentRemovedScript = commentRemovedScript + s + "\n";
+            if( s.length()>0 && ! (s.charAt(0) == '%') ){
+                commentRemovedScript.append(s).append("\n");
             }
         }
 
         ProgramNode program = new ProgramNode();
-        Scanner scanner = new Scanner(commentRemovedScript);
+        Scanner scanner = new Scanner(commentRemovedScript.toString());
 
         //New delimiter that cuts each token before the \n character without consuming it.
         scanner.useDelimiter(defaultDelimiter);
 
+        //general functions
         addInternalFunction(program,"print",new String[]{"x"},false);
+        addInternalFunction(program,"length",new String[]{"x"},true);
+        addInternalFunction(program,"charAt",new String[]{"string","int"},true);
+        addInternalFunction(program,"type",new String[]{"x"},true);
+
+        //array functions
         addInternalFunction(program,"add",new String[]{"array","value"},false);
         addInternalFunction(program,"remove",new String[]{"array","int"},false);
+        addInternalFunction(program,"get",new String[]{"array","int"},true);
         addInternalFunction(program,"set",new String[]{"array","int","value"},false);
 
+        //image functions
         addInternalFunction(program,"createImage",new String[]{"x","y"},true);
         addInternalFunction(program,"setPixel",new String[]{"image","x","y","r","g","b"},false);
+        addInternalFunction(program,"getPixel",new String[]{"image","x","y"},true);
+        addInternalFunction(program,"getDimensions",new String[]{"x"},true);
         addInternalFunction(program,"setCanvas",new String[]{"image"},false);
         addInternalFunction(program,"canvasVisible",new String[]{"boolean"},false);
-        addInternalFunction(program,"getPixel",new String[]{"image","x","y"},true);
 
+        //casting functions
+        addInternalFunction(program,"castString",new String[]{"x"},true);
+        addInternalFunction(program,"castInteger",new String[]{"x"},true);
+        addInternalFunction(program,"castFloat",new String[]{"x"},true);
+        addInternalFunction(program,"castBoolean",new String[]{"x"},true);
+
+        //maths functions
+        addInternalFunction(program,"random",new String[]{},true);
+        addInternalFunction(program,"sin",new String[]{"x"},true);
+        addInternalFunction(program,"cos",new String[]{"x"},true);
+        addInternalFunction(program,"pow",new String[]{"b","p"},true);
 
         //Initialise canvas as ImageVariable called "_canvas"
         //default size is 100x100
@@ -230,74 +258,76 @@ public class Parser {
         addProgramVariable(program, "_canvasVisibility",new BooleanVariable(false));
 
         //Add monky image
-        BufferedImage monkyImage = loadImage("src\\Images\\monky.png",100 ,100);
+        BufferedImage monkyImage = loadImage("src\\Images\\monky.png");
         addProgramVariable(program,"monky",new ImageVariable(monkyImage));
 
-        //Parse the user's script
+        //Add sun image
+        BufferedImage sunImage = loadImage("src\\Images\\sun.png");
+        addProgramVariable(program,"sun",new ImageVariable(sunImage));
+
         System.out.println("\n=====================Parsing======================== \n"+commentRemovedScript);
-//        try {
-            while (scanner.hasNext()) {
-                program.addExecutableNode(parseExecutableNode(scanner, null));
+        //Parse the user's script in a separate ProgramNode "scriptNode" and append to the main ProgramNode, "program"
+        //to distinguish internal functions/variables from the user's script.
+        //(helps when printing the program)
+        ProgramNode scriptNode = new ProgramNode();
+        while (scanner.hasNext()) {
+            try {
+                scriptNode.addExecutableNode(parseExecutableNode(scanner));
+            } catch (ScriptException err){
+                String[] scriptArray = commentRemovedScript.toString().split("\n");
+                //throw a StopException to end parsing and add the line which
+                //failed parsing in the error message.
+                if (linesParsed<scriptArray.length){
+                    String currentLine = scriptArray[linesParsed];
+                    throw new StopException("Parsing error at: "+currentLine+"\n"+err.getMessage());
+                }else{
+                    throw new StopException("Parsing error\n"+err.getMessage());
+                }
+
             }
-//        }catch (ScriptException c){
-//            throw new ScriptException()
-//        }
+        }
+        program.addExecutableNode(scriptNode);
+
         return program;
     }
 
 
-    public ExecutableNode parseExecutableNode (Scanner s, ArrayList<String> functionVariables) throws ScriptException {
-        if(s.hasNext(Variable)){
-            return parseVariableAssignment(s, functionVariables);
-        }else if(s.hasNext(If)){
-            return parseIfNode(s, functionVariables);
+    public ExecutableNode parseExecutableNode (Scanner s) throws ScriptException {
+        if(s.hasNext(If)){
+            return parseIfNode(s);
         }else if(s.hasNext(While)){
-            return parseWhileNode(s, functionVariables);
+            return parseWhileNode(s);
         }else if(s.hasNext(Function)){
             return parseFunctionAssignment(s);
         }else if(s.hasNext(Return)){
-            if(functionVariables!=null){
-                return parseReturn(s, functionVariables);
-            }
-            throw new ScriptException("Can't return when not inside a function");
+            //currently missing a test to see if parsing is currently in a function,
+            //so in theory someone could add a return statement without being in a function
+            return parseReturn(s);
+//            throw new ScriptException("Can't return when not inside a function");
         }else{
-
-            //test whether scanner.next() has a variable name already defined in the function
-            if(functionVariables != null){
-                for(String str : functionVariables){
-                    if(s.hasNext(str)){
-                        require(str, s);
-                        require(Equals, s);
-                        VariableAssignmentNode variableAssignmentNode = new VariableAssignmentNode(str,parseExpression(s,false, functionVariables));
-                        require(NewLine, s);
-                        return variableAssignmentNode;
-                    }
-                }
-            }
-
             //test whether scanner.next() has a variable name already defined in the script
-            for(String str : scriptVariableNames){
+            for(String str : variableNames){
                 if(s.hasNext(str)){
                     require(str, s);
                     require(Equals, s);
-                    VariableAssignmentNode variableAssignmentNode = new VariableAssignmentNode(str,parseExpression(s,false, functionVariables));
-                    require(NewLine, s);
+                    VariableAssignmentNode variableAssignmentNode = new VariableAssignmentNode(str,parseExpression(s,null,null));
+                    optionalRequire(NewLine, s);
                     return variableAssignmentNode;
                 }
             }
 
             //check for function names
-            for(String str : scriptFunctionNames){
+            for(String str : functionNames){
                 if(s.hasNext(str)){
                     require(str, s);
                     require(OpenParenthesis,s);
                     ArrayList<Expression> parameters = new ArrayList<>();
                     if(!s.hasNext(CloseParenthesis)){
-                        parameters.add(parseExpression(s,false,null));
+                        parameters.add(parseExpression(s,null,null));
                     }
                     while(s.hasNext(Comma)){
                         require(Comma,s);
-                        parameters.add(parseExpression(s,false,null));
+                        parameters.add(parseExpression(s,null,null));
                     }
                     require(CloseParenthesis,s);
                     require(NewLine,s);
@@ -305,49 +335,60 @@ public class Parser {
                     return new FunctionExecutionNode(str, parameters);
                 }
             }
+
+            //Finally, if no known variable or function names are found, attempt to parse a new variable name.
+            if(s.hasNext("[a-z,A-Z]+")){
+                return parseVariableAssignment(s);
+            }
+
             //error
-            throw new ScriptException("Invalid statement");
+            throw new ScriptException("Invalid statement"+(s.hasNext() ? ": "+s.next() : ""));
         }
     }
 
-    public VariableAssignmentNode parseReturn(Scanner s, ArrayList<String> functionVariables){
+    public VariableAssignmentNode parseReturn(Scanner s){
         require(Return,s);
-        Expression value = parseExpression(s,false, functionVariables);
-        require(NewLine, s);
+        Expression value = parseExpression(s,null,null);
+        optionalRequire(NewLine, s);
 
         return new VariableAssignmentNode("_return",value);
     }
 
-    public VariableAssignmentNode parseVariableAssignment(Scanner s, ArrayList<String> functionVariables) throws ScriptException {
+    public VariableAssignmentNode parseVariableAssignment(Scanner s) throws ScriptException {
         String variableName;
         Expression value;
 
-        require(Variable, s);
         if(s.hasNext("[a-z,A-Z]+")){
             variableName = s.next();
 
             require(Equals, s);
 
-            value = parseExpression(s,false, functionVariables);
+            value = parseExpression(s,null,null);
 
-            require(NewLine, s);
+            optionalRequire(NewLine, s);
 
-            if(!scriptVariableNames.contains(variableName)){
-                //Add new variable name to list of recognised variables, so the compiler can reference them later
-                scriptVariableNames.add(variableName);
+            if(reservedKeywords.contains(variableName)){
+                throw new ScriptException("Invalid variable name (trying to use reserved keyword): "+variableName);
             }
-//            System.out.println("setting "+variableName+" to "+value.myMode);
+            if(functionNames.contains(variableName)){
+                throw new ScriptException("Invalid variable name (trying to use name of an already defined function): "+variableName);
+            }
+            if(!variableNames.contains(variableName)){
+                //Add new variable name to list of recognised variables, so the compiler can reference them later
+                variableNames.add(variableName);
+            }
+
             return new VariableAssignmentNode(variableName,value);
         }else{
-            throw new ScriptException("Invalid variable name (Upper/Lower case alphabet characters only): "+s.next());
+            throw new ScriptException("Invalid variable name (Upper/Lower case alphabet characters only)"+(s.hasNext() ? ": "+s.next() : ""));
         }
     }
 
-    public IfNode parseIfNode(Scanner s, ArrayList<String> functionVariables){
+    public IfNode parseIfNode(Scanner s){
         require(If, s);
         require(OpenParenthesis, s);
 
-        Expression condition = parseExpression(s,false, functionVariables);
+        Expression condition = parseExpression(s,null,null);
 
         require(CloseParenthesis, s);
         require(OpenBrace, s);
@@ -356,7 +397,7 @@ public class Parser {
         //while the scanner doesn't have close brace:
         ProgramNode ifBlock = new ProgramNode();
         while(!s.hasNext(CloseBrace)){
-            ifBlock.addExecutableNode(parseExecutableNode(s, functionVariables));
+            ifBlock.addExecutableNode(parseExecutableNode(s));
         }
         require(CloseBrace, s);
 
@@ -364,11 +405,12 @@ public class Parser {
         if(s.hasNext(Else)){
             require(Else, s);
             require(OpenBrace, s);
+            optionalRequire(NewLine,s);
 
             //while the scanner doesn't have close brace:
             ProgramNode elseBlock = new ProgramNode();
             while(!s.hasNext(CloseBrace)){
-                elseBlock.addExecutableNode(parseExecutableNode(s, functionVariables));
+                elseBlock.addExecutableNode(parseExecutableNode(s));
             }
             require(CloseBrace, s);
             require(NewLine, s);
@@ -379,11 +421,11 @@ public class Parser {
         }
     }
 
-    public WhileNode parseWhileNode(Scanner s, ArrayList<String> functionVariables){
+    public WhileNode parseWhileNode(Scanner s){
         require(While, s);
         require(OpenParenthesis, s);
 
-        Expression condition = parseExpression(s,false, functionVariables);
+        Expression condition = parseExpression(s,null,null);
 
         require(CloseParenthesis, s);
         require(OpenBrace, s);
@@ -392,7 +434,7 @@ public class Parser {
 //        while scanner doesn't have close brace
         ProgramNode whileBlock = new ProgramNode();
         while(!s.hasNext(CloseBrace)){
-            whileBlock.addExecutableNode(parseExecutableNode(s, functionVariables));
+            whileBlock.addExecutableNode(parseExecutableNode(s));
         }
         require(CloseBrace, s);
         require(NewLine, s);
@@ -408,375 +450,244 @@ public class Parser {
         if(s.hasNext("[a-z,A-Z]+")) {
             name = s.next();
         }else{
-            throw new ScriptException("Invalid function name (Upper/Lower case alphabet characters only): "+s.next());
+            throw new ScriptException("Invalid function name (Upper/Lower case alphabet characters only)"+(s.hasNext() ? ": "+s.next() : ""));
         }
+
+        if(reservedKeywords.contains(name)){
+            throw new ScriptException("Invalid function name (trying to use reserved keyword): "+name);
+        }
+        if(variableNames.contains(name)){
+            throw new ScriptException("Invalid function name (trying to use name of already defined variable): "+name);
+        }
+        if(functionNames.contains(name)){
+            throw new ScriptException("Invalid function name (trying to use name of already defined function): "+name);
+        }
+        functionNames.add(name);
+
         require(OpenParenthesis,s);
-        ArrayList<String> functionVariables = new ArrayList<>();
+        ArrayList<String> parameters = new ArrayList<>();
         if(s.hasNext("[a-z,A-Z]+")) {
-            functionVariables.add(s.next());
+            parameters.add(s.next());
             while(s.hasNext(Comma)){
                 require(Comma,s);
-                functionVariables.add(require(Pattern.compile("[a-z,A-Z]+"), s));
+                parameters.add(require(Pattern.compile("[a-z,A-Z]+"), s));
             }
         }
-        String[] parameters = new String[functionVariables.size()];
-        parameters = functionVariables.toArray(parameters);
+
+        //ensure all the parameter names are legal, and add them to scriptVariableNames
+        for(String variableName : parameters ){
+            if(reservedKeywords.contains(variableName)){
+                throw new ScriptException("Invalid variable name (trying to use reserved keyword): "+variableName);
+            }
+            if(!variableNames.contains(variableName)){
+                //Add new variable name to list of recognised variables, so the compiler can reference them later
+                variableNames.add(variableName);
+            }
+        }
+
+
+        String[] parameterArray = new String[parameters.size()];
+        parameterArray = parameters.toArray(parameterArray);
 
         require(CloseParenthesis,s);
         require(OpenBrace,s);
         optionalRequire(NewLine,s);
         while(!s.hasNext(CloseBrace)){
             //Add new function name to list of recognised variables, so the compiler can reference them later.
-            functionScript.addExecutableNode(parseExecutableNode(s, functionVariables));
+            functionScript.addExecutableNode(parseExecutableNode(s));
         }
         require(CloseBrace,s);
         require(NewLine,s);
 
-        if(!scriptFunctionNames.contains(name)){
-            scriptFunctionNames.add(name);
-
-        }
-        return new FunctionAssignmentNode(name, new Function(name,parameters, functionScript));
+        return new FunctionAssignmentNode(name, new Function(name,parameterArray,functionScript));
+    }
+    public boolean expressionEndDetected(Scanner s){
+        //Detect possible end of expression
+        return  s.hasNext(CloseBrace) ||
+                s.hasNext(CloseSquare) ||
+                s.hasNext(CloseParenthesis) ||
+                s.hasNext(NewLine) ||
+                s.hasNext(Comma);
     }
 
-
-    //operationPriority defines the behaviour for parsing lower priority operations (+,-)
-    //true = ignore lower priority operations
-    public Expression parseExpression (Scanner s, boolean operationPriority, ArrayList<String> functionVariables) throws ScriptException{
-//        System.out.println("entering parseExp1");
-
-//      Parse the left side of the expression.
-
-        Expression firstExpression = new Expression(new NullVariable());
-//        Expression firstExpression;
+    //parse and consume a single operand
+    public Expression parseOperand(Scanner s){
+        Expression expression;
 
         //Parse n "!" characters
-        boolean hasNotOperator = false;
-        while (s.hasNext(Not)){
+        if (s.hasNext(Not)){
             require(Not, s);
-            hasNotOperator = !hasNotOperator;
+            expression = new Expression(parseExpression(s,null,null), null, Operation.not);
+            return expression;
         }
 
-        if(s.hasNext(OpenParenthesis)){
+        if(s.hasNext(OpenParenthesis)) {
             require(OpenParenthesis, s);
+            expression = parseExpression(s,null,null);
+            require(CloseParenthesis,s);
+            return expression;
+        }
 
-            if(!hasNotOperator) {
-                if (s.hasNext(StringCast)) {
-                    require(StringCast, s);
-                    require(CloseParenthesis, s);
-                    return new Expression(parseExpression(s, false, functionVariables), null, Operation.castString);
-                } else if (s.hasNext(IntegerCast)) {
-                    require(IntegerCast, s);
-                    require(CloseParenthesis, s);
-                    return new Expression(parseExpression(s, false, functionVariables), null, Operation.castInteger);
-                } else if (s.hasNext(FloatCast)) {
-                    require(FloatCast, s);
-                    require(CloseParenthesis, s);
-                    return new Expression(parseExpression(s, false, functionVariables), null, Operation.castFloat);
-                } else if (s.hasNext(BooleanCast)) {
-                    require(BooleanCast, s);
-                    require(CloseParenthesis, s);
-                    return new Expression(parseExpression(s, false, functionVariables), null, Operation.castBoolean);
-                } else {
-                    firstExpression = parseExpression(s, false, functionVariables);
-                    require(CloseParenthesis, s);
+        if (s.hasNext(OpenSquare)) {
+            expression = parseArrayExpression(s);
+            return expression;
+        }
+
+        if (s.hasNextInt()){
+            expression = new Expression(new IntegerVariable(s.nextInt()));
+            return expression;
+        }
+
+        if (s.hasNextFloat()){
+            expression = new Expression(new FloatVariable(s.nextFloat()));
+            return expression;
+        }
+
+        if (s.hasNextBoolean()){
+            expression = new Expression(new BooleanVariable(s.nextBoolean()));
+            return expression;
+        }
+
+        if (s.hasNext(DoubleQuotes)){
+            require(DoubleQuotes, s);
+            //end token just before the next " character, and just after it as well
+            s.useDelimiter("(?=[\"])|(?<=[\"])");
+            String nextString = s.next();
+
+            //This case catches an empty string
+            if(nextString.equals("\"")){
+                expression = new Expression(new StringVariable(""));
+                s.useDelimiter(defaultDelimiter);
+            }
+            //this case catches literally any other possible string
+            else {
+                expression = new Expression(new StringVariable(nextString));
+                s.useDelimiter(defaultDelimiter);
+                require(DoubleQuotes, s);
+            }
+            return expression;
+
+        }
+
+        for(String variableName : variableNames){
+            if(s.hasNext(variableName)){
+                String recognisedVariableName = s.next();
+                expression = new Expression(recognisedVariableName);
+                return expression;
+            }
+        }
+
+        for(String functionName : functionNames) {
+            if (s.hasNext(functionName)) {
+                require(functionName, s);
+                require(OpenParenthesis, s);
+                ArrayList<Expression> parameters = new ArrayList<>();
+                if (!s.hasNext(CloseParenthesis)) {
+                    parameters.add(parseExpression(s,null,null));
                 }
+                while (s.hasNext(Comma)) {
+                    require(Comma, s);
+                    parameters.add(parseExpression(s,null,null));
+                }
+                require(CloseParenthesis, s);
+
+                expression =  new Expression(functionName, parameters, false);
+                return expression;
+            }
+        }
+
+        throw new ScriptException("Unrecognised Expression"+(s.hasNext() ? ": "+s.next() : ""));
+    }
+
+    //parse the next operator token, without consuming it.
+    public Operator parseOperator(Scanner s){
+        for(Operator o : operators){
+            if(s.hasNext(o.getPattern())){
+                return o;
+            }
+        }
+        throw new ScriptException("expected an operator");
+    }
+
+    //priorityLevel stores the operation priority level handled by the current function call.
+    public Expression parseExpression(Scanner s, Expression firstOperand, Integer priorityLevel){
+
+        //This is run the first time parseExpression is called.
+        //Initialises firstOperand and priority level for recursive calls.
+        if(priorityLevel==null){ priorityLevel = 0; }
+        if(firstOperand==null){ firstOperand = parseOperand(s); }
+        if(expressionEndDetected(s)){ return firstOperand; }
+
+        //Only parse operators of the correct priority level.
+        Operator operator1 = parseOperator(s);
+
+        if(operator1.getPriority() < priorityLevel) {
+            //The first operator we parsed is of a lower priority, so we ignore it and
+            //return firstOperand.
+            return firstOperand;
+
+        }
+        else if(operator1.getPriority() == priorityLevel){
+            //If the first operator we parse is of the correct priority level, we take it,
+            //take the next operand, and then the following operator. We decide what to do
+            //next, based on the following operator's relative priority
+
+            //this is the only case where we consume the operator1 token
+            require(operator1.getPattern(),s);
+
+            //get next operand
+            Expression operand2 = parseOperand(s);
+
+            //detect potential end of expression
+            if(expressionEndDetected(s)){ return new Expression(firstOperand,operand2,operator1.getOperation()); }
+
+            //get next operation
+            Operator operator2 = parseOperator(s);
+            if(operator2.getPriority() > operator1.getPriority()){
+                //parse the higher priority operation in a new parseExpression() call with higher priority
+                Expression nextExpression = new Expression(firstOperand,parseExpression(s,operand2,priorityLevel+1),operator1.getOperation());
+                return parseExpression(s,nextExpression,priorityLevel);
+            }else if (operator2.getPriority() == operator1.getPriority()){
+                //create an Expression to represented the equal quality operation,
+                //then call parseExpression with this newly created expression as the parameter.
+                Expression temp = new Expression(firstOperand,operand2,operator1.getOperation());
+                return parseExpression(s,temp,priorityLevel);
             }else{
-                if (s.hasNext(StringCast)) {
-                    require(StringCast, s);
-                    require(CloseParenthesis, s);
-                    return new Expression(new Expression(parseExpression(s, false, functionVariables), null, Operation.castString), null, Operation.not);
-                } else if (s.hasNext(IntegerCast)) {
-                    require(IntegerCast, s);
-                    require(CloseParenthesis, s);
-                    return new Expression(new Expression(parseExpression(s, false, functionVariables), null, Operation.castInteger), null, Operation.not);
-                } else if (s.hasNext(FloatCast)) {
-                    require(FloatCast, s);
-                    require(CloseParenthesis, s);
-                    return new Expression(new Expression(parseExpression(s, false, functionVariables), null, Operation.castFloat), null, Operation.not);
-                } else if (s.hasNext(BooleanCast)) {
-                    require(BooleanCast, s);
-                    require(CloseParenthesis, s);
-                    return new Expression(new Expression(parseExpression(s, false, functionVariables), null, Operation.castBoolean), null, Operation.not);
-                } else {
-                    firstExpression = new Expression(parseExpression(s, false, functionVariables), null, Operation.not);
-                    require(CloseParenthesis, s);
-                    return firstExpression;
-                }
-
+                //next operation is lower priority
+                return new Expression(firstOperand,operand2,operator1.getOperation());
             }
 
-        }
-
-        else if (s.hasNext(OpenSquare)) { firstExpression = parseArrayExpression(s, functionVariables); }
-        else if (s.hasNextInt()){firstExpression = new Expression(new IntegerVariable(s.nextInt()));}
-        else if (s.hasNextFloat()){
-            firstExpression = new Expression(new FloatVariable(s.nextFloat()));}
-        else if (s.hasNextBoolean()){firstExpression = new Expression(new BooleanVariable(s.nextBoolean()));}
-        else if (s.hasNext(Random)){
-            //random()
-            require(Random,s);
-            require(OpenParenthesis,s);
-            require(CloseParenthesis,s);
-            firstExpression = new Expression(null,null,Operation.random);
-
-        }
-        else if (s.hasNext(Length)){
-            //length(string)
-            require(Length,s);
-            require(OpenParenthesis,s);
-            firstExpression = new Expression(parseExpression(s,false, functionVariables),null,Operation.length);
-            require(CloseParenthesis,s);
-        }
-        else if (s.hasNext(CharAt)){
-            //charAt(string,int)
-            require(CharAt,s);
-            require(OpenParenthesis,s);
-            Expression expression1 = parseExpression(s,false, functionVariables);
-            require(Comma,s);
-            Expression expression2 = parseExpression(s,false, functionVariables);
-            require(CloseParenthesis,s);
-            firstExpression = new Expression(expression1,expression2,Operation.charAt);
-        }
-        else if (s.hasNext(Get)){
-            //get(array,int)
-            require(Get,s);
-            require(OpenParenthesis,s);
-            Expression expression1 = parseExpression(s,false, functionVariables);
-            require(Comma,s);
-            Expression expression2 = parseExpression(s,false, functionVariables);
-            require(CloseParenthesis,s);
-            firstExpression = new Expression(expression1,expression2,Operation.get);
-        }
-        else if (s.hasNext(Type)){
-            //type(variable)
-            require(Type,s);
-            require(OpenParenthesis,s);
-            firstExpression = new Expression(parseExpression(s,false, functionVariables),null,Operation.type);
-            require(CloseParenthesis,s);
         }
         else {
-            boolean firstVariableSet = false;
+            //If you are parsing at a lower priority level and you reach an operation
+            //of a higher priority level, you must recursively call parseExpression() with
+            //priorityLevel+1 until the right level is reached and it can be parsed.
 
-            if(functionVariables != null) {
-                for (String functionVariable : functionVariables) {
-                    if (s.hasNext(functionVariable)) {
-                        String recognisedVariableName = s.next();
-                        firstExpression = new Expression(recognisedVariableName);
-                        firstVariableSet = true;
-                        break;
-                    }
-                }
-            }
-            for(String variableName : scriptVariableNames){
-                if(s.hasNext(variableName)){
-                    String recognisedVariableName = s.next();
-                    firstExpression = new Expression(recognisedVariableName);
-                    firstVariableSet = true;
-                    break;
-                }
+            Expression operand1 = parseExpression(s,firstOperand,priorityLevel+1);
+
+            if(expressionEndDetected(s)){ return operand1; }
+
+            //After the higher priority level calls have completed, there may be more
+            //operations of equal or lower priority to parse.
+            Operator operator2 = parseOperator(s);
+
+            if(operator2.getPriority() == priorityLevel){
+                return parseExpression(s,operand1,priorityLevel);
             }
 
-            for(String functionName : scriptFunctionNames){
-                if(s.hasNext(functionName)){
-                    require(functionName, s);
-                    require(OpenParenthesis,s);
-                    ArrayList<Expression> parameters = new ArrayList<>();
-                    if(!s.hasNext(CloseParenthesis)){
-                        parameters.add(parseExpression(s,false,null));
-                    }
-                    while(s.hasNext(Comma)){
-                        require(Comma,s);
-                        parameters.add(parseExpression(s,false,null));
-                    }
-                    require(CloseParenthesis,s);
-
-                    return new Expression(functionName, parameters, false);
-                }
-            }
-
-            if(!firstVariableSet){
-
-                if (s.hasNext(DoubleQuotes)){
-                    require(DoubleQuotes, s);
-                    //end token just before the next " character, and just after it as well
-                    s.useDelimiter("(?=[\"])|(?<=[\"])");
-                    String nextString = s.next();
-
-                    //This case catches an empty string
-                    if(nextString.equals("\"")){
-                        firstExpression = new Expression(new StringVariable(""));
-                    }
-                    //this case catches literally any other possible string
-                    else {
-                        firstExpression = new Expression(new StringVariable(nextString));
-                        s.useDelimiter(defaultDelimiter);
-                        require(DoubleQuotes, s);
-                    }
-                    //replace original delimiter regex
-                    s.useDelimiter(defaultDelimiter);
-
-                }else{
-                    System.out.println(scriptVariableNames);
-                    throw new ScriptException("Unrecognised Expression");
-                }
-            }
-        }
-
-        if(hasNotOperator){
-            firstExpression = new Expression(firstExpression,firstExpression,Operation.not);
-        }
-
-
-        //Detect the end of the expression if it exists. Otherwise, parse operators in the expression if it continues.
-        if(s.hasNext(CloseBrace)){return firstExpression;}
-        if(s.hasNext(CloseSquare)){return firstExpression;}
-        else if(s.hasNext(CloseParenthesis)){return firstExpression;}
-        else if(s.hasNext(NewLine)){return firstExpression;}
-        else if(s.hasNext(Comma)){return firstExpression;}
-
-        else if(s.hasNext(Plus)){
-            //if operationPriority is true, we are only accepting operations higher in the order of operations.
-            //this means + and - are ignored and not consumed by the parser.
-            if(operationPriority){
-                return firstExpression;
+            //We are dropping down a priority level here so the "outer" parseExpression()
+            // call can handle it. Just return what we parsed so far.
+            else if(operator2.getPriority() < priorityLevel){
+                return operand1;
             }else{
-                require(Plus, s);
-                return new Expression(firstExpression,parseExpression(s,false, functionVariables), Operation.plus);
+                throw new ScriptException("Operation priority error!");
             }
-        }
-        else if(s.hasNext(Minus)){
-            //if operationPriority is true, we are only accepting operations higher in the order of operations.
-            //this means + and - are ignored and not consumed by the parser.
-            if(operationPriority){
-                return firstExpression;
-            }else {
-                require(Minus, s);
-                return new Expression(firstExpression, parseExpression(s, false, functionVariables), Operation.minus);
-            }
+
         }
 
-        else if(s.hasNext(Times)){
-            require(Times, s);
-            Expression intermediateExpression =  new Expression(firstExpression, parseExpression(s, true, functionVariables), Operation.times);
-            return parseExpression(s,intermediateExpression, functionVariables);
-        }
-
-        else if(s.hasNext(Divide)){
-            require(Divide, s);
-            Expression intermediateExpression = new Expression(firstExpression, parseExpression(s, true, functionVariables), Operation.divide);
-            return parseExpression(s, intermediateExpression, functionVariables);
-        }
-        else if(s.hasNext(Modulo)){
-            require(Modulo, s);
-            Expression intermediateExpression = new Expression(firstExpression, parseExpression(s, true, functionVariables), Operation.modulo);
-            return parseExpression(s, intermediateExpression, functionVariables);
-        }
-
-        else if(s.hasNext(And)){
-            require(And, s);
-            return new Expression(firstExpression, parseExpression(s,false, functionVariables), Operation.and);
-        }
-
-        else if(s.hasNext(Or)){
-            require(Or, s);
-            return new Expression(firstExpression, parseExpression(s,false, functionVariables), Operation.or);
-        }
-
-        else if (s.hasNext(Equals)){
-            require(Equals, s);
-            return new Expression(firstExpression,parseExpression(s,false, functionVariables),Operation.equals);
-        }
-
-        else if (s.hasNext(GreaterThan)){
-            require(GreaterThan, s);
-            return new Expression(firstExpression,parseExpression(s,false, functionVariables),Operation.greaterThan);
-        }
-
-        else if (s.hasNext(LessThan)){
-            require(LessThan, s);
-            return new Expression(firstExpression,parseExpression(s,false, functionVariables),Operation.lessThan);
-        }
-
-        //Error
-        throw new ScriptException("Unrecognised operation");
     }
 
-
-    //Alternate form of parseExpression which takes the left side of the expression already made, and only parses the next operation.
-    //providedExpression takes the place of firstExpression in the other version of this method.
-    //This is used after a higher priority order of operations call of parseExpression is made for multiplication, division or modulo operation.
-    //Because the higher priority call ignores + and -, we must use this method, ensuring that if it hasn't finished parsing, it can continue.
-    //the boolean operationPriority used by the other version of this method is redundant here, as the priority will be false by default.
-    public Expression parseExpression(Scanner s, Expression providedExpression, ArrayList<String> functionVariables) throws ScriptException {
-//        System.out.println("entering parseExp2");
-
-        if(s.hasNext(CloseBrace)){return providedExpression;}
-        if(s.hasNext(CloseSquare)){return providedExpression;}
-        else if(s.hasNext(CloseParenthesis)){return providedExpression;}
-        else if(s.hasNext(NewLine)){return providedExpression;}
-        else if(s.hasNext(Comma)){return providedExpression;}
-
-
-        else if(s.hasNext(Plus)){
-            require(Plus, s);
-            return new Expression(providedExpression,parseExpression(s,false, functionVariables), Operation.plus);
-        }
-
-        else if(s.hasNext(Minus)){
-            require(Minus, s);
-            return new Expression(providedExpression,parseExpression(s,false, functionVariables), Operation.minus);
-        }
-
-        else if(s.hasNext(Times)) {
-            require(Times, s);
-            Expression intermediateExpression = new Expression(providedExpression, parseExpression(s, true, functionVariables), Operation.times);
-            return parseExpression(s, intermediateExpression, functionVariables);
-        }
-
-        else if(s.hasNext(Divide)){
-            require(Divide, s);
-            Expression intermediateExpression = new Expression(providedExpression, parseExpression(s, true, functionVariables), Operation.divide);
-            return parseExpression(s, intermediateExpression, functionVariables);
-        }
-
-        else if(s.hasNext(Modulo)){
-            require(Modulo, s);
-            Expression intermediateExpression = new Expression(providedExpression, parseExpression(s, true, functionVariables), Operation.modulo);
-            return parseExpression(s, intermediateExpression, functionVariables);
-        }
-
-        else if(s.hasNext(And)){
-            require(And, s);
-            return new Expression(providedExpression, parseExpression(s,false, functionVariables), Operation.and);
-        }
-
-        else if(s.hasNext(Or)){
-            require(Or, s);
-            return new Expression(providedExpression, parseExpression(s,false, functionVariables), Operation.or);
-        }
-
-        else if (s.hasNext(Equals)){
-            require(Equals, s);
-            return new Expression(providedExpression,parseExpression(s,false, functionVariables),Operation.equals);
-        }
-
-        else if (s.hasNext(GreaterThan)){
-            require(GreaterThan, s);
-            return new Expression(providedExpression,parseExpression(s,false, functionVariables),Operation.greaterThan);
-        }
-
-        else if (s.hasNext(LessThan)){
-            require(LessThan, s);
-            return new Expression(providedExpression,parseExpression(s,false, functionVariables),Operation.lessThan);
-        }
-
-
-        //Error
-        throw new ScriptException("Unrecognised operation");
-    }
-
-    public Expression parseArrayExpression (Scanner s, ArrayList<String> functionVariables){
+    public Expression parseArrayExpression (Scanner s){
         require(OpenSquare,s);
 
         ArrayList<Expression> elements = new ArrayList<>();
@@ -788,7 +699,7 @@ public class Parser {
             if(s.hasNext(CloseSquare)){
                 break;
             }
-            elements.add(parseExpression(s,false, functionVariables));
+            elements.add(parseExpression(s,null,null));
 
             //ignore Newlines
             if(s.hasNext(NewLine)){ require(NewLine,s);}

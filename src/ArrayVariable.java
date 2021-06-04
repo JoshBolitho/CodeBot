@@ -47,6 +47,9 @@ public class ArrayVariable implements Variable{
         }
         return valueArray;
     }
+    public Boolean hasValue(){
+        return !(valueArray == null);
+    }
 
     @Override
     public VariableType getType() {
@@ -69,8 +72,6 @@ public class ArrayVariable implements Variable{
         }
         result += "]";
         return result;
-
-//        throw new ScriptException(String.format("Failed to cast array to string"));
     }
 
     @Override

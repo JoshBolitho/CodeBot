@@ -31,4 +31,20 @@ public class WhileNode implements ExecutableNode{
     public String toString() {
         return "while("+condition.toString()+"){\n"+whileBlock.toString()+"\n}";
     }
+
+    public String display(int depth) {
+        StringBuilder res = new StringBuilder();
+        for(int i=0; i<depth; i++){
+            res.append("    ");
+        }
+        res.append("while("+condition+"){\n");
+        res.append(whileBlock.display(depth+1));
+
+        for(int i=0; i<depth; i++){
+            res.append("    ");
+        }
+        res.append("}\n");
+
+        return res.toString();
+    }
 }

@@ -14,6 +14,9 @@ public class ImageVariable implements Variable{
     //Create and ImageVariable from existing Bufferedimage
     //Will be inaccessible to BotScript users, and will be used to import custom images
     public ImageVariable(BufferedImage image) {
+        if(image == null){
+            System.out.println("Warning: null image parameter, initialising image as blank 100x100 instead.");
+            this.image = new BufferedImage(100,100,BufferedImage.TYPE_INT_RGB); }
         this.image = image;
     }
 

@@ -25,6 +25,22 @@ public class FunctionExecutionNode implements ExecutableNode{
 
     @Override
     public void execute(ProgramState programState, HashMap<String, Variable> functionVariables) {
-        programState.getProgramFunction(name).executeFunction(parameters,programState);
+        programState.getProgramFunction(name).executeFunction(parameters,programState, functionVariables);
+    }
+
+    public String display(int depth) {
+        StringBuilder res = new StringBuilder();
+        for(int i=0; i<depth; i++){
+            res.append("    ");
+        }
+        res.append(name+"(");
+        for(int i=0; i< parameters.size();i++){
+            res.append(parameters.get(i));
+            if(i != parameters.size()-1){
+                res.append(", ");
+            }
+        }
+        res.append(")\n");
+        return res.toString();
     }
 }

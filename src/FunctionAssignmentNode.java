@@ -16,6 +16,11 @@ public class FunctionAssignmentNode implements ExecutableNode {
     }
 
     @Override
+    public String display(int depth) {
+        return value.display(depth);
+    }
+
+    @Override
     public String toString() {
         return value.toString();
     }
