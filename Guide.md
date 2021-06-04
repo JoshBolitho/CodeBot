@@ -1,3 +1,4 @@
+
 # BotScript Guide
 
 BotScript has been created for beginners, but hopefully has something for people of all skill levels! This guide will go over some coding basics to get you started, and act as a language reference.
@@ -10,19 +11,21 @@ In BotScript it is quite easy! Simply type `print("Hello World")` !
 
  #### Commenting
  Sometimes, you want to write a note, description, or label in your code.
- Add `# ` at the start of any line, and it will be completely ignored as code. Remember to leave a space after the hashtag!
+ Add `%` at the start of any line, and it will be completely ignored as code.
+  
+ Note: The `%` symbol is also used to represent the modulo operator. Make sure the `%`  symbol is the very first character of a line if you want to write a comment on that line!
  ```
  print("hello")
- # This will be ignored
+ % This line will be ignored
  print("world")
- # print("this line will also be ignored")
+ % print("this line will also be ignored")
  ```
 
 #### Variables
 
 Now you're acquainted with the `print()` function, let's try some other inputs.
 
-BotScript features 5 different variable types.
+BotScript features a range of different variable types.
 
 -- String : A string is a sequence of characters. For example, `"Hello World"` is a string! `"123"` is also a valid string, even though it contains numbers.
 
@@ -30,7 +33,7 @@ BotScript features 5 different variable types.
 
 -- Float : A number that contains a decimal point. e.g. `1.9` , `0.0` , `-123.456` , `29.29` , `99.99999`
 
--- Boolean : Like a yes/no answer or a switch, booleans have 2 possible values: `true` or `false` .
+-- Boolean : Like a yes/no answer or an on/off switch, booleans have 2 possible values: `true` or `false` .
 
 -- Array : Arrays are ordered lists of variables. BotScript is lenient with arrays. Arrays can contain any type of variable, including other arrays. They can also be entirely empty. For example:
 
@@ -44,6 +47,8 @@ BotScript features 5 different variable types.
 
 -  `[]` 
   
+-- Image: An image can be stored as a variable in BotScript. You can create an image variable with the function `createImage(x,y)`
+
 --  Null : A null is an empty variable, and BotScript doesn't generally allow you to create these. If you are encountering Null type variables, you may have errors in your code. 
 
  #### Declaring Variables
@@ -51,22 +56,21 @@ To declare a variable, follow these examples:
 
 Note: The variable's name must only contain upper/lower case characters i.e. A-Z, a-z
 ```
-# Output:
-# 15
+% Output:
+% 15
 
-variable x = 10
-variable y = 5
+x = 10
+y = 5
 print(x+y)
 ```
 ```
-# Output:
-# 10
-# hello
+% Output:
+% 10
+% hello
 
-variable z = 10
+z = 10
 print(z)
 
-# Note: The variable `z` has already been declared, and it can be reassigned without using the `variable` keyword
 z = "hello"
 print(z)
 ```
@@ -91,53 +95,56 @@ Operators allow you to manipulate values. Here is a list of the operators suppor
 Here are some examples:
 
 Note:  You can use curved brackets `()` to ensure the order of operations is handled correctly.
+```
+% Output: 12
+print( ( 2 + 2 ) * 3 )
+```
 
 ```
-# Output: 1
+% Output: 1
 print(5 % 2)
 ```
 
 ```
-# Output: false
+% Output: false
 print(true & false)
 ```
 ```
-# Output: true
+% Output: true
 print(true | false)
 ```
 ```
-# Note: It's best to use brackets here to ensure the order of operations is correct.
-# Output: true
-print((1 + 1) = 2)
+% Output: true
+print(1 + 1 = 2)
 ```
 ```
-# Output: true
+% Output: true
 print(5.0 > 3)
 ```
 
 ```
-# Output: true
+% Output: true
 print(["a","b"] = ["a","b"])
 ```
 
 ```
-# Output: false
+% Output: false
 print(!true)
 ```
 
 ```
-# Output: 2
+% Output: 2
 print(4/2)
 ```
 
 ```
-# Note: division results in a float, not an integer
-# Output: 2.5
+% Note: division results in a float, not an integer
+% Output: 2.5
 print(5/2)
 ```
 
 ```
-# Output: 5.0
+% Output: 5.0
 print(2.5 * 2)
 ```
 
@@ -147,17 +154,42 @@ Functions are pieces of code which can be used whenever they are needed, by refe
 
 BotScript has some useful functions which will be handy for your programming.
 
+##### General Functions
 - You've already encountered the `print()` function. `print(x)` will write or "print" `x` to the console.
 
--  `random()` will return a random float between 0.0 and 1.0.
-
--  `length()` will get you the number of elements in an array, or the size of a string, depending on what you put into it! e.g. `length(["a","b"])` will return `2`, and `length("Hello World")` will return `11`.
+-  `length(x)` will get you the number of elements in an array, or the size of a string, depending on what you put into it! e.g. `length(["a","b"])` will return `2`, and `length("Hello World")` will return `11`.
 
 -  `charAt(str,int)` will return the character found at location `int` of the string `str`. For example, `charAt("Hello world",8)` will return `r`. Keep in mind, computers start counting indexes at 0, not 1.
 
--  `get(arr,int)` will get the element at location `int` of the array `arr`. `get([123,456,789], 1)` will return `456`. Again, count the index from 0 not 1.
-
 -  `type(x)` will return a string that describes what type of variable `x` is. `type("Hello")` will return `"STRING"`, `type(1.0)` returns `"FLOAT"`.
+
+##### Array Functions
+- `add(arr,x)` adds variable `x` to array `arr`
+- `remove(arr,int)` removes element at position `int` of the array `arr`. Keep in mind, computers start counting indexes at 0, not 1.
+-  `get(arr,int)` will get the element at position `int` of the array `arr`. `get([123,456,789], 1)` will return `456`. Again, count the index from 0 not 1.
+- `set(arr,int,x)` replaces the element at position `int` of the array `arr` with a new variable, `x`.
+
+##### Image Functions
+- `createImage(x,y)` returns a new Image variable with width `x` and height `y`.
+- `setPixel(img,x,y,r,g,b)` sets the pixel at position `x,y` in Image `img` to a new colour value `r,g,b`.
+- `getPixel(img,x,y)` gets the pixel at position `x,y` in Image `img` and returns its colour as an array of integers in the form `[r,g,b]`. 
+- `getDimensions(img)` returns the dimensions of Image `img` as an array in the form `[width,height]`.
+- `setCanvas(img)` sets the output canvas to the image `img` At the end of execution, the canvas is rendered and displayed with the console output. Don't forget to call `canvasVisible(true)` if you want to display the canvas.
+- `canvasVisible(bool)` determines whether the canvas is displayed. if Boolean `bool` is true, the canvas will be displayed. The default value is `false`, so don't forget to call this function if you want to display your canvas!
+
+##### Casting Functions
+- `castString(x)` casts variable `x` to a string and returns it.
+- `castInteger(x)` casts variable `x` to an integer and returns it.
+- `castFloat(x)` casts variable `x` to a float and returns it.
+- `castBoolean(x)` casts variable `x` to a boolean and returns it.
+
+##### Maths Functions
+-  `random()` will return a random float between 0.0 and 1.0.
+- `sin(x)` returns the sine of a Float angle `x` between 0.0 and pi, as a Float.
+- `cos(x)` returns the cosine of a Float angle `x` between 0.0 and pi, as a Float.
+- `pow(b,p)` returns the Float result of the exponent `b^p`.
+
+ 
 
 #### Defining Functions
 
@@ -174,19 +206,37 @@ return a + b
 
 having defined this function, calling `sum(2,5)` will now return `7`.
 
-It is optional whether your function takes any parameters (`a,b` above),
-and also optional whether it returns anything (`return a + b` above  ) 
+It is optional whether your function takes any parameters (`a,b` above.)
+and also optional whether it returns anything (`return a + b` above.) 
 
 Examples:
-```
-# Output:
-# Hi
-# Hi
-# Hi
 
-# Prints a string multiple times 
+```
+% Output:
+% hi
+
+function printHi(){
+print("hi")
+}
+
+printHi()
+```
+
+```
+function multiply(x,y){
+return x * y
+}
+```
+
+```
+% Output:
+% Hi
+% Hi
+% Hi
+
+% Prints a string multiple times 
 function multiPrint(str, int){
-variable i = 0
+i = 0
 while(i < int){
 print(str)
 i = i + 1
@@ -195,36 +245,25 @@ i = i + 1
 
 multiPrint("Hi",3)
 ```
-
-```
-# Output:
-# hi
-
-function printHi(){
-print("hi")
-}
-
-printHi()
-```
   
 #### While Loop
 In the last example, you might've noticed the while loop:
 ```
 while(condition){
-# Do something
+% Do something
 }
 ```
 The while loop repeatedly runs the code inside the curly braces, while the condition is `true`. For example:
 ```
-# Output:
-# 5
-# 4
-# 3
-# 2
-# 1
-# Lift off!
+% Output:
+% 5
+% 4
+% 3
+% 2
+% 1
+% Lift off!
 
-variable a = 5
+a = 5
 while(a > 0){
 print(a)
 a = a - 1
@@ -232,15 +271,15 @@ a = a - 1
 print("Lift off!")
 ```
 ```
-# Output:
-# H
-# o
-# w
-# d
-# y
+% Output:
+% H
+% o
+% w
+% d
+% y
 
-variable word = "Howdy"
-variable i = 0
+word = "Howdy"
+i = 0
 while(i < length(word)){
 print( charAt(word, i) )
 i = i + 1
@@ -250,14 +289,14 @@ i = i + 1
 #### If/Else Statement
 ```
 if(condition){
-# Do something
+% Do something
 }
 ```
 An if statement only executes the code in the curly braces if the condition is `true`.  
 Optionally, an `else{}` block can be added, which will be executed if the condition is false. For example:
 ```
-# Output:
-# That's more like it!
+% Output:
+% That's more like it!
 
 if(1>2){
 print("This can't be right!")
@@ -268,8 +307,8 @@ print("That's more like it!")
 }
 ```
 ```
-# Output:
-# The conditional is false, so the else block is executed instead
+% Output:
+% The conditional is false, so the else block is executed instead
 
 if(2+2=5){
 print("Orwell would be proud.")
@@ -279,59 +318,61 @@ print("The conditional is false, so the else block is executed.")
 ```
 
 #### Casting
-You may wish to convert a variable from one type to another. This can be done by casting. Write the type you wish to cast a value to in brackets before the value, like these examples:
+You may wish to convert a variable from one type to another. This can be done by casting. Here are the functions which allow you to cast:
+`castInteger()`, `castFloat()`,`castString()`,`castBoolean()`
 
+Some examples:
 ```
-# Output: 
-# 101
-# 11
+% Output: 
+% 101
+% 11
 
-variable asString = "10" + 1
+asString = "10" + 1
 print(asString)
 
-variable asInteger =  ((integer) "10") + 1
+asInteger =  (castInteger("10")) + 1
 print(asInteger)
 ```
 ```
-# Output: casting successful
-variable result = (boolean) "true"
+% Output: casting successful
+
+result = (boolean) "true"
 if(result){
 print("casting successful")
 }
 ```
 This table shows what types can be cast to each other
-|From **→** **↓** To |String  |Boolean  |Integer  |Float| Array |
+|From **→** **↓** To |String  |Boolean  |Integer  |Float
 |--|--|--|--|--|--|
-|String   |Yes|Yes|Yes|Yes|Yes|
-|Boolean  |Yes - If string is "true" or "false" |Yes |Yes - returns true if integer is not 0 |Yes - casts float to integer and returns true if not 0  |No  |
-|Integer  |Yes - if string is valid integer e.g. "12" |No  | Yes |Yes - Decimal part of float is removed e.g. 3.9 becomes 3| No |
-|Float    |Yes - if string is valid float e.g. "3.9"  |No  |   Yes |Yes | No |
-|Array    |No|No  |No     |No  |Yes |
+|String   |Yes|Yes|Yes|Yes|
+|Boolean  |Yes - If string is "true" or "false" |Yes |Yes - returns true if integer is not 0 |Yes - casts float to integer and returns true if not 0  |
+|Integer  |Yes - if string is valid integer e.g. "12" |No  | Yes |Yes - Decimal part of float is removed e.g. 3.9 becomes 3|
+|Float    |Yes - if string is valid float e.g. "3.9"  |No  |   Yes |Yes |
 
 #### Errors
 If your syntax is incorrect, or you try to do something that is not allowed in BotScript, you will probably get an error. A (hopefully useful) description of the error will be printed to the console, and your code execution will stop. Here are some examples of code which may cause errors. 
 ```
-# Can't add integer to boolean
+% Can't add integer to boolean
 print(1+true)
 ```
 ```
-# Can't compare string to integer
+% Can't compare string to integer
 print("Hello" > 10)
 ```
 ```
-# Incomplete statement
-variable a =
+% Incomplete statement
+a =
 ```
 ```
-# Invalid function name (Alphabet characters only)
+% Invalid function name (Alphabet characters only)
 function test1(){
 } 
 ```
 ```
-# Not a valid statement
+% Not a valid statement
 6
 ```
 ```
-# Can't call "length()" on a boolean value
+% Can't call "length()" on a boolean value
 print(length(true))
 ```
