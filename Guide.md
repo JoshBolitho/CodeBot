@@ -3,13 +3,13 @@
 
 BotScript has been created for beginners, but hopefully has something for people of all skill levels! This guide will go over some coding basics to get you started, and act as a language reference.
 
-#### First things first
+### First things first
 
 The first thing coders do when learning a new language, is to write "Hello World" on the screen.
 
 In BotScript it is quite easy! Simply type `print("Hello World")` !
 
- #### Commenting
+ ### Commenting
  Sometimes, you want to write a note, description, or label in your code.
  Add `%` at the start of any line, and it will be completely ignored as code.
   
@@ -21,7 +21,7 @@ In BotScript it is quite easy! Simply type `print("Hello World")` !
  % print("this line will also be ignored")
  ```
 
-#### Variables
+### Variables
 
 Now you're acquainted with the `print()` function, let's try some other inputs.
 
@@ -51,7 +51,7 @@ BotScript features a range of different variable types.
 
 --  Null : A null is an empty variable, and BotScript doesn't generally allow you to create these. If you are encountering Null type variables, you may have errors in your code. 
 
- #### Declaring Variables
+ ### Declaring Variables
 To declare a variable, follow these examples:
 
 Note: The variable's name must only contain upper/lower case characters i.e. A-Z, a-z
@@ -74,7 +74,7 @@ print(z)
 z = "hello"
 print(z)
 ```
-#### Operators
+### Operators
 Operators allow you to manipulate values. Here is a list of the operators supported in BotScript:
 |Operator  |Name  |Description  |Usage|
 |--|--|--|--|
@@ -148,13 +148,13 @@ print(5/2)
 print(2.5 * 2)
 ```
 
-#### Functions
+### Functions
 
 Functions are pieces of code which can be used whenever they are needed, by referring to them by name.
 
 BotScript has some useful functions which will be handy for your programming.
 
-##### General Functions
+#### General Functions
 - You've already encountered the `print()` function. `print(x)` will write or "print" `x` to the console.
 
 -  `length(x)` will get you the number of elements in an array, or the size of a string, depending on what you put into it! e.g. `length(["a","b"])` will return `2`, and `length("Hello World")` will return `11`.
@@ -163,27 +163,27 @@ BotScript has some useful functions which will be handy for your programming.
 
 -  `type(x)` will return a string that describes what type of variable `x` is. `type("Hello")` will return `"STRING"`, `type(1.0)` returns `"FLOAT"`.
 
-##### Array Functions
+#### Array Functions
 - `add(arr,x)` adds variable `x` to array `arr`
 - `remove(arr,int)` removes element at position `int` of the array `arr`. Keep in mind, computers start counting indexes at 0, not 1.
 -  `get(arr,int)` will get the element at position `int` of the array `arr`. `get([123,456,789], 1)` will return `456`. Again, count the index from 0 not 1.
 - `set(arr,int,x)` replaces the element at position `int` of the array `arr` with a new variable, `x`.
 
-##### Image Functions
+#### Image Functions
 - `createImage(x,y)` returns a new Image variable with width `x` and height `y`.
 - `setPixel(img,x,y,r,g,b)` sets the pixel at position `x,y` in Image `img` to a new colour value `r,g,b`.
-- `getPixel(img,x,y)` gets the pixel at position `x,y` in Image `img` and returns its colour as an array of integers in the form `[r,g,b]`. 
+- `getPixel(img,x,y)` gets the pixel at position `x,y` in Image `img` and returns its RGB colour as an array of integers in the form `[R,G,B]`. 
 - `getDimensions(img)` returns the dimensions of Image `img` as an array in the form `[width,height]`.
 - `setCanvas(img)` sets the output canvas to the image `img` At the end of execution, the canvas is rendered and displayed with the console output. Don't forget to call `canvasVisible(true)` if you want to display the canvas.
 - `canvasVisible(bool)` determines whether the canvas is displayed. if Boolean `bool` is true, the canvas will be displayed. The default value is `false`, so don't forget to call this function if you want to display your canvas!
 
-##### Casting Functions
+#### Casting Functions
 - `castString(x)` casts variable `x` to a string and returns it.
 - `castInteger(x)` casts variable `x` to an integer and returns it.
 - `castFloat(x)` casts variable `x` to a float and returns it.
 - `castBoolean(x)` casts variable `x` to a boolean and returns it.
 
-##### Maths Functions
+#### Maths Functions
 -  `random()` will return a random float between 0.0 and 1.0.
 - `sin(x)` returns the sine of a Float angle `x` between 0.0 and pi, as a Float.
 - `cos(x)` returns the cosine of a Float angle `x` between 0.0 and pi, as a Float.
@@ -191,7 +191,7 @@ BotScript has some useful functions which will be handy for your programming.
 
  
 
-#### Defining Functions
+### Defining Functions
 
 If you find yourself writing the same piece of code over and over again, it might be more efficient to turn it into a function!
 
@@ -246,7 +246,7 @@ i = i + 1
 multiPrint("Hi",3)
 ```
   
-#### While Loop
+### While Loop
 In the last example, you might've noticed the while loop:
 ```
 while(condition){
@@ -286,7 +286,7 @@ i = i + 1
 }
 ```
 
-#### If/Else Statement
+### If/Else Statement
 ```
 if(condition){
 % Do something
@@ -317,7 +317,7 @@ print("The conditional is false, so the else block is executed.")
 }
 ```
 
-#### Casting
+### Casting
 You may wish to convert a variable from one type to another. This can be done by casting. Here are the functions which allow you to cast:
 `castInteger()`, `castFloat()`,`castString()`,`castBoolean()`
 
@@ -349,8 +349,81 @@ This table shows what types can be cast to each other
 |Integer  |Yes - if string is valid integer e.g. "12" |No  | Yes |Yes - Decimal part of float is removed e.g. 3.9 becomes 3|
 |Float    |Yes - if string is valid float e.g. "3.9"  |No  |   Yes |Yes |
 
-#### Errors
-If your syntax is incorrect, or you try to do something that is not allowed in BotScript, you will probably get an error. A (hopefully useful) description of the error will be printed to the console, and your code execution will stop. Here are some examples of code which may cause errors. 
+### Images
+BotScript has support for image variables, which can be rendered to the canvas and displayed along with the text output.
+
+Images are essentially big 2D arrays of pixels, where each pixel is located at an x,y coordinate, and stores an array of integers representing its colour in RGB.
+#### Create an image
+`myImage = createImage(10,10)` creates a 10x10 image.
+#### Change pixels
+`setPixel(myImage, 0,0, 255,255,255)` sets the pixel at location `x=0`, `y=0` of `myImage` to the RGB colour white (`255,255,255`).
+#### Get the values of a pixel
+`getPixel(myImage,5,5)` gets the RGB values of a pixel as an array variable in the form `[R,G,B]`
+#### Display an image
+`setCanvas(myImage)` sets the output canvas to the image we made.
+`canvasVisible(true)` tells the program to display the canvas. 
+
+### Image Examples
+You may find it helpful to use these examples as templates
+
+#### Magenta
+```
+img = createImage(100,100)
+% loop through all x values
+x=0
+while(x<100){
+
+% loop through all y values
+y=0
+while(y<100){
+% set each pixel to magenta 
+setPixel(img, x, y,255,0,255)
+y = y + 1
+}
+
+x = x + 1
+}
+
+setCanvas(img)
+canvasVisible(true)
+```
+Output:
+
+![Magenta](https://user-images.githubusercontent.com/17404588/120744578-6c009d80-c54f-11eb-8d65-94487815afcc.png)
+
+
+#### Blue Noise
+```
+img = createImage(100,100)
+% loop through all x values
+x=0
+while(x<100){
+
+% loop through all y values
+y=0
+while(y<100){
+% create a random number between 0 and 255 
+value = castInteger( random()*255 )
+if(value > 255){ value = 255 }
+% set the B values of the pixel to the random number,
+% and the R and G values to 0. 
+setPixel(img, x, y,0,0,value)
+y = y + 1
+}
+
+x = x + 1
+}
+
+setCanvas(img)
+canvasVisible(true)
+```
+Output:
+
+![BlueNoise](https://user-images.githubusercontent.com/17404588/120744456-280d9880-c54f-11eb-958d-84a354216a32.png)
+
+
+### Errors
+If your syntax is incorrect, or you try to do something that is not allowed in BotScript, you will probably get an error. A (hopefully useful) description of the error will be printed to the console, along with the line it occurred at. Your code execution will then stop. Here are some examples of code which may cause errors. 
 ```
 % Can't add integer to boolean
 print(1+true)
