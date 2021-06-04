@@ -218,32 +218,37 @@ public class Parser {
         //New delimiter that cuts each token before the \n character without consuming it.
         scanner.useDelimiter(defaultDelimiter);
 
+        //general functions
         addInternalFunction(program,"print",new String[]{"x"},false);
+        addInternalFunction(program,"length",new String[]{"x"},true);
+        addInternalFunction(program,"charAt",new String[]{"string","int"},true);
+        addInternalFunction(program,"type",new String[]{"x"},true);
+
+        //array functions
         addInternalFunction(program,"add",new String[]{"array","value"},false);
         addInternalFunction(program,"remove",new String[]{"array","int"},false);
+        addInternalFunction(program,"get",new String[]{"array","int"},true);
         addInternalFunction(program,"set",new String[]{"array","int","value"},false);
 
+        //image functions
         addInternalFunction(program,"createImage",new String[]{"x","y"},true);
         addInternalFunction(program,"setPixel",new String[]{"image","x","y","r","g","b"},false);
+        addInternalFunction(program,"getPixel",new String[]{"image","x","y"},true);
+        addInternalFunction(program,"getDimensions",new String[]{"x"},true);
         addInternalFunction(program,"setCanvas",new String[]{"image"},false);
         addInternalFunction(program,"canvasVisible",new String[]{"boolean"},false);
-        addInternalFunction(program,"getPixel",new String[]{"image","x","y"},true);
 
+        //casting functions
         addInternalFunction(program,"castString",new String[]{"x"},true);
         addInternalFunction(program,"castInteger",new String[]{"x"},true);
         addInternalFunction(program,"castFloat",new String[]{"x"},true);
         addInternalFunction(program,"castBoolean",new String[]{"x"},true);
 
+        //maths functions
         addInternalFunction(program,"random",new String[]{},true);
-        addInternalFunction(program,"length",new String[]{"x"},true);
-        addInternalFunction(program,"charAt",new String[]{"string","int"},true);
-        addInternalFunction(program,"get",new String[]{"array","int"},true);
-        addInternalFunction(program,"type",new String[]{"x"},true);
-
         addInternalFunction(program,"sin",new String[]{"x"},true);
         addInternalFunction(program,"cos",new String[]{"x"},true);
         addInternalFunction(program,"pow",new String[]{"b","p"},true);
-        addInternalFunction(program,"getDimensions",new String[]{"x"},true);
 
         //Initialise canvas as ImageVariable called "_canvas"
         //default size is 100x100
