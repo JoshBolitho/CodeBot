@@ -32,8 +32,7 @@ public class ProgramNode implements ExecutableNode{
             }catch (ScriptException err){
                 programState.print("Execution error at: "+e.display(0).split("\n")[0]);
                 programState.print(err.getMessage());
-                err.printStackTrace();
-                throw new EndExecutionException(err.getMessage());
+                throw new StopException(err.getMessage());
             }
         }
     }

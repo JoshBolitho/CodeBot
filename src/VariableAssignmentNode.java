@@ -34,7 +34,7 @@ public class VariableAssignmentNode implements ExecutableNode {
         for(int i=0; i<depth; i++){
             res.append("    ");
         }
-        res.append("variable "+name +" = "+value+"\n");
+        res.append(name +" = "+value+"\n");
 
         return res.toString();
     }

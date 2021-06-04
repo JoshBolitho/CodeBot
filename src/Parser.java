@@ -201,7 +201,7 @@ public class Parser {
         return bi;
     }
 
-    public ProgramNode parseScript(String script){
+    public ProgramNode parseScript(String script) throws StopException{
 
         //Remove any lines beginning with "%". These lines are treated as comments by the parser.
         String[] lines = script.split("\n");
@@ -268,17 +268,17 @@ public class Parser {
         while (scanner.hasNext()) {
             try {
                 scriptNode.addExecutableNode(parseExecutableNode(scanner));
-            }catch (ScriptException err){
+            } catch (ScriptException err){
                 String[] scriptArray = commentRemovedScript.toString().split("\n");
+                //throw a StopException to end parsing and add the line which
+                //failed parsing in the error message.
                 if (linesParsed<scriptArray.length){
                     String currentLine = scriptArray[linesParsed];
-                    System.out.println("Parsing error at: "+currentLine);
+                    throw new StopException("Parsing error at: "+currentLine+"\n"+err.getMessage());
                 }else{
-                    System.out.println("Parsing error");
+                    throw new StopException("Parsing error\n"+err.getMessage());
                 }
-                System.out.println(err.getMessage());
 
-                throw err;
             }
         }
         program.addExecutableNode(scriptNode);
@@ -306,7 +306,7 @@ public class Parser {
                     require(str, s);
                     require(Equals, s);
                     VariableAssignmentNode variableAssignmentNode = new VariableAssignmentNode(str,parseExpression(s,null,null));
-                    require(NewLine, s);
+                    optionalRequire(NewLine, s);
                     return variableAssignmentNode;
                 }
             }
@@ -360,7 +360,7 @@ public class Parser {
 
             value = parseExpression(s,null,null);
 
-            require(NewLine, s);
+            optionalRequire(NewLine, s);
 
             if(reservedKeywords.contains(variableName)){
                 throw new ScriptException("Invalid variable name (trying to use reserved keyword): "+variableName);

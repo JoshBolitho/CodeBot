@@ -6,10 +6,10 @@ import java.util.Scanner;
 //Parse the script, execute the parsed program, and return the console result
 public class ScriptExecutor {
 
-    private String script;
+    private final String script;
 
-    private ProgramState programState;
-    private Parser parser;
+    private final ProgramState programState;
+    private final Parser parser;
     private ProgramNode program;
 
     //Initialise ScriptExecutor
@@ -22,7 +22,7 @@ public class ScriptExecutor {
     }
 
     //Parse script to ProgramNode
-    public void parseScript() throws ScriptException{
+    public void parseScript() throws StopException{
         program = parser.parseScript(script);
     }
 
@@ -37,7 +37,7 @@ public class ScriptExecutor {
     //execute parsed ProgramNode
     public void executeProgram(){
         try { program.execute(programState, null); }
-        catch (EndExecutionException e){ }
+        catch (StopException e){ }
     }
 
     //retrieve program console output
@@ -68,27 +68,18 @@ public class ScriptExecutor {
 
         ScriptExecutor scriptExecutor = new ScriptExecutor(testScript.toString());
         try { scriptExecutor.parseScript();
-
             try{
                 scriptExecutor.displayProgram();
                 System.out.println("\n=====================Execute========================");
                 scriptExecutor.executeProgram();
-            } catch (EndExecutionException e){}
+            } catch (StopException e){}
 
-        } catch (ScriptException err){
-            err.printStackTrace();
+        } catch (StopException err){
+//            err.printStackTrace();
         }
-
-
-
-
 
         String result = scriptExecutor.getConsoleOutput();
         System.out.println(result);
-
-//        System.out.println("Variables assigned: "+scriptExecutor.getProgramState().getProgramVariables().keySet());
-//        System.out.println("Functions assigned: "+scriptExecutor.getProgramState().getProgramFunctions().keySet()+"\n");
-
 
         if( scriptExecutor.getProgramState().hasProgramVariable("_canvasVisibility")
                 && scriptExecutor.getProgramState().getProgramVariable("_canvasVisibility").castBoolean()
