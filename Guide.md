@@ -327,11 +327,8 @@ Some examples:
 % 101
 % 11
 
-asString = "10" + 1
-print(asString)
-
-asInteger =  castInteger("10") + 1
-print(asInteger)
+print("10" + 1)
+print(castInteger("10") + 1)
 ```
 ```
 % Output: casting successful
