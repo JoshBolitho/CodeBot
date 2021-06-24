@@ -2,13 +2,13 @@ package main;
 
 import java.awt.*;
 import java.awt.image.BufferedImage;
-import java.lang.Math;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
 
 import static java.util.Map.entry;
+import static main.VariableType.*;
 
 public class Expression {
 
@@ -110,213 +110,164 @@ public class Expression {
 
             case Operation:
 
-                //Initialise value1, type1, value2, and type2
-
-                //Sometimes, Expression1 and Expression2 can be null as they may not be used by the operator.
-                //e.g. ! operator only takes one expression, so expression2 would be null.
-                //random() takes no expressions, so expression1 and expression2 would both be null.
-
-                Variable value1;
-                VariableType type1;
-                if(expression1==null){
-                    value1 = null;
-                }else{
-                    value1 = expression1.evaluate(programState, functionVariables);
-                }
-
-                if(value1==null){
-                    type1 = VariableType.NULL;
-                }else{
-                    type1 = value1.getType();
-                }
-
-                Variable value2;
-                VariableType type2;
-                if(expression2==null){
-                    value2 = null;
-                }else{
-                    value2 = expression2.evaluate(programState, functionVariables);
-                }
-
-                if(value2==null){
-                    type2 = VariableType.NULL;
-                }else{
-                    type2 = value2.getType();
-                }
+                //Evaluate expression1 to a Variable
+                Variable value1 = expression1==null? null: expression1.evaluate(programState, functionVariables);
+                Variable value2 = expression2==null? null: expression2.evaluate(programState, functionVariables);
 
                 switch (operation) {
                     case greaterThan -> {
-                        if (bothValuesAreNumbers(type1, type2)) {
-                            if (type1 == VariableType.FLOAT && type2 == VariableType.FLOAT) {
-                                return new BooleanVariable((float) value1.getValue() > (float) value2.getValue());
-                            } else if (type1 == VariableType.FLOAT && type2 == VariableType.INTEGER) {
-                                return new BooleanVariable((float) value1.getValue() > (int) value2.getValue());
-                            } else if (type1 == VariableType.INTEGER && type2 == VariableType.FLOAT) {
-                                return new BooleanVariable((int) value1.getValue() > (float) value2.getValue());
-                            } else {
-                                return new BooleanVariable((int) value1.getValue() > (int) value2.getValue());
+                        if (bothValuesAreNumbers(value1, value2)) {
+                            if(value1.isType(FLOAT) || value2.isType(FLOAT)){
+                                return new BooleanVariable(value1.castFloat() > value2.castFloat());
                             }
+                            return new BooleanVariable(value1.castInteger() > value2.castInteger());
                         }
-                        throw new ScriptException(String.format("Failed to evaluate %s %s %s", value1, operation, value2));
+                        failOperation(value1,value2);
                     }
                     case lessThan -> {
-                        if (bothValuesAreNumbers(type1, type2)) {
-                            if (type1 == VariableType.FLOAT && type2 == VariableType.FLOAT) {
-                                return new BooleanVariable((float) value1.getValue() < (float) value2.getValue());
-                            } else if (type1 == VariableType.FLOAT && type2 == VariableType.INTEGER) {
-                                return new BooleanVariable((float) value1.getValue() < (int) value2.getValue());
-                            } else if (type1 == VariableType.INTEGER && type2 == VariableType.FLOAT) {
-                                return new BooleanVariable((int) value1.getValue() < (float) value2.getValue());
-                            } else {
-                                return new BooleanVariable((int) value1.getValue() < (int) value2.getValue());
+                        if (bothValuesAreNumbers(value1, value2)) {
+                            if(value1.isType(FLOAT) || value2.isType(FLOAT)){
+                                return new BooleanVariable(value1.castFloat() < value2.castFloat());
                             }
+                            return new BooleanVariable(value1.castInteger() < value2.castInteger());
                         }
-                        throw new ScriptException(String.format("Failed to evaluate %s %s %s", value1, operation, value2));
+                        failOperation(value1,value2);
                     }
                     case equals -> {
-                        if (type1 == VariableType.INTEGER && type2 == VariableType.INTEGER) {
-                            return new BooleanVariable((int) value1.getValue() == (int) value2.getValue());
-                        }
-                        if (type1 == VariableType.FLOAT && type2 == VariableType.FLOAT) {
-                            return new BooleanVariable((float) value1.getValue() == (float) value2.getValue());
-                        }
-                        if (type1 == VariableType.STRING && type2 == VariableType.STRING) {
-                            return new BooleanVariable(
-                                    value1.getValue().equals(value2.getValue())
-                            );
-                        }
-                        if (type1 == VariableType.BOOLEAN && type2 == VariableType.BOOLEAN) {
-                            return new BooleanVariable(value1.getValue() == value2.getValue());
-                        }
-                        if (type1 == VariableType.NULL && type2 == VariableType.NULL) {
-                            return new BooleanVariable(true);
-                        }
-                        if (type1 == VariableType.ARRAY && type2 == VariableType.ARRAY) {
-                            if (value1.castArray().size() != value2.castArray().size()) {
-                                return new BooleanVariable(false);
+                        if(notNull(value1) && notNull(value2)){
+                            if(value1.isType(INTEGER) && value2.isType(INTEGER)){
+                                return new BooleanVariable(value1.castInteger().equals(value2.castInteger()));
                             }
+                            if(value1.isType(FLOAT) && value2.isType(FLOAT)){
+                                return new BooleanVariable(value1.castFloat().equals(value2.castFloat()));
+                            }
+                            if(value1.isType(BOOLEAN) && value2.isType(BOOLEAN)){
+                                return new BooleanVariable(value1.castBoolean() == value2.castBoolean());
+                            }
+                            if(value1.isType(STRING) && value2.isType(STRING)){
+                                return new BooleanVariable(value1.castString().equals(value2.castString()));
+                            }
+                            if(value1.isType(NULL) && value2.isType(NULL)){
+                                return new BooleanVariable(true);
+                            }
+                            if(value1.isType(ARRAY) && value2.isType(ARRAY)){
 
-                            for (int i = 0; i < value1.castArray().size(); i++) {
-                                Variable v1 = value1.castArray().get(i);
-                                Variable v2 = value2.castArray().get(i);
-                                Variable equalityTester = new Expression(new Expression(v1), new Expression(v2), Parser.Operation.equals).evaluate(programState, functionVariables);
-
-                                if (equalityTester.getType() != VariableType.BOOLEAN ||
-                                        !equalityTester.castBoolean()
-                                ) {
+                                //ensure both arrays are the same length
+                                if (value1.castArray().size() != value2.castArray().size()) {
                                     return new BooleanVariable(false);
                                 }
+
+                                //test whether each element in both arrays match up.
+                                for (int i = 0; i < value1.castArray().size(); i++) {
+                                    Variable v1 = value1.castArray().get(i);
+                                    Variable v2 = value2.castArray().get(i);
+
+                                    Variable equalityTester = new Expression(
+                                            new Expression(v1),
+                                            new Expression(v2),
+                                            Parser.Operation.equals
+                                    ).evaluate(programState, functionVariables);
+
+                                    if ( !equalityTester.castBoolean() ) {
+                                        return new BooleanVariable(false);
+                                    }
+                                }
+                                //every element of the two arrays have been tested and match.
+                                return new BooleanVariable(true);
                             }
-                            //every element of the two arrays have been tested and match.
-                            return new BooleanVariable(true);
                         }
+
                         return new BooleanVariable(false);
                     }
                     case plus -> {
-                        if (bothValuesAreNumbers(type1, type2)) {
+                        if (bothValuesAreNumbers(value1, value2)) {
+                            if(value1.isType(FLOAT) || value2.isType(FLOAT)){
+                                return new FloatVariable(value1.castFloat() + value2.castFloat());
+                            }
+                            return new IntegerVariable(value1.castInteger() + value2.castInteger());
+                        }
 
-                            if (type1 == VariableType.FLOAT && type2 == VariableType.FLOAT) {
-                                return new FloatVariable((float) value1.getValue() + (float) value2.getValue());
-                            }
-                            if (type1 == VariableType.INTEGER && type2 == VariableType.FLOAT) {
-                                return new FloatVariable((float) (int) value1.getValue() + (float) value2.getValue());
-                            }
-                            if (type1 == VariableType.FLOAT && type2 == VariableType.INTEGER) {
-                                return new FloatVariable((float) value1.getValue() + (float) (int) value2.getValue());
-                            }
-                            return new IntegerVariable((int) value1.getValue() + (int) value2.getValue());
+                        if( notNull(value1) && notNull(value2)
+                                && (value1.isType(STRING) || value2.isType(STRING))
+                        ){
+                            return new StringVariable(value1.castString() + value2.castString());
                         }
-                        if (type1 == VariableType.STRING || type2 == VariableType.STRING) {
-                            return new StringVariable(value1.toString() + value2.toString());
-                        }
-                        throw new ScriptException(String.format("Failed to evaluate %s %s %s", value1, operation, value2));
+
+                        failOperation(value1,value2);
                     }
                     case minus -> {
-                        if (bothValuesAreNumbers(type1, type2)) {
-                            if (type1 == VariableType.FLOAT && type2 == VariableType.FLOAT) {
-                                return new FloatVariable((float) value1.getValue() - (float) value2.getValue());
+                        if (bothValuesAreNumbers(value1, value2)) {
+                            if(value1.isType(FLOAT) || value2.isType(FLOAT)){
+                                return new FloatVariable(value1.castFloat() - value2.castFloat());
                             }
-                            if (type1 == VariableType.INTEGER && type2 == VariableType.FLOAT) {
-                                return new FloatVariable((float) (int) value1.getValue() - (float) value2.getValue());
-                            }
-                            if (type1 == VariableType.FLOAT && type2 == VariableType.INTEGER) {
-                                return new FloatVariable((float) value1.getValue() - (float) (int) value2.getValue());
-                            }
-                            //both are ints
-                            return new IntegerVariable((int) value1.getValue() - (int) value2.getValue());
+                            return new IntegerVariable(value1.castInteger() - value2.castInteger());
                         }
-                        throw new ScriptException(String.format("Failed to evaluate %s %s %s", value1, operation, value2));
+                        failOperation(value1,value2);
                     }
                     case times -> {
-                        if (bothValuesAreNumbers(type1, type2)) {
-                            if (type1 == VariableType.FLOAT && type2 == VariableType.FLOAT) {
-                                return new FloatVariable((float) value1.getValue() * (float) value2.getValue());
-                            }
-                            if (type1 == VariableType.INTEGER && type2 == VariableType.FLOAT) {
-                                return new FloatVariable((float) (int) value1.getValue() * (float) value2.getValue());
-                            }
-                            if (type1 == VariableType.FLOAT && type2 == VariableType.INTEGER) {
-                                return new FloatVariable((float) value1.getValue() * (float) (int) value2.getValue());
+                        if (bothValuesAreNumbers(value1, value2)) {
+                            if(value1.isType(FLOAT) || value2.isType(FLOAT)){
+                                return new FloatVariable(value1.castFloat() * value2.castFloat());
                             }
                             //both are ints
-                            return new IntegerVariable((int) value1.getValue() * (int) value2.getValue());
+                            return new IntegerVariable(value1.castInteger() * value2.castInteger());
                         }
-                        throw new ScriptException(String.format("Failed to evaluate %s %s %s", value1, operation, value2));
+                        failOperation(value1,value2);
                     }
                     case divide -> {
-                        if (bothValuesAreNumbers(type1, type2)) {
-                            if (type1 == VariableType.FLOAT && type2 == VariableType.FLOAT) {
-                                return new FloatVariable((float) value1.getValue() / (float) value2.getValue());
-                            }
-                            if (type1 == VariableType.FLOAT && type2 == VariableType.INTEGER) {
-                                return new FloatVariable((float) value1.getValue() / (float) (int) value2.getValue());
-                            }
-                            if (type1 == VariableType.INTEGER && type2 == VariableType.FLOAT) {
-                                return new FloatVariable((float) (int) value1.getValue() / (float) value2.getValue());
-                            }
+                        if (bothValuesAreNumbers(value1, value2)) {
 
-                            //if both are integers: only return float if they don't divide to a whole number.
-                            if ((int) value1.getValue() % (int) value2.getValue() == 0) {
-                                return new IntegerVariable((int) value1.getValue() / (int) value2.getValue());
+                            if(value1.isType(FLOAT) || value2.isType(FLOAT)){
+                                if(value2.castFloat()==0f || value2.castFloat().isNaN()){ failOperation(value1,value2); }
+                                return new FloatVariable(value1.castFloat() / value2.castFloat());
+                            }else{
+                                if(value2.castInteger()==0){ failOperation(value1,value2); }
+                                //if both are integers: only return float if they don't divide to a whole number.
+                                if (value1.castInteger() % value2.castInteger() == 0) {
+                                    return new IntegerVariable((value1.castInteger() / value2.castInteger()));
+                                }
+                                return new FloatVariable(value1.castFloat() / value2.castFloat());
                             }
-                            return new FloatVariable((float) (int) value1.getValue() / (float) (int) value2.getValue());
                         }
-                        throw new ScriptException(String.format("Failed to evaluate %s %s %s", value1, operation, value2));
+                        failOperation(value1,value2);
                     }
                     case modulo -> {
-                        if (type1 == VariableType.INTEGER && type2 == VariableType.INTEGER) {
-                            return new IntegerVariable((int) value1.getValue() % (int) value2.getValue());
+                        if ( notNull(value1) && notNull(value2)
+                             && value1.isType(INTEGER) && value2.isType(INTEGER)
+                        ) {
+                            if(value2.castInteger()==0){ failOperation(value1,value2); }
+                            return new IntegerVariable(value1.castInteger() % value2.castInteger());
                         }
-                        throw new ScriptException(String.format("Failed to evaluate %s %s %s", value1, operation, value2));
+                        failOperation(value1,value2);
                     }
                     case and -> {
-                        if (bothValuesAreBooleans(type1, type2)) {
+                        if (bothValuesAreBooleans(value1, value2)) {
                             return new BooleanVariable((Boolean) value1.getValue() && (Boolean) value2.getValue());
                         }
-                        throw new ScriptException(String.format("Failed to evaluate %s %s %s", value1, operation, value2));
+                        failOperation(value1,value2);
                     }
                     case or -> {
-                        if (bothValuesAreBooleans(type1, type2)) {
+                        if (bothValuesAreBooleans(value1, value2)) {
                             return new BooleanVariable((Boolean) value1.getValue() || (Boolean) value2.getValue());
                         }
-                        throw new ScriptException(String.format("Failed to evaluate %s %s %s", value1, operation, value2));
+                        failOperation(value1,value2);
                     }
                     case not -> {
-                        if (type1 == VariableType.BOOLEAN) {
-                            return new BooleanVariable(!(Boolean) value1.getValue());
+                        if (notNull(value1) && value1.isType(BOOLEAN)) {
+                            return new BooleanVariable(!value1.castBoolean());
                         }
-                        throw new ScriptException(String.format("Failed to evaluate %s %s", operation, value1));
+                        failOperation(value1,value2);
                     }
                 }
                 //error
-                return new NullVariable();
+                failOperation(value1,value2);
+
 
             case Function:
-                //evaluate the execution of the function.
+                //execute the function.
                 if(programState.hasProgramFunction(functionName)){
-                    Variable var = programState.getProgramFunction(functionName).executeFunction(parameters,programState, functionVariables);
-//                System.out.println("v: "+v);
-                    return var;
+                    return programState.getProgramFunction(functionName)
+                            .executeFunction(parameters,programState, functionVariables);
                 }
 
                 throw new ScriptException("No such function Exists: \""+functionName+"\"");
@@ -325,10 +276,8 @@ public class Expression {
             case InternalFunction:
                 switch (functionName){
                     case "print":
-                        //check the correct number of parameters have been supplied
-                        if(parameters.size() != 1){
-                            throw new ScriptException("Wrong number of parameters: expecting 1, received "+parameters.size());
-                        }
+                        checkParameters(1);
+
                         Expression value = parameters.get(0);
 
                         programState.print(value.evaluate(programState, functionVariables).castString());
@@ -337,10 +286,8 @@ public class Expression {
                         return new NullVariable();
 
                     case "add":
-                        //check the correct number of parameters have been supplied
-                        if(parameters.size() != 2){
-                            throw new ScriptException("Wrong number of parameters: expecting 2 received "+parameters.size());
-                        }
+                        checkParameters(2);
+
                         ArrayVariable addArray = (ArrayVariable)parameters.get(0).evaluate(programState, functionVariables);
                         Variable addValue = parameters.get(1).evaluate(programState, functionVariables);
 
@@ -350,24 +297,20 @@ public class Expression {
                         return new NullVariable();
 
                     case "remove":
-                        //check the correct number of parameters have been supplied
-                        if(parameters.size() != 2){
-                            throw new ScriptException("Wrong number of parameters: expecting 2, received "+parameters.size());
-                        }
+                        checkParameters(2);
+
                         ArrayVariable removeArray = (ArrayVariable)parameters.get(0).evaluate(programState, functionVariables);
-                        int removeInt = (Integer) ((IntegerVariable)parameters.get(1).evaluate(programState, functionVariables)).getValue();
+                        int removeInt = parameters.get(1).evaluate(programState, functionVariables).castInteger();
                         removeArray.removeElement(removeInt);
 
                         //remove() returns nothing
                         return new NullVariable();
 
                     case "set":
-                        //check the correct number of parameters have been supplied
-                        if(parameters.size() != 3){
-                            throw new ScriptException("Wrong number of parameters: expecting 3, received "+parameters.size());
-                        }
+                        checkParameters(3);
+
                         ArrayVariable setArray = (ArrayVariable)parameters.get(0).evaluate(programState, functionVariables);
-                        int setInt = (Integer) ((IntegerVariable)parameters.get(1).evaluate(programState, functionVariables)).getValue();
+                        int setInt = parameters.get(1).evaluate(programState, functionVariables).castInteger();
                         Variable setValue = parameters.get(2).evaluate(programState, functionVariables);
 
                         setArray.setElement(setInt, setValue);
@@ -376,38 +319,27 @@ public class Expression {
                         return new NullVariable();
 
                     case "castString":
-                        if(parameters.size() != 1){
-                            throw new ScriptException("Wrong number of parameters: expecting 1, received "+parameters.size());
-                        }
+                        checkParameters(1);
                         Variable stringCast = parameters.get(0).evaluate(programState, functionVariables);
                         return new StringVariable(stringCast.castString());
                     case "castInteger":
-                        if(parameters.size() != 1){
-                            throw new ScriptException("Wrong number of parameters: expecting 1, received "+parameters.size());
-                        }
+                        checkParameters(1);
                         Variable integerCast = parameters.get(0).evaluate(programState, functionVariables);
                         return new IntegerVariable(integerCast.castInteger());
                     case "castFloat":
-                        if(parameters.size() != 1){
-                            throw new ScriptException("Wrong number of parameters: expecting 1, received "+parameters.size());
-                        }
+                        checkParameters(1);
                         Variable floatCast = parameters.get(0).evaluate(programState, functionVariables);
                         return new FloatVariable(floatCast.castFloat());
                     case "castBoolean":
-                        if(parameters.size() != 1){
-                            throw new ScriptException("Wrong number of parameters: expecting 1, received "+parameters.size());
-                        }
+                        checkParameters(1);
                         Variable booleanCast = parameters.get(0).evaluate(programState, functionVariables);
                         return new BooleanVariable(booleanCast.castBoolean());
                     case "random":
-                        if(parameters.size() != 0){
-                            throw new ScriptException("Wrong number of parameters: expecting 0, received "+parameters.size());
-                        }
+                        checkParameters(0);
                         return new FloatVariable((float)Math.random());
+
                     case "length":
-                        if(parameters.size() != 1){
-                            throw new ScriptException("Wrong number of parameters: expecting 1, received "+parameters.size());
-                        }
+                        checkParameters(1);
                         Variable lengthVariable = parameters.get(0).evaluate(programState, functionVariables);
                         VariableType lengthType = lengthVariable.getType();
 
@@ -416,11 +348,11 @@ public class Expression {
                         }else if(lengthType==VariableType.ARRAY){
                             return new IntegerVariable(lengthVariable.castArray().size());
                         }
-                        throw new ScriptException("Unable to get length of "+lengthType+" object");
+                        failParameters(new Variable[]{lengthVariable});
+
                     case "charAt":
-                        if(parameters.size() != 2){
-                            throw new ScriptException("Wrong number of parameters: expecting 2, received "+parameters.size());
-                        }
+                        checkParameters(2);
+
                         Variable charAtString = parameters.get(0).evaluate(programState, functionVariables);
                         Variable charAtInteger = parameters.get(1).evaluate(programState, functionVariables);
 
@@ -429,11 +361,11 @@ public class Expression {
                             Integer i = charAtInteger.castInteger();
                             return new StringVariable(Character.toString(s.charAt(i)));
                         }
-                        throw new ScriptException("Unable to call charAt() with parameters of type: "+charAtString.getType()+", "+charAtInteger.getType());
+                        failParameters(new Variable[]{charAtString,charAtInteger});
+
                     case "get":
-                        if(parameters.size() != 2){
-                            throw new ScriptException("Wrong number of parameters: expecting 2, received "+parameters.size());
-                        }
+                        checkParameters(2);
+
                         Variable getArray = parameters.get(0).evaluate(programState, functionVariables);
                         Variable getInteger = parameters.get(1).evaluate(programState, functionVariables);
                         if(getArray.getType() == VariableType.ARRAY && getInteger.getType() == VariableType.INTEGER){
@@ -452,18 +384,16 @@ public class Expression {
 
                             return getArray.castArray().get(i);
                         }
-                        throw new ScriptException("Unable to call get() with parameters of type: "+getArray.getType()+", "+getInteger.getType());
+                        failParameters(new Variable[]{getArray,getInteger});
+
                     case "type":
-                        if(parameters.size() != 1){
-                            throw new ScriptException("Wrong number of parameters: expecting 1, received "+parameters.size());
-                        }
+                        checkParameters(1);
                         Variable typeVariable = parameters.get(0).evaluate(programState, functionVariables);
                         return new StringVariable(typeVariable.toString());
+
                     case "createImage":
-                        //check the correct number of parameters have been supplied
-                        if(parameters.size() != 2){
-                            throw new ScriptException(functionName+" Wrong number of parameters: expecting 2, received "+parameters.size());
-                        }
+                        checkParameters(2);
+
                         IntegerVariable x = (IntegerVariable)parameters.get(0).evaluate(programState, functionVariables);
                         IntegerVariable y = (IntegerVariable)parameters.get(1).evaluate(programState, functionVariables);
 
@@ -471,10 +401,8 @@ public class Expression {
                         return new ImageVariable((int)x.getValue(),(int)y.getValue());
 
                     case "setPixel":
-                        //check the correct number of parameters have been supplied
-                        if(parameters.size() != 6){
-                            throw new ScriptException(functionName+" Wrong number of parameters: expecting 6, received "+parameters.size());
-                        }
+                        checkParameters(6);
+
                         ImageVariable setPixel_img = (ImageVariable) parameters.get(0).evaluate(programState, functionVariables);
                         IntegerVariable setPixel_x = (IntegerVariable)parameters.get(1).evaluate(programState, functionVariables);
                         IntegerVariable setPixel_y = (IntegerVariable)parameters.get(2).evaluate(programState, functionVariables);
@@ -494,10 +422,7 @@ public class Expression {
                         return new NullVariable();
 
                     case "getPixel":
-                        //check the correct number of parameters have been supplied
-                        if(parameters.size() != 3){
-                            throw new ScriptException(functionName+" Wrong number of parameters: expecting 3, received "+parameters.size());
-                        }
+                        checkParameters(3);
 
                         ImageVariable getPixel_img = (ImageVariable) parameters.get(0).evaluate(programState, functionVariables);
                         Integer getPixel_x = parameters.get(1).evaluate(programState, functionVariables).castInteger();
@@ -506,59 +431,54 @@ public class Expression {
                         return getPixel_img.getPixel(getPixel_x, getPixel_y);
 
                     case "setCanvas":
-                        //check the correct number of parameters have been supplied
-                        if(parameters.size() != 1){
-                            throw new ScriptException(functionName+" Wrong number of parameters: expecting 1, received "+parameters.size());
-                        }
+                        checkParameters(1);
+
                         ImageVariable setCanvas_img = (ImageVariable) parameters.get(0).evaluate(programState, functionVariables);
                         programState.addProgramVariable("_canvas",setCanvas_img);
+                        programState.addProgramVariable("_canvasVisibility",new BooleanVariable(true));
 
                         //setCanvas() returns nothing
                         return new NullVariable();
 
                     case "canvasVisible":
-                        //check the correct number of parameters have been supplied
-                        if(parameters.size() != 1){
-                            throw new ScriptException(functionName+" Wrong number of parameters: expecting 1, received "+parameters.size());
-                        }
+                        checkParameters(1);
+
                         Boolean canvasVisible_bool = parameters.get(0).evaluate(programState, functionVariables).castBoolean();
                         programState.addProgramVariable("_canvasVisibility",new BooleanVariable(canvasVisible_bool));
 
                         //canvasVisible() returns nothing
                         return new NullVariable();
 
-                    case "sin":
-                        if(parameters.size() != 1){
-                            throw new ScriptException(functionName+" Wrong number of parameters: expecting 1, received "+parameters.size());
-                        }
-                        float sinFloat = parameters.get(0).evaluate(programState, functionVariables).castFloat();
-                        return new FloatVariable((float)Math.sin(sinFloat));
-
-                    case "cos":
-                        if(parameters.size() != 1){
-                            throw new ScriptException(functionName+" Wrong number of parameters: expecting 1, received "+parameters.size());
-                        }
-                        float cosFloat = parameters.get(0).evaluate(programState, functionVariables).castFloat();
-                        return new FloatVariable((float)Math.cos(cosFloat));
-
-                    case "pow":
-                        if(parameters.size() != 2){
-                            throw new ScriptException(functionName+" Wrong number of parameters: expecting 2, received "+parameters.size());
-                        }
-                        float powBase = parameters.get(0).evaluate(programState, functionVariables).castFloat();
-                        float powExponent = parameters.get(1).evaluate(programState, functionVariables).castFloat();
-                        return new FloatVariable((float)Math.pow(powBase,powExponent));
-
                     case "getDimensions":
-                        if(parameters.size() != 1){
-                            throw new ScriptException(functionName+" Wrong number of parameters: expecting 1, received "+parameters.size());
-                        }
+                        checkParameters(1);
+
                         BufferedImage sizeImage = parameters.get(0).evaluate(programState, functionVariables).castImage();
                         ArrayList<Expression> sizeArray = new ArrayList<>(Arrays.asList(
                                 new Expression(new IntegerVariable(sizeImage.getWidth())),
                                 new Expression(new IntegerVariable(sizeImage.getHeight()))
                         ));
                         return new ArrayVariable(sizeArray);
+
+                    case "sin":
+                        checkParameters(1);
+                        float sinFloat = parameters.get(0).evaluate(programState, functionVariables).castFloat();
+                        return new FloatVariable((float)Math.sin(sinFloat));
+
+                    case "cos":
+                        checkParameters(1);
+                        float cosFloat = parameters.get(0).evaluate(programState, functionVariables).castFloat();
+                        return new FloatVariable((float)Math.cos(cosFloat));
+
+                    case "pow":
+                        checkParameters(2);
+                        Variable powBase = parameters.get(0).evaluate(programState, functionVariables);
+                        Variable powExponent = parameters.get(1).evaluate(programState, functionVariables);
+                        float result = (float)Math.pow(powBase.castFloat(),powExponent.castFloat());
+
+                        if(Float.isNaN(result)){failParameters(new Variable[]{powBase,powExponent});}
+                        if(Float.isInfinite(result)){failParameters(new Variable[]{powBase,powExponent});}
+                        return new FloatVariable(result);
+
                     default:
                         return new NullVariable();
                 }
@@ -571,17 +491,49 @@ public class Expression {
     }
 
 
-    //helper methods
-    private boolean bothValuesAreNumbers(VariableType a, VariableType b){
-        return  (a == VariableType.FLOAT || a == VariableType.INTEGER)
-                &&
-                (b == VariableType.FLOAT || b == VariableType.INTEGER);
+    //Operation helper methods
+    private boolean bothValuesAreNumbers(Variable a, Variable b){
+        if(a==null || b==null){return false;}
+        return  (a.getType() == FLOAT || a.getType() == VariableType.INTEGER)
+             && (b.getType() == FLOAT || b.getType() == VariableType.INTEGER);
     }
-    private boolean bothValuesAreBooleans(VariableType a, VariableType b){
-        return  (a == VariableType.BOOLEAN)
-                &&
-                (b == VariableType.BOOLEAN);
+    private boolean bothValuesAreBooleans(Variable a, Variable b){
+        if(a==null || b==null){return false;}
+        return  (a.getType() == VariableType.BOOLEAN) && (b.getType() == VariableType.BOOLEAN);
     }
+    private boolean notNull(Variable v){
+        return v != null;
+    }
+    private void failOperation(Variable v1, Variable v2){
+        if(operation == Parser.Operation.not){
+            throw new ScriptException(String.format("Failed to evaluate ! %s", v1));
+        }
+        System.out.println(operation);
+        System.out.println(expression1);
+        System.out.println(expression2);
+        throw new ScriptException(String.format("Failed to evaluate %s %s %s", v1, operations.get(operation), v2));
+    }
+
+    //Internal Function helper methods
+    private void checkParameters(int n){
+        //check the correct number of parameters have been supplied
+        if(parameters.size() != n){
+            throw new ScriptException(
+                    String.format("Wrong number of parameters: expecting %s, received %s", n ,parameters.size() )
+            );
+        }
+    }
+    private void failParameters(Variable[] params){
+        String parameterTypes = "";
+
+        for(int i=0; i<params.length-1; i++){
+            parameterTypes += params[i].getType()+", ";
+        }
+        parameterTypes += params[params.length-1].getType();
+
+        throw new ScriptException(String.format("Unable to call %s() with parameters of type: %s",functionName,parameterTypes));
+    }
+
 
     @Override
     public String toString() {

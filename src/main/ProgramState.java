@@ -37,7 +37,7 @@ public class ProgramState {
         return programVariables.containsKey(key);
     }
 
-    //add a variable,
+    //add a variable
     public void addProgramVariable(String s,Variable v){
         programVariables.put(s,v);
     }

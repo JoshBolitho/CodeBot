@@ -27,6 +27,10 @@ public class StringVariable implements Variable{
     }
 
     @Override
+    public boolean isType(VariableType v) {
+        return v == VariableType.STRING; }
+
+    @Override
     public String castString() {
         return value;
     }

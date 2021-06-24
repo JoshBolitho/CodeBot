@@ -27,6 +27,11 @@ public class BooleanVariable implements Variable{
     }
 
     @Override
+    public boolean isType(VariableType v) {
+        return v == VariableType.BOOLEAN;
+    }
+
+    @Override
     public String castString() {
         return Boolean.toString(value);
     }

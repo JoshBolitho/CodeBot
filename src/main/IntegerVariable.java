@@ -5,7 +5,7 @@ import java.util.ArrayList;
 
 public class IntegerVariable implements Variable{
 
-    private int value;
+    private final int value;
 
     public IntegerVariable(Integer value) {
         this.value = value;
@@ -24,6 +24,11 @@ public class IntegerVariable implements Variable{
     @Override
     public VariableType getType() {
         return VariableType.INTEGER;
+    }
+
+    @Override
+    public boolean isType(VariableType v) {
+        return v == VariableType.INTEGER;
     }
 
     @Override

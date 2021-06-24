@@ -6,6 +6,7 @@ import java.util.ArrayList;
 public interface Variable {
     public Object getValue();
     public VariableType getType();
+    public boolean isType(VariableType v);
 
     //Used for casting attempts, if failed, these will throw errors to the user.
     public String castString() throws ScriptException;

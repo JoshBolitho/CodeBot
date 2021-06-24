@@ -506,10 +506,25 @@ public class Parser {
     public Expression parseOperand(Scanner s){
         Expression expression;
 
+        //Parse n "-" characters
+        if (s.hasNext(Minus)){
+            require(Minus, s);
+            expression = new Expression(
+                    new Expression(new IntegerVariable(0)),
+                    parseOperand(s),
+                    Operation.minus
+            );
+            return expression;
+        }
+
         //Parse n "!" characters
         if (s.hasNext(Not)){
             require(Not, s);
-            expression = new Expression(parseExpression(s,null,null), null, Operation.not);
+            expression = new Expression(
+                    parseOperand(s),
+                    null,
+                    Operation.not
+            );
             return expression;
         }
 

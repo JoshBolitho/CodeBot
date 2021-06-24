@@ -14,12 +14,17 @@ public class NullVariable implements Variable{
 
     @Override
     public Object getValue() {
-        return null;
+        return "null";
     }
 
     @Override
     public VariableType getType() {
         return VariableType.NULL;
+    }
+
+    @Override
+    public boolean isType(VariableType v) {
+        return v == VariableType.NULL;
     }
 
     @Override
@@ -29,26 +34,26 @@ public class NullVariable implements Variable{
 
     @Override
     public Integer castInteger()throws ScriptException {
-        throw new ScriptException(String.format("Failed to null to integer"));
+        throw new ScriptException("Failed to null to integer");
     }
 
     @Override
     public Float castFloat() throws ScriptException{
-        throw new ScriptException(String.format("Failed to cast null to float"));
+        throw new ScriptException("Failed to cast null to float");
     }
 
     @Override
     public Boolean castBoolean() throws ScriptException{
-        throw new ScriptException(String.format("Failed to cast null to boolean"));
+        throw new ScriptException("Failed to cast null to boolean");
     }
 
     @Override
     public ArrayList<Variable> castArray() throws ScriptException {
-        throw new ScriptException(String.format("Failed to cast null to array"));
+        throw new ScriptException("Failed to cast null to array");
     }
 
     @Override
     public BufferedImage castImage() throws ScriptException {
-        throw new ScriptException(String.format("Failed to cast null to image"));
+        throw new ScriptException("Failed to cast null to image");
     }
 }

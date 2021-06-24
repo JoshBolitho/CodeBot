@@ -27,6 +27,11 @@ public class FloatVariable implements Variable{
     }
 
     @Override
+    public boolean isType(VariableType v) {
+        return v == VariableType.FLOAT;
+    }
+
+    @Override
     public String castString() {
         return Float.toString(value);
     }

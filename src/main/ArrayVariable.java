@@ -74,6 +74,11 @@ public class ArrayVariable implements Variable{
     }
 
     @Override
+    public boolean isType(VariableType v) {
+        return v == VariableType.INTEGER;
+    }
+
+    @Override
     public String castString() throws ScriptException{
         if(!hasValue()){
             //Need to ensure that any call of castString() also makes use of evaluateArray() beforehand.

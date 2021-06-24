@@ -76,6 +76,11 @@ public class ImageVariable implements Variable{
     }
 
     @Override
+    public boolean isType(VariableType v) {
+        return v == VariableType.IMAGE;
+    }
+
+    @Override
     public String castString() throws ScriptException{
         return this.toString();
     }
