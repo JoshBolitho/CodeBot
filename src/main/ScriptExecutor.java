@@ -35,6 +35,10 @@ public class ScriptExecutor {
         //Print the last Executable node of program, which stores the parsed script.
         //This skips printing all the internally/pre defined functions and variables.
         System.out.println(nodes.get(nodes.size()-1).display(0));
+
+        //Alternatively, print the whole program
+//        System.out.println(program.display(0));
+
     }
     //execute parsed ProgramNode
     public void executeProgram(){
@@ -79,14 +83,14 @@ public class ScriptExecutor {
             } catch (StopException e){
                 //The Execution error message will already be printed to the console output string,
                 //so handling the error and viewing the stacktrace is optional.
-                //e.printStackTrace();
+//                e.printStackTrace();
             }
 
         } catch (StopException e){
             //Print the parsing error message to the console output string.
             scriptExecutor.programState.print(e.getMessage());
             //Optionally view the stacktrace
-            e.printStackTrace();
+//            e.printStackTrace();
         }
 
         String result = scriptExecutor.getConsoleOutput();

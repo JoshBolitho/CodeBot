@@ -1,7 +1,6 @@
 package main;
 
 import java.awt.*;
-import java.awt.image.BufferedImage;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -85,72 +84,74 @@ public class Expression {
 
         switch (myMode) {
 
-            case Value:
+            case Value: {
                 //Arrays are parsed as an array of Expressions, which must be
                 //evaluated to an array of Variables before they are accessible.
-                if(value.getType() == VariableType.ARRAY){
-                    ((ArrayVariable)value).evaluateArray(programState,functionVariables);
+                if (value.isType(ARRAY)) {
+                    ((ArrayVariable) value).evaluateArray(programState, functionVariables);
                 }
                 return value;
+            }
 
-            case Reference:
+            case Reference: {
 
                 Variable v;
-                if(functionVariables != null && functionVariables.containsKey(variableReference)){
+                if (functionVariables != null && functionVariables.containsKey(variableReference)) {
                     v = functionVariables.get(variableReference);
-                }else{
+                } else {
                     v = programState.getProgramVariable(variableReference);
                 }
                 //Arrays are parsed as an array of Expressions, which must be
                 //evaluated to an array of Variables before they are accessible.
-                if (v.getType()==VariableType.ARRAY){
+                if (v.getType() == VariableType.ARRAY) {
                     ((ArrayVariable) v).evaluateArray(programState, functionVariables);
                 }
                 return v;
+            }
 
-            case Operation:
+            case Operation: {
 
                 //Evaluate expression1 to a Variable
-                Variable value1 = expression1==null? null: expression1.evaluate(programState, functionVariables);
-                Variable value2 = expression2==null? null: expression2.evaluate(programState, functionVariables);
+                Variable value1 = expression1 == null ? null : expression1.evaluate(programState, functionVariables);
+                Variable value2 = expression2 == null ? null : expression2.evaluate(programState, functionVariables);
 
                 switch (operation) {
                     case greaterThan -> {
                         if (bothValuesAreNumbers(value1, value2)) {
-                            if(value1.isType(FLOAT) || value2.isType(FLOAT)){
+                            if (value1.isType(FLOAT) || value2.isType(FLOAT)) {
                                 return new BooleanVariable(value1.castFloat() > value2.castFloat());
                             }
                             return new BooleanVariable(value1.castInteger() > value2.castInteger());
                         }
-                        failOperation(value1,value2);
+                        failOperation(value1, value2);
                     }
                     case lessThan -> {
                         if (bothValuesAreNumbers(value1, value2)) {
-                            if(value1.isType(FLOAT) || value2.isType(FLOAT)){
+                            if (value1.isType(FLOAT) || value2.isType(FLOAT)) {
                                 return new BooleanVariable(value1.castFloat() < value2.castFloat());
                             }
                             return new BooleanVariable(value1.castInteger() < value2.castInteger());
                         }
-                        failOperation(value1,value2);
+                        failOperation(value1, value2);
                     }
                     case equals -> {
-                        if(notNull(value1) && notNull(value2)){
-                            if(value1.isType(INTEGER) && value2.isType(INTEGER)){
+                        if (notNull(value1) && notNull(value2)) {
+                            if (value1.isType(INTEGER) && value2.isType(INTEGER)) {
                                 return new BooleanVariable(value1.castInteger().equals(value2.castInteger()));
                             }
-                            if(value1.isType(FLOAT) && value2.isType(FLOAT)){
+                            if (value1.isType(FLOAT) && value2.isType(FLOAT)) {
                                 return new BooleanVariable(value1.castFloat().equals(value2.castFloat()));
                             }
-                            if(value1.isType(BOOLEAN) && value2.isType(BOOLEAN)){
+                            if (value1.isType(BOOLEAN) && value2.isType(BOOLEAN)) {
                                 return new BooleanVariable(value1.castBoolean() == value2.castBoolean());
                             }
-                            if(value1.isType(STRING) && value2.isType(STRING)){
+                            if (value1.isType(STRING) && value2.isType(STRING)) {
                                 return new BooleanVariable(value1.castString().equals(value2.castString()));
                             }
-                            if(value1.isType(NULL) && value2.isType(NULL)){
+                            if (value1.isType(NULL) && value2.isType(NULL)) {
                                 return new BooleanVariable(true);
                             }
-                            if(value1.isType(ARRAY) && value2.isType(ARRAY)){
+                            if (value1.isType(ARRAY) && value2.isType(ARRAY)) {
 
                                 //ensure both arrays are the same length
                                 if (value1.castArray().size() != value2.castArray().size()) {
@@ -168,7 +169,7 @@ public class Expression {
                                             Parser.Operation.equals
                                     ).evaluate(programState, functionVariables);
 
-                                    if ( !equalityTester.castBoolean() ) {
+                                    if (!equalityTester.castBoolean()) {
                                         return new BooleanVariable(false);
                                     }
                                 }
@@ -181,47 +182,51 @@ public class Expression {
                     }
                     case plus -> {
                         if (bothValuesAreNumbers(value1, value2)) {
-                            if(value1.isType(FLOAT) || value2.isType(FLOAT)){
+                            if (value1.isType(FLOAT) || value2.isType(FLOAT)) {
                                 return new FloatVariable(value1.castFloat() + value2.castFloat());
                             }
                             return new IntegerVariable(value1.castInteger() + value2.castInteger());
                         }
 
-                        if( notNull(value1) && notNull(value2)
+                        if (notNull(value1) && notNull(value2)
                                 && (value1.isType(STRING) || value2.isType(STRING))
-                        ){
+                        ) {
                             return new StringVariable(value1.castString() + value2.castString());
                         }
 
-                        failOperation(value1,value2);
+                        failOperation(value1, value2);
                     }
                     case minus -> {
                         if (bothValuesAreNumbers(value1, value2)) {
-                            if(value1.isType(FLOAT) || value2.isType(FLOAT)){
+                            if (value1.isType(FLOAT) || value2.isType(FLOAT)) {
                                 return new FloatVariable(value1.castFloat() - value2.castFloat());
                             }
                             return new IntegerVariable(value1.castInteger() - value2.castInteger());
                         }
-                        failOperation(value1,value2);
+                        failOperation(value1, value2);
                     }
                     case times -> {
                         if (bothValuesAreNumbers(value1, value2)) {
-                            if(value1.isType(FLOAT) || value2.isType(FLOAT)){
+                            if (value1.isType(FLOAT) || value2.isType(FLOAT)) {
                                 return new FloatVariable(value1.castFloat() * value2.castFloat());
                             }
                             //both are ints
                             return new IntegerVariable(value1.castInteger() * value2.castInteger());
                         }
-                        failOperation(value1,value2);
+                        failOperation(value1, value2);
                     }
                     case divide -> {
                         if (bothValuesAreNumbers(value1, value2)) {
 
-                            if(value1.isType(FLOAT) || value2.isType(FLOAT)){
-                                if(value2.castFloat()==0f || value2.castFloat().isNaN()){ failOperation(value1,value2); }
+                            if (value1.isType(FLOAT) || value2.isType(FLOAT)) {
+                                if (value2.castFloat() == 0f || value2.castFloat().isNaN()) {
+                                    failOperation(value1, value2);
+                                }
                                 return new FloatVariable(value1.castFloat() / value2.castFloat());
-                            }else{
-                                if(value2.castInteger()==0){ failOperation(value1,value2); }
+                            } else {
+                                if (value2.castInteger() == 0) {
+                                    failOperation(value1, value2);
+                                }
                                 //if both are integers: only return float if they don't divide to a whole number.
                                 if (value1.castInteger() % value2.castInteger() == 0) {
                                     return new IntegerVariable((value1.castInteger() / value2.castInteger()));
@@ -229,267 +234,342 @@ public class Expression {
                                 return new FloatVariable(value1.castFloat() / value2.castFloat());
                             }
                         }
-                        failOperation(value1,value2);
+                        failOperation(value1, value2);
                     }
                     case modulo -> {
-                        if ( notNull(value1) && notNull(value2)
-                             && value1.isType(INTEGER) && value2.isType(INTEGER)
+                        if (notNull(value1) && notNull(value2)
+                                && value1.isType(INTEGER) && value2.isType(INTEGER)
                         ) {
-                            if(value2.castInteger()==0){ failOperation(value1,value2); }
+                            if (value2.castInteger() == 0) {
+                                failOperation(value1, value2);
+                            }
                             return new IntegerVariable(value1.castInteger() % value2.castInteger());
                         }
-                        failOperation(value1,value2);
+                        failOperation(value1, value2);
                     }
                     case and -> {
                         if (bothValuesAreBooleans(value1, value2)) {
                             return new BooleanVariable((Boolean) value1.getValue() && (Boolean) value2.getValue());
                         }
-                        failOperation(value1,value2);
+                        failOperation(value1, value2);
                     }
                     case or -> {
                         if (bothValuesAreBooleans(value1, value2)) {
                             return new BooleanVariable((Boolean) value1.getValue() || (Boolean) value2.getValue());
                         }
-                        failOperation(value1,value2);
+                        failOperation(value1, value2);
                     }
                     case not -> {
                         if (notNull(value1) && value1.isType(BOOLEAN)) {
                             return new BooleanVariable(!value1.castBoolean());
                         }
-                        failOperation(value1,value2);
+                        failOperation(value1, value2);
                     }
                 }
                 //error
-                failOperation(value1,value2);
+                failOperation(value1, value2);
+            }
 
-
-            case Function:
+            case Function: {
                 //execute the function.
-                if(programState.hasProgramFunction(functionName)){
+                if (programState.hasProgramFunction(functionName)) {
                     return programState.getProgramFunction(functionName)
-                            .executeFunction(parameters,programState, functionVariables);
+                            .executeFunction(parameters, programState, functionVariables);
                 }
 
-                throw new ScriptException("No such function Exists: \""+functionName+"\"");
+                throw new ScriptException("No such function Exists: \"" + functionName + "\"");
+            }
 
+            case InternalFunction: {
+                switch (functionName) {
+                    case "print": {
+                        assertParameters(1);
 
-            case InternalFunction:
-                switch (functionName){
-                    case "print":
-                        checkParameters(1);
+                        Variable x = getParameter(0, programState, functionVariables);
 
-                        Expression value = parameters.get(0);
-
-                        programState.print(value.evaluate(programState, functionVariables).castString());
+                        programState.print(x.castString());
 
                         //print() returns nothing
                         return new NullVariable();
+                    }
+                    case "add": {
+                        assertParameters(2);
 
-                    case "add":
-                        checkParameters(2);
+                        Variable arr = getParameter(0, programState, functionVariables);
+                        Variable element = getParameter(1, programState, functionVariables);
 
-                        ArrayVariable addArray = (ArrayVariable)parameters.get(0).evaluate(programState, functionVariables);
-                        Variable addValue = parameters.get(1).evaluate(programState, functionVariables);
-
-                        addArray.addElement(addValue);
+                        assertType(arr, ARRAY);
+                        ((ArrayVariable) arr).addElement(element);
 
                         //add() returns nothing
                         return new NullVariable();
 
-                    case "remove":
-                        checkParameters(2);
+                    }
+                    case "remove": {
+                        assertParameters(2);
 
-                        ArrayVariable removeArray = (ArrayVariable)parameters.get(0).evaluate(programState, functionVariables);
-                        int removeInt = parameters.get(1).evaluate(programState, functionVariables).castInteger();
-                        removeArray.removeElement(removeInt);
+                        Variable arr = getParameter(0, programState, functionVariables);
+                        Variable i = getParameter(1, programState, functionVariables);
+
+                        assertType(arr, ARRAY);
+                        assertType(i, INTEGER);
+
+                        ArrayVariable array = (ArrayVariable) arr;
+                        int index = i.castInteger();
+
+                        //if the Variable array is null, evaluate the Expression array, and set the Variable array.
+                        if (!array.hasValue()) {
+                            array.evaluateArray(programState, functionVariables);
+                        }
+
+                        assertRange(index, 0, array.castArray().size());
+
+                        array.removeElement(index);
 
                         //remove() returns nothing
                         return new NullVariable();
+                    }
+                    case "set": {
+                        assertParameters(3);
 
-                    case "set":
-                        checkParameters(3);
+                        Variable arr = getParameter(0, programState, functionVariables);
+                        Variable i = getParameter(1, programState, functionVariables);
+                        Variable element = getParameter(2, programState, functionVariables);
 
-                        ArrayVariable setArray = (ArrayVariable)parameters.get(0).evaluate(programState, functionVariables);
-                        int setInt = parameters.get(1).evaluate(programState, functionVariables).castInteger();
-                        Variable setValue = parameters.get(2).evaluate(programState, functionVariables);
+                        assertType(arr, ARRAY);
+                        assertType(i, INTEGER);
 
-                        setArray.setElement(setInt, setValue);
+                        ArrayVariable array = (ArrayVariable) arr;
+                        int index = i.castInteger();
+
+                        //if the Variable array is null, evaluate the Expression array, and set the Variable array.
+                        if (!array.hasValue()) {
+                            array.evaluateArray(programState, functionVariables);
+                        }
+
+                        assertRange(index, 0, array.castArray().size());
+
+                        array.setElement(index, element);
 
                         //set() returns nothing
                         return new NullVariable();
+                    }
+                    case "get": {
+                        assertParameters(2);
 
-                    case "castString":
-                        checkParameters(1);
-                        Variable stringCast = parameters.get(0).evaluate(programState, functionVariables);
-                        return new StringVariable(stringCast.castString());
-                    case "castInteger":
-                        checkParameters(1);
-                        Variable integerCast = parameters.get(0).evaluate(programState, functionVariables);
-                        return new IntegerVariable(integerCast.castInteger());
-                    case "castFloat":
-                        checkParameters(1);
-                        Variable floatCast = parameters.get(0).evaluate(programState, functionVariables);
-                        return new FloatVariable(floatCast.castFloat());
-                    case "castBoolean":
-                        checkParameters(1);
-                        Variable booleanCast = parameters.get(0).evaluate(programState, functionVariables);
-                        return new BooleanVariable(booleanCast.castBoolean());
-                    case "random":
-                        checkParameters(0);
-                        return new FloatVariable((float)Math.random());
+                        Variable arr = getParameter(0, programState, functionVariables);
+                        Variable i = getParameter(1, programState, functionVariables);
 
-                    case "length":
-                        checkParameters(1);
-                        Variable lengthVariable = parameters.get(0).evaluate(programState, functionVariables);
-                        VariableType lengthType = lengthVariable.getType();
+                        assertType(arr, ARRAY);
+                        assertType(i, INTEGER);
 
-                        if(lengthType==VariableType.STRING){
-                            return new IntegerVariable(lengthVariable.castString().length());
-                        }else if(lengthType==VariableType.ARRAY){
-                            return new IntegerVariable(lengthVariable.castArray().size());
+                        ArrayVariable array = (ArrayVariable) arr;
+                        int index = i.castInteger();
+
+                        //if the Variable array is null, evaluate the Expression array, and set the Variable array.
+                        if (!array.hasValue()) {
+                            array.evaluateArray(programState, functionVariables);
                         }
-                        failParameters(new Variable[]{lengthVariable});
 
-                    case "charAt":
-                        checkParameters(2);
+                        assertRange(index, 0, array.castArray().size());
 
-                        Variable charAtString = parameters.get(0).evaluate(programState, functionVariables);
-                        Variable charAtInteger = parameters.get(1).evaluate(programState, functionVariables);
+                        return array.castArray().get(index);
+                    }
+                    case "castString": {
+                        assertParameters(1);
+                        Variable variable = getParameter(0, programState, functionVariables);
+                        return new StringVariable(variable.castString());
+                    }
+                    case "castInteger": {
+                        assertParameters(1);
+                        Variable variable = getParameter(0, programState, functionVariables);
+                        return new IntegerVariable(variable.castInteger());
+                    }
+                    case "castFloat": {
+                        assertParameters(1);
+                        Variable variable = getParameter(0, programState, functionVariables);
+                        return new FloatVariable(variable.castFloat());
+                    }
+                    case "castBoolean": {
+                        assertParameters(1);
+                        Variable variable = getParameter(0, programState, functionVariables);
+                        return new BooleanVariable(variable.castBoolean());
+                    }
+                    case "random": {
+                        assertParameters(0);
+                        return new FloatVariable((float) Math.random());
+                    }
+                    case "length": {
+                        assertParameters(1);
+                        Variable variable = getParameter(0, programState, functionVariables);
 
-                        if(charAtString.getType() == VariableType.STRING && charAtInteger.getType() == VariableType.INTEGER){
-                            String s = charAtString.castString();
-                            Integer i = charAtInteger.castInteger();
-                            return new StringVariable(Character.toString(s.charAt(i)));
+                        if (variable.isType(STRING)) {
+                            return new IntegerVariable(variable.castString().length());
                         }
-                        failParameters(new Variable[]{charAtString,charAtInteger});
-
-                    case "get":
-                        checkParameters(2);
-
-                        Variable getArray = parameters.get(0).evaluate(programState, functionVariables);
-                        Variable getInteger = parameters.get(1).evaluate(programState, functionVariables);
-                        if(getArray.getType() == VariableType.ARRAY && getInteger.getType() == VariableType.INTEGER){
-
-                            Integer i = getInteger.castInteger();
+                        if (variable.isType(ARRAY)) {
+                            ArrayVariable array = (ArrayVariable) variable;
 
                             //if the Variable array is null, evaluate the Expression array, and set the Variable array.
-                            if (getArray.getValue() == null){
-                                ArrayList<Variable> variables = new ArrayList<>();
-                                ArrayVariable thisArrayVariable = (ArrayVariable)getArray;
-                                for (Expression exp : thisArrayVariable.getExpressionArray()){
-                                    variables.add(exp.evaluate(programState, functionVariables));
-                                }
-                                ((ArrayVariable) getArray).setValueArray(variables);
+                            if (!array.hasValue()) {
+                                array.evaluateArray(programState, functionVariables);
                             }
 
-                            return getArray.castArray().get(i);
+                            return new IntegerVariable(variable.castArray().size());
                         }
-                        failParameters(new Variable[]{getArray,getInteger});
+                        failParameters();
+                    }
+                    case "charAt": {
+                        assertParameters(2);
 
-                    case "type":
-                        checkParameters(1);
-                        Variable typeVariable = parameters.get(0).evaluate(programState, functionVariables);
-                        return new StringVariable(typeVariable.toString());
+                        Variable str = getParameter(0, programState, functionVariables);
+                        Variable i = getParameter(1, programState, functionVariables);
 
-                    case "createImage":
-                        checkParameters(2);
+                        assertType(str, STRING);
+                        assertType(i, INTEGER);
 
-                        IntegerVariable x = (IntegerVariable)parameters.get(0).evaluate(programState, functionVariables);
-                        IntegerVariable y = (IntegerVariable)parameters.get(1).evaluate(programState, functionVariables);
+                        String string = str.castString();
+                        int index = i.castInteger();
+
+                        assertRange(index, 0, string.length() - 1);
+
+                        return new StringVariable(Character.toString(string.charAt(index)));
+                    }
+                    case "type": {
+                        assertParameters(1);
+                        Variable variable = getParameter(0, programState, functionVariables);
+                        return new StringVariable(variable.getType().toString());
+                    }
+                    case "createImage": {
+                        assertParameters(2);
+
+                        int x = getParameter(0, programState, functionVariables).castInteger();
+                        int y = getParameter(1, programState, functionVariables).castInteger();
 
                         //createImage() returns an image variable
-                        return new ImageVariable((int)x.getValue(),(int)y.getValue());
+                        return new ImageVariable(x, y);
+                    }
+                    case "setPixel": {
+                        assertParameters(6);
 
-                    case "setPixel":
-                        checkParameters(6);
+                        Variable img = getParameter(0, programState, functionVariables);
 
-                        ImageVariable setPixel_img = (ImageVariable) parameters.get(0).evaluate(programState, functionVariables);
-                        IntegerVariable setPixel_x = (IntegerVariable)parameters.get(1).evaluate(programState, functionVariables);
-                        IntegerVariable setPixel_y = (IntegerVariable)parameters.get(2).evaluate(programState, functionVariables);
+                        int x = getParameter(1, programState, functionVariables).castInteger();
+                        int y = getParameter(2, programState, functionVariables).castInteger();
 
-                        IntegerVariable setPixel_r = (IntegerVariable)parameters.get(3).evaluate(programState, functionVariables);
-                        IntegerVariable setPixel_g = (IntegerVariable)parameters.get(4).evaluate(programState, functionVariables);
-                        IntegerVariable setPixel_b = (IntegerVariable)parameters.get(5).evaluate(programState, functionVariables);
+                        int r = getParameter(3, programState, functionVariables).castInteger();
+                        int g = getParameter(4, programState, functionVariables).castInteger();
+                        int b = getParameter(5, programState, functionVariables).castInteger();
 
-                        Color setPixel_colour = new Color(
-                                setPixel_r.castInteger(),
-                                setPixel_g.castInteger(),
-                                setPixel_b.castInteger()
-                        );
-                        setPixel_img.setPixel((int)setPixel_x.getValue(),(int)setPixel_y.getValue(),setPixel_colour);
+                        assertType(img, IMAGE);
+                        ImageVariable image = (ImageVariable) img;
+
+                        assertRange(x, 0, image.getWidth() - 1);
+                        assertRange(y, 0, image.getWidth() - 1);
+
+                        assertRange(r, 0, 255);
+                        assertRange(g, 0, 255);
+                        assertRange(b, 0, 255);
+
+                        Color colour = new Color(r, g, b);
+                        image.setPixel(x, y, colour);
 
                         //setPixel() returns nothing
                         return new NullVariable();
+                    }
+                    case "getPixel": {
+                        assertParameters(3);
 
-                    case "getPixel":
-                        checkParameters(3);
+                        Variable img = getParameter(0, programState, functionVariables);
 
-                        ImageVariable getPixel_img = (ImageVariable) parameters.get(0).evaluate(programState, functionVariables);
-                        Integer getPixel_x = parameters.get(1).evaluate(programState, functionVariables).castInteger();
-                        Integer getPixel_y = parameters.get(2).evaluate(programState, functionVariables).castInteger();
+                        int x = getParameter(1, programState, functionVariables).castInteger();
+                        int y = getParameter(2, programState, functionVariables).castInteger();
 
-                        return getPixel_img.getPixel(getPixel_x, getPixel_y);
+                        assertType(img, IMAGE);
+                        ImageVariable image = (ImageVariable) img;
 
-                    case "setCanvas":
-                        checkParameters(1);
+                        assertRange(x, 0, image.getWidth() - 1);
+                        assertRange(y, 0, image.getWidth() - 1);
 
-                        ImageVariable setCanvas_img = (ImageVariable) parameters.get(0).evaluate(programState, functionVariables);
-                        programState.addProgramVariable("_canvas",setCanvas_img);
-                        programState.addProgramVariable("_canvasVisibility",new BooleanVariable(true));
+                        return image.getPixel(x, y);
+                    }
+                    case "setCanvas": {
+                        assertParameters(1);
+
+                        Variable img = getParameter(0, programState, functionVariables);
+                        assertType(img, IMAGE);
+                        ImageVariable image = (ImageVariable) img;
+
+                        programState.addProgramVariable("_canvas", image);
+                        programState.addProgramVariable("_canvasVisibility", new BooleanVariable(true));
 
                         //setCanvas() returns nothing
                         return new NullVariable();
+                    }
+                    case "canvasVisible": {
+                        assertParameters(1);
 
-                    case "canvasVisible":
-                        checkParameters(1);
+                        Variable b = getParameter(0, programState, functionVariables);
+                        assertType(b, BOOLEAN);
+                        BooleanVariable bool = (BooleanVariable) b;
 
-                        Boolean canvasVisible_bool = parameters.get(0).evaluate(programState, functionVariables).castBoolean();
-                        programState.addProgramVariable("_canvasVisibility",new BooleanVariable(canvasVisible_bool));
+                        programState.addProgramVariable("_canvasVisibility", bool);
 
                         //canvasVisible() returns nothing
                         return new NullVariable();
+                    }
+                    case "getDimensions": {
+                        assertParameters(1);
 
-                    case "getDimensions":
-                        checkParameters(1);
+                        Variable img = getParameter(0, programState, functionVariables);
+                        assertType(img, IMAGE);
+                        ImageVariable image = (ImageVariable) img;
 
-                        BufferedImage sizeImage = parameters.get(0).evaluate(programState, functionVariables).castImage();
-                        ArrayList<Expression> sizeArray = new ArrayList<>(Arrays.asList(
-                                new Expression(new IntegerVariable(sizeImage.getWidth())),
-                                new Expression(new IntegerVariable(sizeImage.getHeight()))
-                        ));
-                        return new ArrayVariable(sizeArray);
+                        ArrayList<Expression> array = new ArrayList<>(Arrays.asList(
+                                new Expression(new IntegerVariable(image.getWidth())),
+                                new Expression(new IntegerVariable(image.getHeight())))
+                        );
+                        return new ArrayVariable(array);
+                    }
+                    case "sin": {
+                        assertParameters(1);
 
-                    case "sin":
-                        checkParameters(1);
-                        float sinFloat = parameters.get(0).evaluate(programState, functionVariables).castFloat();
-                        return new FloatVariable((float)Math.sin(sinFloat));
+                        float x = getParameter(0, programState, functionVariables).castFloat();
+                        return new FloatVariable((float) Math.sin(x));
+                    }
+                    case "cos": {
+                        assertParameters(1);
 
-                    case "cos":
-                        checkParameters(1);
-                        float cosFloat = parameters.get(0).evaluate(programState, functionVariables).castFloat();
-                        return new FloatVariable((float)Math.cos(cosFloat));
+                        float x = getParameter(0, programState, functionVariables).castFloat();
+                        return new FloatVariable((float) Math.cos(x));
+                    }
+                    case "pow": {
+                        assertParameters(2);
+                        float base = getParameter(0, programState, functionVariables).castFloat();
+                        float exponent = getParameter(1, programState, functionVariables).castFloat();
 
-                    case "pow":
-                        checkParameters(2);
-                        Variable powBase = parameters.get(0).evaluate(programState, functionVariables);
-                        Variable powExponent = parameters.get(1).evaluate(programState, functionVariables);
-                        float result = (float)Math.pow(powBase.castFloat(),powExponent.castFloat());
+                        float result = (float) Math.pow(base, exponent);
 
-                        if(Float.isNaN(result)){failParameters(new Variable[]{powBase,powExponent});}
-                        if(Float.isInfinite(result)){failParameters(new Variable[]{powBase,powExponent});}
+                        if (Float.isNaN(result)) {
+                            failParameters();
+                        }
+                        if (Float.isInfinite(result)) {
+                            failParameters();
+                        }
+
                         return new FloatVariable(result);
-
+                    }
                     default:
-                        return new NullVariable();
+                        failParameters();
                 }
+            }
 
-            default:
+            default: {
                 //error
                 return new NullVariable();
+            }
         }
 
     }
-
 
     //Operation helper methods
     private boolean bothValuesAreNumbers(Variable a, Variable b){
@@ -508,14 +588,37 @@ public class Expression {
         if(operation == Parser.Operation.not){
             throw new ScriptException(String.format("Failed to evaluate ! %s", v1));
         }
-        System.out.println(operation);
-        System.out.println(expression1);
-        System.out.println(expression2);
         throw new ScriptException(String.format("Failed to evaluate %s %s %s", v1, operations.get(operation), v2));
     }
 
     //Internal Function helper methods
-    private void checkParameters(int n){
+    private Variable getParameter(int i, ProgramState programState, HashMap<String,Variable> functionVariables ){
+        return parameters.get(i).evaluate(programState, functionVariables);
+    }
+    private void failParameters(){
+//    private void failParameters(Variable[] params){
+//        String parameterTypes = "";
+//
+//        for(int i=0; i<params.length-1; i++){
+//            parameterTypes += params[i].getType()+", ";
+//        }
+//        parameterTypes += params[params.length-1].getType();
+
+//        throw new ScriptException(String.format("Unable to call %s() with parameters of type: %s",functionName,parameterTypes));
+
+        StringBuilder res = new StringBuilder("Function call failed: "+functionName+"(");
+        for(int i = 0; i<parameters.size();i++){
+            res.append(parameters.get(i));
+            if(i != parameters.size()-1){
+                res.append(", ");
+            }
+        }
+        res.append(")");
+        throw new ScriptException(res.toString());
+//        throw new ScriptException("Function call failed: "+this.toString());
+
+    }
+    private void assertParameters(int n){
         //check the correct number of parameters have been supplied
         if(parameters.size() != n){
             throw new ScriptException(
@@ -523,24 +626,20 @@ public class Expression {
             );
         }
     }
-    private void failParameters(Variable[] params){
-        String parameterTypes = "";
-
-        for(int i=0; i<params.length-1; i++){
-            parameterTypes += params[i].getType()+", ";
-        }
-        parameterTypes += params[params.length-1].getType();
-
-        throw new ScriptException(String.format("Unable to call %s() with parameters of type: %s",functionName,parameterTypes));
+    private void assertType(Variable variable,VariableType variableType){
+        if( variable.getType() != variableType ){failParameters();}
     }
-
+    private void assertRange(int i, int min, int max){
+        //boundary inclusive
+        if(i<min || i>max){failParameters();}
+    };
 
     @Override
     public String toString() {
         switch (myMode){
             case Value :
                 return value.toString();
-            case Function:
+            case Function, InternalFunction:
                 StringBuilder res = new StringBuilder(functionName+"(");
                 for(int i = 0; i<parameters.size();i++){
                     res.append(parameters.get(i));
@@ -550,17 +649,6 @@ public class Expression {
                 }
                 res.append(")");
                 return res.toString();
-
-            case InternalFunction:
-                StringBuilder res2 = new StringBuilder("[Internal]"+functionName+"(");
-                for(int i = 0; i<parameters.size();i++){
-                    res2.append(parameters.get(i));
-                    if(i != parameters.size()-1){
-                        res2.append(", ");
-                    }
-                }
-                res2.append(")");
-                return res2.toString();
 
             case Operation:
                 if (operation == Parser.Operation.not) {
@@ -573,9 +661,11 @@ public class Expression {
 
             case Reference:
                 return variableReference;
+
+            default:
+                return "Expression(" +
+                        myMode +
+                        ')';
         }
-        return "Expression(" +
-                myMode +
-                ')';
     }
 }

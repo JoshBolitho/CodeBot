@@ -32,10 +32,23 @@ public class VariableAssignmentNode implements ExecutableNode {
     }
 
     public String display(int depth) {
+
         StringBuilder res = new StringBuilder();
         for(int i=0; i<depth; i++){
             res.append("    ");
         }
+
+        //don't call value.tostring() on an internal function. instead, display a simple view of it.
+        if(value.myMode==Expression.Mode.InternalFunction){
+            return res.toString()+value.functionName+"()\n";
+        }
+
+        //don't display pre-defined variables that have the underscore prefix "_"
+        if(value.myMode==Expression.Mode.Value && name.charAt(0)=='_'){
+            return "";
+        }
+
+
         if(name.equals("_return")){
             res.append("return "+value+"\n");
         }else {

@@ -13,7 +13,7 @@ public class ImageVariable implements Variable{
         this.image = new BufferedImage(x,y,BufferedImage.TYPE_INT_RGB);
     }
 
-    //Create and ImageVariable from existing Bufferedimage
+    //Create and ImageVariable from existing BufferedImage
     //Will be inaccessible to BotScript users, and will be used to import custom images
     public ImageVariable(BufferedImage image) {
         if(image == null){
@@ -59,6 +59,12 @@ public class ImageVariable implements Variable{
 
     }
 
+    public Integer getWidth(){
+        return image.getWidth();
+    }
+    public Integer getHeight(){
+        return image.getHeight();
+    }
 
     @Override
     public String toString() {

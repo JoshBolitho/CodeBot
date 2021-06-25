@@ -75,7 +75,7 @@ public class ArrayVariable implements Variable{
 
     @Override
     public boolean isType(VariableType v) {
-        return v == VariableType.INTEGER;
+        return v == VariableType.ARRAY;
     }
 
     @Override
