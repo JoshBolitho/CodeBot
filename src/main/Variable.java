@@ -4,16 +4,16 @@ import java.awt.image.BufferedImage;
 import java.util.ArrayList;
 
 public interface Variable {
-    public Object getValue();
-    public VariableType getType();
-    public boolean isType(VariableType v);
+    Object getValue();
+    VariableType getType();
+    boolean isType(VariableType v);
 
     //Used for casting attempts, if failed, these will throw errors to the user.
-    public String castString() throws ScriptException;
-    public Integer castInteger() throws ScriptException;
-    public Float castFloat() throws ScriptException;
-    public Boolean castBoolean() throws ScriptException;
-    public ArrayList<Variable> castArray() throws ScriptException;
-    public BufferedImage castImage() throws ScriptException;
+    String castString() throws ScriptException;
+    Integer castInteger() throws ScriptException;
+    Float castFloat() throws ScriptException;
+    Boolean castBoolean() throws ScriptException;
+    ArrayList<Variable> castArray() throws ScriptException;
+    BufferedImage castImage() throws ScriptException;
 
 }

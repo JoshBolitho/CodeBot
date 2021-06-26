@@ -33,7 +33,7 @@ public class ImageVariable implements Variable{
 
     public void setPixel(int x, int y, Color colour){
         //Ensure x,y are in bounds
-        if(x<image.getWidth() && y< image.getHeight()) {
+        if(x<image.getWidth() && y< image.getHeight() && x>=0 && y >=0) {
             image.setRGB(x, y, colour.getRGB());
         }else{
             throw new ScriptException(String.format("Coordinates (%s,%s) don't fit within image dimensions (%s,%s)",x,y,image.getWidth(),image.getHeight()));
@@ -42,13 +42,13 @@ public class ImageVariable implements Variable{
 
     public ArrayVariable getPixel(int x, int y){
         //Ensure x,y are in bounds
-        if(x<image.getWidth() && y< image.getHeight()) {
+        if(x<image.getWidth() && y< image.getHeight() && x>=0 && y >=0) {
             Color myColour = new Color(image.getRGB(x,y));
 
             ArrayList<Expression> elements = new ArrayList<>();
-            elements.add(new Expression(new IntegerVariable(myColour.getRed())));
-            elements.add(new Expression(new IntegerVariable(myColour.getGreen())));
-            elements.add(new Expression(new IntegerVariable(myColour.getBlue())));
+            elements.add(new ValueExpression(new IntegerVariable(myColour.getRed())));
+            elements.add(new ValueExpression(new IntegerVariable(myColour.getGreen())));
+            elements.add(new ValueExpression(new IntegerVariable(myColour.getBlue())));
 
             return new ArrayVariable(elements);
 

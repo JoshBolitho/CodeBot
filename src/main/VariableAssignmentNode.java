@@ -39,12 +39,12 @@ public class VariableAssignmentNode implements ExecutableNode {
         }
 
         //don't call value.tostring() on an internal function. instead, display a simple view of it.
-        if(value.myMode==Expression.Mode.InternalFunction){
-            return res.toString()+value.functionName+"()\n";
+        if(value.getClass().equals(InternalFunctionExpression.class)){
+            return res.toString()+((InternalFunctionExpression)value).functionName+"()\n";
         }
 
         //don't display pre-defined variables that have the underscore prefix "_"
-        if(value.myMode==Expression.Mode.Value && name.charAt(0)=='_'){
+        if(value.getClass().equals(ValueExpression.class) && name.charAt(0)=='_'){
             return "";
         }
 

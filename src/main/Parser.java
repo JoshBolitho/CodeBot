@@ -133,7 +133,7 @@ public class Parser {
         //(As required in the internal function expression below)
         ArrayList<Expression> args = new ArrayList<>();
         for (String argument : arguments) {
-            args.add(new Expression(argument));
+            args.add(new ReferenceExpression(argument));
         }
 
         //Create a variable assignment node which accesses and runs an internal function,
@@ -143,10 +143,9 @@ public class Parser {
                 //depending on whether we expect a return value from it.
                 new VariableAssignmentNode(
                         hasReturnValue? "_return":"_",
-                        new Expression(
+                        new InternalFunctionExpression(
                                 functionName,
-                                args,
-                                true
+                                args
                         )
                 )
         );
@@ -170,7 +169,7 @@ public class Parser {
         ProgramNode myVariable = new ProgramNode();
         myVariable.addExecutableNode(
                 new VariableAssignmentNode(name,
-                        new Expression(variable)
+                        new ValueExpression(variable)
                 )
         );
         program.addExecutableNode(myVariable);
@@ -509,8 +508,8 @@ public class Parser {
         //Parse n "-" characters
         if (s.hasNext(Minus)){
             require(Minus, s);
-            expression = new Expression(
-                    new Expression(new IntegerVariable(0)),
+            expression = new OperationExpression(
+                    new ValueExpression(new IntegerVariable(0)),
                     parseOperand(s),
                     Operation.minus
             );
@@ -520,7 +519,7 @@ public class Parser {
         //Parse n "!" characters
         if (s.hasNext(Not)){
             require(Not, s);
-            expression = new Expression(
+            expression = new OperationExpression(
                     parseOperand(s),
                     null,
                     Operation.not
@@ -541,17 +540,17 @@ public class Parser {
         }
 
         if (s.hasNextInt()){
-            expression = new Expression(new IntegerVariable(s.nextInt()));
+            expression = new ValueExpression(new IntegerVariable(s.nextInt()));
             return expression;
         }
 
         if (s.hasNextFloat()){
-            expression = new Expression(new FloatVariable(s.nextFloat()));
+            expression = new ValueExpression(new FloatVariable(s.nextFloat()));
             return expression;
         }
 
         if (s.hasNextBoolean()){
-            expression = new Expression(new BooleanVariable(s.nextBoolean()));
+            expression = new ValueExpression(new BooleanVariable(s.nextBoolean()));
             return expression;
         }
 
@@ -563,12 +562,12 @@ public class Parser {
 
             //This case catches an empty string
             if(nextString.equals("\"")){
-                expression = new Expression(new StringVariable(""));
+                expression = new ValueExpression(new StringVariable(""));
                 s.useDelimiter(defaultDelimiter);
             }
             //this case catches literally any other possible string
             else {
-                expression = new Expression(new StringVariable(nextString));
+                expression = new ValueExpression(new StringVariable(nextString));
                 s.useDelimiter(defaultDelimiter);
                 require(DoubleQuotes, s);
             }
@@ -579,7 +578,7 @@ public class Parser {
         for(String variableName : variableNames){
             if(s.hasNext(variableName)){
                 String recognisedVariableName = s.next();
-                expression = new Expression(recognisedVariableName);
+                expression = new ReferenceExpression(recognisedVariableName);
                 return expression;
             }
         }
@@ -598,7 +597,7 @@ public class Parser {
                 }
                 require(CloseParenthesis, s);
 
-                expression =  new Expression(functionName, parameters, false);
+                expression =  new FunctionExpression(functionName, parameters);
                 return expression;
             }
         }
@@ -646,22 +645,22 @@ public class Parser {
             Expression operand2 = parseOperand(s);
 
             //detect potential end of expression
-            if(expressionEndDetected(s)){ return new Expression(firstOperand,operand2,operator1.getOperation()); }
+            if(expressionEndDetected(s)){ return new OperationExpression(firstOperand,operand2,operator1.getOperation()); }
 
             //get next operation
             Operator operator2 = parseOperator(s);
             if(operator2.getPriority() > operator1.getPriority()){
                 //parse the higher priority operation in a new parseExpression() call with higher priority
-                Expression nextExpression = new Expression(firstOperand,parseExpression(s,operand2,priorityLevel+1),operator1.getOperation());
+                Expression nextExpression = new OperationExpression(firstOperand,parseExpression(s,operand2,priorityLevel+1),operator1.getOperation());
                 return parseExpression(s,nextExpression,priorityLevel);
             }else if (operator2.getPriority() == operator1.getPriority()){
                 //create an Expression to represented the equal quality operation,
                 //then call parseExpression with this newly created expression as the parameter.
-                Expression temp = new Expression(firstOperand,operand2,operator1.getOperation());
+                Expression temp = new OperationExpression(firstOperand,operand2,operator1.getOperation());
                 return parseExpression(s,temp,priorityLevel);
             }else{
                 //next operation is lower priority
-                return new Expression(firstOperand,operand2,operator1.getOperation());
+                return new OperationExpression(firstOperand,operand2,operator1.getOperation());
             }
 
         }
@@ -720,7 +719,7 @@ public class Parser {
 
         require(CloseSquare,s);
 
-        return new Expression(new ArrayVariable(elements));
+        return new ValueExpression(new ArrayVariable(elements));
     }
 
     public Parser() {}
