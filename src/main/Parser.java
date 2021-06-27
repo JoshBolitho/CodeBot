@@ -63,6 +63,8 @@ public class Parser {
     static Pattern FloatPattern = Pattern.compile("\\d+\\.\\d+");
     static Pattern BooleanPattern = Pattern.compile("true|false");
 
+    static Pattern Name = Pattern.compile("[a-zA-Z\\d]+");
+
     static ArrayList<Operator> operators = new ArrayList<>(
             Set.of(
                     new Operator(Times,Operation.times,5),
@@ -332,7 +334,7 @@ public class Parser {
             }
 
             //Finally, if no known variable or function names are found, attempt to parse a new variable name.
-            if(s.hasNext("[a-z,A-Z]+")){
+            if(s.hasNext(Name)){
                 return parseVariableAssignment(s);
             }
 
@@ -353,7 +355,7 @@ public class Parser {
         String variableName;
         Expression value;
 
-        if(s.hasNext("[a-z,A-Z]+")){
+        if(s.hasNext(Name)){
             variableName = s.next();
 
             require(Equals, s);
@@ -375,7 +377,7 @@ public class Parser {
 
             return new VariableAssignmentNode(variableName,value);
         }else{
-            throw new ScriptException("Invalid variable name (Upper/Lower case alphabet characters only)"+(s.hasNext() ? ": "+s.next() : ""));
+            throw new ScriptException("Invalid variable name (Alphanumerics only)"+(s.hasNext() ? ": "+s.next() : ""));
         }
     }
 
@@ -442,10 +444,10 @@ public class Parser {
         ProgramNode functionScript = new ProgramNode();
 
         require(Function,s);
-        if(s.hasNext("[a-z,A-Z]+")) {
+        if(s.hasNext(Name)) {
             name = s.next();
         }else{
-            throw new ScriptException("Invalid function name (Upper/Lower case alphabet characters only)"+(s.hasNext() ? ": "+s.next() : ""));
+            throw new ScriptException("Invalid function name (Alphanumerics only)"+(s.hasNext() ? ": "+s.next() : ""));
         }
 
         if(reservedKeywords.contains(name)){
@@ -461,11 +463,11 @@ public class Parser {
 
         require(OpenParenthesis,s);
         ArrayList<String> parameters = new ArrayList<>();
-        if(s.hasNext("[a-z,A-Z]+")) {
+        if(s.hasNext(Name)) {
             parameters.add(s.next());
             while(s.hasNext(Comma)){
                 require(Comma,s);
-                parameters.add(require(Pattern.compile("[a-z,A-Z]+"), s));
+                parameters.add(require(Name, s));
             }
         }
 
