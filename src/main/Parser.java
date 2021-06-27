@@ -59,6 +59,10 @@ public class Parser {
     static Pattern And = Pattern.compile("&");
     static Pattern Or = Pattern.compile("\\|");
 
+    static Pattern IntegerPattern = Pattern.compile("\\d+");
+    static Pattern FloatPattern = Pattern.compile("\\d+\\.\\d+");
+    static Pattern BooleanPattern = Pattern.compile("true|false");
+
     static ArrayList<Operator> operators = new ArrayList<>(
             Set.of(
                     new Operator(Times,Operation.times,5),
@@ -539,19 +543,34 @@ public class Parser {
             return expression;
         }
 
-        if (s.hasNextInt()){
-            expression = new ValueExpression(new IntegerVariable(s.nextInt()));
-            return expression;
+        if (s.hasNext(FloatPattern)){
+            if(s.hasNextFloat()){
+                float next = s.nextFloat();
+                if(Float.isNaN(next) || Float.isInfinite(next)){
+                    throw new ScriptException("Failed to parse float: "+ next);
+                }
+                expression = new ValueExpression(new FloatVariable(next));
+                return expression;
+            }
+            throw new ScriptException("Invalid float value: "+s.next());
         }
 
-        if (s.hasNextFloat()){
-            expression = new ValueExpression(new FloatVariable(s.nextFloat()));
-            return expression;
+        if (s.hasNext(IntegerPattern) ){
+            if(s.hasNextInt()){
+                Integer result = s.nextInt();
+                expression = new ValueExpression(new IntegerVariable(result));
+                return expression;
+            }
+            throw new ScriptException("Invalid integer value: "+s.next());
         }
 
-        if (s.hasNextBoolean()){
-            expression = new ValueExpression(new BooleanVariable(s.nextBoolean()));
-            return expression;
+        if (s.hasNext(BooleanPattern)){
+            if(s.hasNextBoolean()){
+                boolean result = s.nextBoolean();
+                expression = new ValueExpression(new BooleanVariable(result));
+                return expression;
+            }
+            throw new ScriptException("Invalid boolean value: "+s.next());
         }
 
         if (s.hasNext(DoubleQuotes)){

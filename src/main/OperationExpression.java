@@ -223,7 +223,8 @@ public class OperationExpression implements Expression {
                     fail();
                 }
             }
-        }catch (Exception e){ fail();}
+        }catch (ScriptException e){throw e;}
+        catch (Exception e){ fail();}
 
         fail();
         return new NullVariable();
