@@ -186,7 +186,6 @@ public class ScriptExecutor {
         return canvas;
     }
 
-
     //Config
     public static Integer getMaxImageSize() {
         return maxImageSize;

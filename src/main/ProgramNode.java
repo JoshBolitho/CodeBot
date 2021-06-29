@@ -64,8 +64,18 @@ public class ProgramNode implements ExecutableNode{
                 }
                 //Otherwise, handle the exception and throw a StopException
                 programState.printError("Execution error at: "+ex.display(0).split("\n")[0]);
-                programState.printError("Recursion error (Stack Overflow)");
-                throw new StopException("Recursion error (Stack Overflow)");
+                programState.printError("Recursion error: Stack overflow");
+                throw new StopException("Recursion error: Stack overflow");
+            }
+            catch (OutOfMemoryError e){
+                //re-throw the exception if it is from an internal function
+                if (ex.getClass().equals(VariableAssignmentNode.class) && ((VariableAssignmentNode) ex).value.getClass().equals(InternalFunctionExpression.class)){
+                    throw e;
+                }
+                //Otherwise, handle the exception and throw a StopException
+                programState.printError("Execution error at: "+ex.display(0).split("\n")[0]);
+                programState.printError("Memory error: Out of memory");
+                throw new StopException("Memory error: Stack Overflow");
             }
         }
     }
