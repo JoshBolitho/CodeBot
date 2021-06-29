@@ -24,11 +24,6 @@ public class ScriptExecutor {
     private static final Integer maxExecutionTime = 30;//seconds
     private static final Integer maxOutputLength = 7000;//characters
 
-    private static final Integer maxRecursionDepth = 0;
-    private static final Integer maxArrayLength = 0;
-    private static final Integer maxVariableCount = 0;
-    private static final Integer maxFunctionCount = 0;
-
 
     //Initialise ScriptExecutor
     public ScriptExecutor(String script) {
@@ -172,47 +167,27 @@ public class ScriptExecutor {
         }
     }
 
-
     //Output getters
     public String getResult() {
         return result;
     }
-
     public boolean getCanvasVisibility() {
         return canvasVisibility;
     }
-
     public BufferedImage getCanvas() {
         return canvas;
     }
+
 
     //Config
     public static Integer getMaxImageSize() {
         return maxImageSize;
     }
-
     public static Integer getMaxExecutionTime() {
         return maxExecutionTime;
     }
-
     public static Integer getMaxOutputLength() {
         return maxOutputLength;
-    }
-
-    public static Integer getMaxRecursionDepth() {
-        return maxRecursionDepth;
-    }
-
-    public static Integer getMaxArrayLength() {
-        return maxArrayLength;
-    }
-
-    public static Integer getMaxVariableCount() {
-        return maxVariableCount;
-    }
-
-    public static Integer getMaxFunctionCount() {
-        return maxFunctionCount;
     }
 
 }

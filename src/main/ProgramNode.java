@@ -48,37 +48,29 @@ public class ProgramNode implements ExecutableNode{
                 ex.execute(programState, functionVariables);
 
             } catch (ScriptException e){
-                //re-throw the exception if it is from an internal function
-                if (ex.getClass().equals(VariableAssignmentNode.class) && ((VariableAssignmentNode) ex).value.getClass().equals(InternalFunctionExpression.class)){
-                    throw e;
-                }
-                //Otherwise, handle the exception and throw a StopException
-                programState.printError("Execution error at: "+ex.display(0).split("\n")[0]);
-                programState.printError(e.getMessage());
-                throw new StopException(e.getMessage());
-            }
-            catch (StackOverflowError e){
-                //re-throw the exception if it is from an internal function
-                if (ex.getClass().equals(VariableAssignmentNode.class) && ((VariableAssignmentNode) ex).value.getClass().equals(InternalFunctionExpression.class)){
-                    throw e;
-                }
-                //Otherwise, handle the exception and throw a StopException
-                programState.printError("Execution error at: "+ex.display(0).split("\n")[0]);
-                programState.printError("Recursion error: Stack overflow");
-                throw new StopException("Recursion error: Stack overflow");
-            }
-            catch (OutOfMemoryError e){
-                //re-throw the exception if it is from an internal function
-                if (ex.getClass().equals(VariableAssignmentNode.class) && ((VariableAssignmentNode) ex).value.getClass().equals(InternalFunctionExpression.class)){
-                    throw e;
-                }
-                //Otherwise, handle the exception and throw a StopException
-                programState.printError("Execution error at: "+ex.display(0).split("\n")[0]);
-                programState.printError("Memory error: Out of memory");
-                throw new StopException("Memory error: Stack Overflow");
+                handleThrowable(e,programState,ex,e.getMessage());
+            } catch (StackOverflowError e){
+                handleThrowable(e,programState,ex,"Recursion error: Stack overflow");
+            } catch (OutOfMemoryError e){
+                handleThrowable(e,programState,ex,"Memory error: Out of memory");
             }
         }
     }
+
+    //where Throwable t is either an Error, or a ScriptException
+    public void handleThrowable(Throwable e, ProgramState programState, ExecutableNode ex, String message) throws Error {
+        //re-throw the throwable if it is from an internal function
+        if (ex.getClass().equals(VariableAssignmentNode.class) && ((VariableAssignmentNode) ex).value.getClass().equals(InternalFunctionExpression.class)){
+            if(e.getClass().equals(ScriptException.class)){throw (ScriptException)e;}
+            if(e.getClass().equals(Error.class)){ throw (Error)e; }
+        }
+        //Otherwise, handle the exception and throw a StopException
+        programState.printError("Execution error at: "+ex.display(0).split("\n")[0]);
+        programState.printError(message);
+
+        throw new StopException(message);
+    }
+
 
     @Override
     public String toString() {
