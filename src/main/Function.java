@@ -22,7 +22,7 @@ public class Function {
     //If this function call was called from within another function call, parentFunctionVariables are
     //any variables defined in the scope of the parent function call.
 
-    public Variable executeFunction( ArrayList<Expression> functionParameters, ProgramState programState, HashMap<String,Variable> parentFunctionVariables){
+    public Variable executeFunction( ArrayList<Expression> functionParameters, ProgramState programState, HashMap<String,Variable> parentFunctionVariables) throws InterruptedException{
         //functionVariables
         HashMap<String,Variable> functionVariables = new HashMap<>();
 

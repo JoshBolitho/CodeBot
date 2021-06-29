@@ -26,7 +26,13 @@ public class FunctionExecutionNode implements ExecutableNode{
     }
 
     @Override
-    public void execute(ProgramState programState, HashMap<String, Variable> functionVariables) {
+    public void execute(ProgramState programState, HashMap<String, Variable> functionVariables) throws InterruptedException{
+        //Stop execution if the thread is interrupted (program has taken too long to complete execution)
+        if (Thread.interrupted()){
+                    Thread.currentThread().interrupt();
+                    throw new InterruptedException("Thread Interrupted");
+                }
+
         programState.getProgramFunction(name).executeFunction(parameters,programState, functionVariables);
     }
 

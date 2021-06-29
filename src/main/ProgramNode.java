@@ -21,7 +21,16 @@ public class ProgramNode implements ExecutableNode{
     }
 
     @Override
-    public void execute(ProgramState programState, HashMap<String,Variable> functionVariables) {
+    public void execute(ProgramState programState, HashMap<String,Variable> functionVariables) throws InterruptedException {
+        //Stop execution if the thread is interrupted (program has taken too long to complete execution)
+        if (Thread.interrupted()){
+            Thread.currentThread().interrupt();
+            throw new InterruptedException("Thread Interrupted");
+        }
+
+        //return if the program node is empty
+        if(executableNodes.size()==0){return;}
+
         for(ExecutableNode e : executableNodes){
             //If in a function, and a return statement has been reached, break from the function execution.
             if(functionVariables != null && functionVariables.containsKey("_return")){
@@ -30,8 +39,20 @@ public class ProgramNode implements ExecutableNode{
             //Catch errors and print current line with error message to programState.
             //Also print stack trace and end execution with an EndExecutionException.
             try {
+                //Stop execution if the thread is interrupted (program has taken too long to complete execution)
+                if (Thread.interrupted()){
+                    Thread.currentThread().interrupt();
+                    throw new InterruptedException("Thread Interrupted");
+                }
+
                 e.execute(programState, functionVariables);
-            }catch (ScriptException err){
+
+            } catch (ScriptException err){
+                //re-throw the exception if it is from an internal function
+                if (e.getClass().equals(VariableAssignmentNode.class) && ((VariableAssignmentNode) e).value.getClass().equals(InternalFunctionExpression.class)){
+                    throw err;
+                }
+                //Otherwise, handle the exception and throw a StopException
                 programState.print("Execution error at: "+e.display(0).split("\n")[0]);
                 programState.print(err.getMessage());
                 throw new StopException(err.getMessage());

@@ -13,13 +13,23 @@ public class FunctionExpression implements Expression {
     }
 
     @Override
-    public Variable evaluate(ProgramState programState, HashMap<String, Variable> functionVariables) {
-        if (programState.hasProgramFunction(functionName)) {
-            return programState.getProgramFunction(functionName)
-                    .executeFunction(parameters, programState, functionVariables);
-        }
+    public Variable evaluate(ProgramState programState, HashMap<String, Variable> functionVariables) throws ScriptException {
+        try {
+            if (programState.hasProgramFunction(functionName)) {
+                return programState.getProgramFunction(functionName)
+                        .executeFunction(parameters, programState, functionVariables);
+            }
+            throw new ScriptException("No such function Exists: \"" + functionName + "\"");
 
-        throw new ScriptException("No such function Exists: \"" + functionName + "\"");
+        }catch (ScriptException | StopException e) {
+            throw e;
+        }catch (InterruptedException e){
+            //Convert interrupt into ScriptException
+            throw new ScriptException("Program ran for too long");
+        } catch (Exception e){
+            e.printStackTrace();
+            throw new ScriptException("Function call failed: " + this.toString());
+        }
     }
 
     @Override

@@ -84,35 +84,14 @@ public class CodeBot {
             //if this comment has been replied to already, ignore it.
             if(repliedComments.contains(c.getId())){continue;}
 
-            String result = "";
-            boolean parseFailed = false;
+            //Create and run the scriptExecutor with
             ScriptExecutor scriptExecutor = new ScriptExecutor(c.getMessage());
-            try {
-                scriptExecutor.parseScript();
+            scriptExecutor.run();
+            String result = scriptExecutor.getResult();
 
-                try{
-                    scriptExecutor.displayProgram();
-                    System.out.println("\n=====================Execute========================");
-                    scriptExecutor.executeProgram();
-                } catch (StopException e){
-                    //if execution fails, the error message is already appended to console output
-                }
-
-            } catch (StopException e){
-                //if parsing fails, result is set to the error message output
-                result = e.getMessage();
-                parseFailed = true;
-            }
-
-            if(!parseFailed){result = scriptExecutor.getConsoleOutput();}
-            System.out.println(result);
             System.out.println("replying to comment: "+c.getId());
-
-            if( scriptExecutor.getProgramState().hasProgramVariable("_canvasVisibility")
-                    && scriptExecutor.getProgramState().getProgramVariable("_canvasVisibility").castBoolean()
-                    && scriptExecutor.getProgramState().hasProgramVariable("_canvas")
-            ){
-                replyCommentImage(c.getId(), result,((ImageVariable)scriptExecutor.getProgramState().getProgramVariable("_canvas")).getImage(), cloudinary_upload_preset);
+            if(scriptExecutor.getCanvasVisibility() && scriptExecutor.getCanvas()!=null){
+                replyCommentImage(c.getId(), result,scriptExecutor.getCanvas(), cloudinary_upload_preset);
             } else{
                 replyComment(c.getId(), result);
             }

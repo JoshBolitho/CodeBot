@@ -13,7 +13,13 @@ public class VariableAssignmentNode implements ExecutableNode {
     }
 
     @Override
-    public void execute(ProgramState programState, HashMap<String,Variable> functionVariables) {
+    public void execute(ProgramState programState, HashMap<String,Variable> functionVariables) throws InterruptedException{
+        //Stop execution if the thread is interrupted (program has taken too long to complete execution)
+        if (Thread.interrupted()){
+            Thread.currentThread().interrupt();
+            throw new InterruptedException("Thread Interrupted");
+        }
+
         //If currently within a function, add this variable within the function's scope
         if(functionVariables != null){
             functionVariables.put(name,value.evaluate(programState, functionVariables));

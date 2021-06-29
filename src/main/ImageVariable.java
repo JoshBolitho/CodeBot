@@ -9,7 +9,10 @@ public class ImageVariable implements Variable{
     BufferedImage image;
 
     //Create an ImageVariable from dimensions
-    public ImageVariable(int x, int y) {
+    public ImageVariable(int x, int y){
+        if(x>ScriptExecutor.getMaxImageSize() || x<0 || y>ScriptExecutor.getMaxImageSize() || y<0) {
+            throw new ScriptException("Unable to create image with dimensions: "+x+","+y);
+        }
         this.image = new BufferedImage(x,y,BufferedImage.TYPE_INT_RGB);
     }
 

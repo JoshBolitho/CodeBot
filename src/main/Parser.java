@@ -262,7 +262,7 @@ public class Parser {
         BufferedImage sunImage = loadImage("src\\main\\Images\\sun.png");
         addProgramVariable(program,"sun",new ImageVariable(sunImage));
 
-        System.out.println("\n=====================Parsing======================== \n"+commentRemovedScript);
+        System.out.println(commentRemovedScript);
         //Parse the user's script in a separate ProgramNode "scriptNode" and append to the main ProgramNode, "program"
         //to distinguish internal functions/variables from the user's script.
         //(helps when printing the program)

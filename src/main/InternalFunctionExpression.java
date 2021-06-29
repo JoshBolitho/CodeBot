@@ -6,7 +6,6 @@ import java.util.Arrays;
 import java.util.HashMap;
 
 import static main.VariableType.*;
-import static main.VariableType.IMAGE;
 
 public class InternalFunctionExpression implements Expression{
 
@@ -185,6 +184,9 @@ public class InternalFunctionExpression implements Expression{
                     int x = getParameter(0, programState, functionVariables).castInteger();
                     int y = getParameter(1, programState, functionVariables).castInteger();
 
+                    assertRange(x,0,ScriptExecutor.getMaxImageSize());
+                    assertRange(y,0,ScriptExecutor.getMaxImageSize());
+
                     //createImage() returns an image variable
                     return new ImageVariable(x, y);
                 }
@@ -300,9 +302,8 @@ public class InternalFunctionExpression implements Expression{
                 }
                 default:{ fail();}
             }
-        }catch (ScriptException e){ throw e; }
-        catch (Exception e){
-            fail();}
+        }catch (ScriptException | StopException e){ throw e; }
+        catch (Exception e){ fail();}
         return new NullVariable();
     }
 
@@ -311,17 +312,7 @@ public class InternalFunctionExpression implements Expression{
         return parameters.get(i).evaluate(programState, functionVariables);
     }
     private void fail() throws ScriptException{
-
-        StringBuilder res = new StringBuilder("Function call failed: "+functionName+"(");
-        for(int i = 0; i<parameters.size();i++){
-            res.append(parameters.get(i));
-            if(i != parameters.size()-1){
-                res.append(", ");
-            }
-        }
-        res.append(")");
-        throw new ScriptException(res.toString());
-
+        throw new ScriptException("Function call failed: " + this.toString());
     }
     private void assertParameters(int n) throws ScriptException{
         //check the correct number of parameters have been supplied
@@ -335,11 +326,12 @@ public class InternalFunctionExpression implements Expression{
         if( variable.getType() != variableType ){
             fail();}
     }
-    private void assertRange(int i, int min, int max){
+    private void assertRange(int i, int min, int max) throws ScriptException {
         //boundary inclusive
         if(i<min || i>max){
-            fail();}
-    };
+            fail();
+        }
+    }
 
     @Override
     public String toString() {

@@ -10,9 +10,8 @@ class ScriptExecutorTest {
     @Test
     void getConsoleOutput() {
         ScriptExecutor scriptExecutor = new ScriptExecutor("print(\"Hello\")");
-        scriptExecutor.parseScript();
-        scriptExecutor.executeProgram();
-        Assertions.assertEquals("Hello\n",scriptExecutor.getConsoleOutput());
+        scriptExecutor.run();
+        Assertions.assertEquals("Hello\n",scriptExecutor.getResult());
     }
 
 }

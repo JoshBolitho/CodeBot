@@ -12,13 +12,21 @@ public class WhileNode implements ExecutableNode{
     }
 
     @Override
-    public void execute(ProgramState programState, HashMap<String,Variable>functionVariables) {
+    public void execute(ProgramState programState, HashMap<String,Variable>functionVariables) throws InterruptedException {
         Variable conditionResult = condition.evaluate(programState, functionVariables);
         if(conditionResult.getType() != VariableType.BOOLEAN){throw new ScriptException("while statement's condition didn't evaluate to a boolean value");}
         Boolean runWhileBlock = conditionResult.castBoolean();
 
         while(runWhileBlock){
-            //execute the while block
+
+            //Stop execution if the thread is interrupted (program has taken too long to complete execution)
+            if (Thread.interrupted()){
+                    Thread.currentThread().interrupt();
+                    throw new InterruptedException("Thread Interrupted");
+            }
+
+            //execute the while block (if it has any nodes in it)
+            if(whileBlock.getExecutableNodes().size()==0){return;}
             whileBlock.execute(programState, functionVariables);
 
             //test the while condition again
