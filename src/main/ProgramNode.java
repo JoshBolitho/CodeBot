@@ -31,7 +31,7 @@ public class ProgramNode implements ExecutableNode{
         //return if the program node is empty
         if(executableNodes.size()==0){return;}
 
-        for(ExecutableNode e : executableNodes){
+        for(ExecutableNode ex : executableNodes){
             //If in a function, and a return statement has been reached, break from the function execution.
             if(functionVariables != null && functionVariables.containsKey("_return")){
                 return;
@@ -45,17 +45,27 @@ public class ProgramNode implements ExecutableNode{
                     throw new InterruptedException("Thread Interrupted");
                 }
 
-                e.execute(programState, functionVariables);
+                ex.execute(programState, functionVariables);
 
-            } catch (ScriptException err){
+            } catch (ScriptException e){
                 //re-throw the exception if it is from an internal function
-                if (e.getClass().equals(VariableAssignmentNode.class) && ((VariableAssignmentNode) e).value.getClass().equals(InternalFunctionExpression.class)){
-                    throw err;
+                if (ex.getClass().equals(VariableAssignmentNode.class) && ((VariableAssignmentNode) ex).value.getClass().equals(InternalFunctionExpression.class)){
+                    throw e;
                 }
                 //Otherwise, handle the exception and throw a StopException
-                programState.print("Execution error at: "+e.display(0).split("\n")[0]);
-                programState.print(err.getMessage());
-                throw new StopException(err.getMessage());
+                programState.printError("Execution error at: "+ex.display(0).split("\n")[0]);
+                programState.printError(e.getMessage());
+                throw new StopException(e.getMessage());
+            }
+            catch (StackOverflowError e){
+                //re-throw the exception if it is from an internal function
+                if (ex.getClass().equals(VariableAssignmentNode.class) && ((VariableAssignmentNode) ex).value.getClass().equals(InternalFunctionExpression.class)){
+                    throw e;
+                }
+                //Otherwise, handle the exception and throw a StopException
+                programState.printError("Execution error at: "+ex.display(0).split("\n")[0]);
+                programState.printError("Recursion error (Stack Overflow)");
+                throw new StopException("Recursion error (Stack Overflow)");
             }
         }
     }

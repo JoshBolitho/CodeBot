@@ -21,7 +21,9 @@ public class ScriptExecutor {
 
 
     private static final Integer maxImageSize = 1000;//pixels
-    private static final Integer maxExecutionTime = 10;//seconds
+    private static final Integer maxExecutionTime = 30;//seconds
+    private static final Integer maxOutputLength = 7000;//characters
+
     private static final Integer maxRecursionDepth = 0;
     private static final Integer maxArrayLength = 0;
     private static final Integer maxVariableCount = 0;
@@ -92,16 +94,19 @@ public class ScriptExecutor {
                 try{
                     executeProgram();
                 }catch (InterruptedException e){
-                    programState.print("Program ran for too long");
+                    programState.printError("Program ran for too long");
                 }catch (StopException e){
-                    //if execution fails, the error message is already appended to console output
-                }catch(ScriptException e){}
+                    //StopException means that a ScriptException has already been caught and handled.
+                    //We only have to end execution, no further processing is required.
+                }catch (ScriptException e){
+                    //ScriptExceptions should be already caught and handled by the time this block is reached.
+                }
             };
             Thread executionThread = new Thread(runnable);
             executionThread.start();
 
             //Sleep main thread for maxExecutionTime seconds, checking each second whether execution is complete.
-            for(int i=0; i<maxExecutionTime;i++){
+            for(int i=0; i<getMaxExecutionTime();i++){
                 if( !executionThread.isAlive() ){ break; }
                 Thread.sleep(1000L );
             }
@@ -111,7 +116,7 @@ public class ScriptExecutor {
 
             //Give the execution thread another second to finish up
             Thread.sleep(1000L);
-            if(executionThread.isAlive()){ programState.print("Program ran for too long"); }
+            if(executionThread.isAlive()){ programState.printError("Program ran for too long"); }
 
             result = getConsoleOutput();
 
@@ -189,6 +194,10 @@ public class ScriptExecutor {
 
     public static Integer getMaxExecutionTime() {
         return maxExecutionTime;
+    }
+
+    public static Integer getMaxOutputLength() {
+        return maxOutputLength;
     }
 
     public static Integer getMaxRecursionDepth() {

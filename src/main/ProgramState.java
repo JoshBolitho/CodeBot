@@ -17,7 +17,26 @@ public class ProgramState {
 
     //Print a string line to console output
     public void print(String s){
+        if(consoleOutput.length()>ScriptExecutor.getMaxOutputLength()){
+            throw new ScriptException("Print failed: Exceeded maximum output length ("+ScriptExecutor.getMaxOutputLength()+" characters)" );
+        }
         consoleOutput = consoleOutput + s + "\n";
+    }
+
+    //Print an error to console output, and truncate if the string is too long rather than throwing another error.
+    public void printError(String s){
+
+        String temp = "\n" + s;
+
+        //ensure the error string isn't too long
+        if(temp.length()>=ScriptExecutor.getMaxOutputLength()){return;}
+
+        //test whether printing the error will cause the consoleOutput to go over maxOutputLength
+        if(consoleOutput.length()+temp.length() > ScriptExecutor.getMaxOutputLength()){
+            //truncate the console output, and leave enough space for the temp string.
+            consoleOutput = consoleOutput.substring(0,ScriptExecutor.getMaxOutputLength()-1-temp.length());
+        }
+        consoleOutput = consoleOutput + temp;
     }
 
     //Return console output after execution

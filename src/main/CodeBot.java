@@ -37,7 +37,7 @@ public class CodeBot {
 
     public static void loadConfig() throws IOException {
 
-        Path fileName = Path.of("src/config.json");
+        Path fileName = Path.of("src/main/config.json");
         String configJSON = Files.readString(fileName);
 
         Gson gson = new Gson();
@@ -51,7 +51,7 @@ public class CodeBot {
 
     public static void loadPostData() throws IOException {
 
-        Path fileName = Path.of("src/post.json");
+        Path fileName = Path.of("src/main/post.json");
         String postJSON = Files.readString(fileName);
 
         Gson gson = new Gson();
@@ -69,7 +69,7 @@ public class CodeBot {
         Gson gson = new GsonBuilder().setPrettyPrinting().create();
         String postJSON = gson.toJson(post);
 
-        Path fileName = Path.of("src/post.json");
+        Path fileName = Path.of("src/main/post.json");
         Files.writeString(fileName,postJSON);
     }
 
