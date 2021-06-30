@@ -89,6 +89,7 @@ public class CodeBot {
             scriptExecutor.run();
             String result = scriptExecutor.getResult();
 
+            System.out.println(result);
             System.out.println("replying to comment: "+c.getId());
             if(scriptExecutor.getCanvasVisibility() && scriptExecutor.getCanvas()!=null){
                 replyCommentImage(c.getId(), result,scriptExecutor.getCanvas(), cloudinary_upload_preset);
@@ -201,11 +202,23 @@ public class CodeBot {
                         String.format("message=%s&access_token=%s",message, user_access_token))
                 ).build();
 
-        // use the client to send the request
+
+        //Use the client to send the request
         HttpResponse<String> response = client.send(publishPost, HttpResponse.BodyHandlers.ofString());
+        //Handle the response
+        Gson gson = new Gson();
+        PostResponse postResponse = gson.fromJson(response.body(), PostResponse.class);
+
+        String newPostID = postResponse.getId();
+
+        //Overwrite post.json with new post ID and an empty repliedComments array.
+        postID = newPostID.split("_")[1];
+
+        repliedComments = new ArrayList<>();
+        writePostData();
 
         // the response from facebook graph API:
-        return response.body();
+        return postResponse.getId();
     }
 
     public static void publishComment(String objectID, String message) throws IOException, InterruptedException {
@@ -225,14 +238,23 @@ public class CodeBot {
     }
 
     public static void main(String[] args) throws IOException, InterruptedException {
-        loadConfig();
-        loadPostData();
 
-//        String res = publishPost("");
-//        System.out.println(res);
+        //Options: Comment, Post
+        String mode = "Comment";
+        String message = "Test Post 1st July!";
 
-        String commentData = requestComments(String.format("%s_%s",page_ID,postID));
-        executeComments(commentData);
+        if(mode.equals("Comment")){
+            loadConfig();
+            loadPostData();
+
+            String commentData = requestComments(String.format("%s_%s",page_ID,postID));
+            executeComments(commentData);
+        }
+
+        if(mode.equals("Post")){
+            loadConfig();
+            System.out.println(publishPost(message));
+        }
 
     }
 }
