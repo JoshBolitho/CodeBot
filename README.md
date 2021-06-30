@@ -4,6 +4,10 @@ Codebot is a Java Facebook bot which parses Facebook comments as [BotScript](#Wh
 
 CodeBot is hosted at [facebook.com/CodeBotOfficial](https://facebook.com/CodeBotOfficial)
 
+<div>
+	<img width="279" alt="hello world" src="https://user-images.githubusercontent.com/17404588/123983562-13220900-da18-11eb-9818-610564a17fe4.PNG">
+</div>
+
 ### Contents
  * [What is BotScript?](#What-is-BotScript?)
  * [Features](#Features)
@@ -101,6 +105,8 @@ The following keys must be added in place of the empty values in `config.json`
 You will need:
 - Facebook access tokens for posting on the page you wish to automate.
 - A cloudinary account, with an unsigned upload preset for temporary image storage. You can create a new upload preset in Settings > Upload > Upload Presets.
+
+![Cloudinary](https://user-images.githubusercontent.com/17404588/123985207-621c6e00-da19-11eb-8bb0-ab0d75f0b2e1.png)
 
 
 **Note**: API keys are only required to run CodeBot.main(), which is for running a Facebook page with CodeBot. If you just wish to use ScriptExecutor.main() to play around with BotScript locally, you don't need any API keys.
