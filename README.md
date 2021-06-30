@@ -9,16 +9,16 @@ CodeBot is hosted at [facebook.com/CodeBotOfficial](https://facebook.com/CodeBot
 </div>
 
 ### Contents
- * [What is BotScript?](#What-is-BotScript?)
- * [Features](#Features)
- * [Setup](#Setup)
-	 * [Download and Install](Download-and-Install)
-	 * [Acquire API Keys](Acquire-API-Keys)
-	 * [Create a post](Create-a-post)
- * [Usage](#Usage)
- * [How do I learn BotScript?](#How-do-I-learn-BotScript?)
- * [Why make CodeBot?](#Why-make-CodeBot?)
- * [How Does it work?](#How-Does-it-work?)
+ * [What is BotScript?](#what-is-botscript)
+ * [Features](#features)
+ * [Setup](#setup)
+	 * [Download and install](#download-and-install)
+	 * [Acquire API keys](acquire-api-keys)
+	 * [Create a post](create-a-post)
+ * [Usage](#usage)
+ * [How do I learn BotScript?](#how-do-i-learn-botscript)
+ * [Why make CodeBot?](#why-make-codebot)
+ * [How does it work?](#how-does-it-work)
 
 
 ## What is BotScript?
@@ -85,13 +85,13 @@ As well as writing your own functions, BotScript comes with a bunch of functions
 ## Setup
 This project is designed to run on my computer, and control the [CodeBot Facebook page](https://facebook.com/CodeBotOfficial), but if you wanted, you could take it and run your own page! You can also use this project to test your BotScript code locally. 
 
-### Download and Install
+### Download and install
 ```
 git clone https://github.com/JoshBolitho/CodeBot.git
 ```
 Open in your IDE of choice and make sure to add JUnit5.4 to your Project
 
-### Acquire API Keys
+### Acquire API keys
 This project requires a set of access tokens from multiple services. 
 The following keys must be added in place of the empty values in `config.json`
 ```
@@ -150,5 +150,5 @@ Sure, it would be pretty easy to take comments, run them as Python code and repl
 
 The solution? Create a scripting language in Java to add a layer of abstraction above the raw code and prevent users from destroying my computer! This also gave me a lot of freedom in what I wanted in my scripting language.
 
-## How Does it work?
+## How does it work?
 ...
