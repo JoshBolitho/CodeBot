@@ -172,19 +172,17 @@ public class Parser {
     //Creates a variable assignment node, and adds it to the program.
     //As a result, executing the program will add the variable to the scripting environment.
     public void addProgramVariable(ProgramNode program, String name, Variable variable){
-        ProgramNode myVariable = new ProgramNode();
-        myVariable.addExecutableNode(
+        program.addExecutableNode(
                 new VariableAssignmentNode(name,
                         new ValueExpression(variable)
                 )
         );
-        program.addExecutableNode(myVariable);
         variableNames.add(name);
     }
 
     //Load an image as a BufferedImage
     public BufferedImage loadImage(String source){
-        BufferedImage bi = null;
+        BufferedImage bi;
         try {
             bi = ImageIO.read(new File(source));
         } catch (IOException e) {

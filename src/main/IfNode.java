@@ -6,23 +6,17 @@ public class IfNode implements ExecutableNode{
 
     Expression condition;
     ProgramNode ifBlock;
-
-    boolean hasElseBlock;
     ProgramNode elseBlock;
 
     public IfNode(Expression condition, ProgramNode ifBlock, ProgramNode elseBlock) {
         this.condition = condition;
         this.ifBlock = ifBlock;
-        this.hasElseBlock = true;
         this.elseBlock = elseBlock;
     }
 
     public IfNode(Expression condition, ProgramNode ifBlock) {
         this.condition = condition;
         this.ifBlock = ifBlock;
-
-        this.hasElseBlock = false;
-        this.elseBlock = new ProgramNode();
     }
 
     @Override
@@ -40,7 +34,7 @@ public class IfNode implements ExecutableNode{
             //if condition evaluates to true
             ifBlock.execute(programState, functionVariables);
 
-        }else if(hasElseBlock){
+        }else if(hasElseBlock()){
             //else
             elseBlock.execute(programState, functionVariables);
         }
@@ -49,7 +43,7 @@ public class IfNode implements ExecutableNode{
     @Override
     public String toString() {
 
-        if(hasElseBlock){
+        if(hasElseBlock()){
             return "if("+ condition.toString() +"){\n"+ ifBlock.toString() +"\n} else {\n"+ elseBlock.toString() +"}";
         }else{
             return "if("+ condition.toString() +"){\n"+ ifBlock.toString() +"\n}";
@@ -70,7 +64,7 @@ public class IfNode implements ExecutableNode{
         }
         res.append("}");
 
-        if(hasElseBlock){
+        if(hasElseBlock()){
             res.append("else{\n");
 
             res.append(elseBlock.display(depth+1));
@@ -83,5 +77,9 @@ public class IfNode implements ExecutableNode{
             res.append("\n");
         }
         return res.toString();
+    }
+
+    private boolean hasElseBlock(){
+        return elseBlock != null;
     }
 }

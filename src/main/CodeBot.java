@@ -228,7 +228,7 @@ public class CodeBot {
         loadConfig();
         loadPostData();
 
-//        String res = publishPost("NEW POST 24 APR !!!");
+//        String res = publishPost("");
 //        System.out.println(res);
 
         String commentData = requestComments(String.format("%s_%s",page_ID,postID));
