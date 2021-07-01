@@ -327,27 +327,24 @@ Some examples:
 % 101
 % 11
 
-asString = "10" + 1
-print(asString)
-
-asInteger =  (castInteger("10")) + 1
-print(asInteger)
+print("10" + 1)
+print(castInteger("10") + 1)
 ```
 ```
 % Output: casting successful
 
-result = (boolean) "true"
+result = castBoolean("true")
 if(result){
 print("casting successful")
 }
 ```
 This table shows what types can be cast to each other
-|From **→** **↓** To |String  |Boolean  |Integer  |Float
-|--|--|--|--|--|--|
+|<p> From **→**</p> <p>To **↓**</p> |String  |Boolean  |Integer  |Float |
+|--|--|--|--|--|
 |String   |Yes|Yes|Yes|Yes|
 |Boolean  |Yes - If string is "true" or "false" |Yes |Yes - returns true if integer is not 0 |Yes - casts float to integer and returns true if not 0  |
 |Integer  |Yes - if string is valid integer e.g. "12" |No  | Yes |Yes - Decimal part of float is removed e.g. 3.9 becomes 3|
-|Float    |Yes - if string is valid float e.g. "3.9"  |No  |   Yes |Yes |
+|Float    |Yes - if string is valid float e.g. "3.9"  |No  | Yes |Yes |
 
 ### Images
 BotScript has support for image variables, which can be rendered to the canvas and displayed along with the text output.

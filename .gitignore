@@ -1,5 +1,5 @@
 .idea/
 out/
 *.iml
-src/canvas.png
-src/testScript.txt
+src/main/canvas.png
+src/main/testScript.txt
