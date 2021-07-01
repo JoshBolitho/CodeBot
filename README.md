@@ -1,6 +1,7 @@
 # CodeBot
 
-Codebot is a Java Facebook bot which parses Facebook comments as [BotScript](#What-is-Botscript) code, executes them, and replies with the output.
+CodeBot is a Java Facebook bot which turns the [CodeBot Facebook page](https://facebook.com/CodeBotOfficial)'s comment section into an interactive coding playground!
+It parses Facebook comments as [BotScript](#What-is-Botscript) code, executes them, and replies with the output.
 
 CodeBot is hosted at [facebook.com/CodeBotOfficial](https://facebook.com/CodeBotOfficial)
 
@@ -103,8 +104,8 @@ The following keys must be added in place of the empty values in `config.json`
 }
 ```
 You will need:
-- Facebook access tokens for posting on the page you wish to automate.
-- A cloudinary account, with an unsigned upload preset for temporary image storage. You can create a new upload preset in Settings > Upload > Upload Presets.
+- Facebook access tokens for posting on the page you wish to automate. I found [this guide](https://github.com/Boidushya/FrameBot/blob/master/generateToken.md) incredibly helpful.
+- A cloudinary account, with an unsigned upload preset for temporary image storage. You can create a new upload preset in `Settings > Upload > Upload Presets`.
 
 ![Cloudinary](https://user-images.githubusercontent.com/17404588/123985207-621c6e00-da19-11eb-8bb0-ab0d75f0b2e1.png)
 
