@@ -25,27 +25,61 @@ CodeBot is hosted at [facebook.com/CodeBotOfficial](https://facebook.com/CodeBot
 ## What is BotScript?
 BotScript is a simple scripting language, designed to be used in a Facebook comments section. If you want to write code on the [CodeBot Facebook page](https://facebook.com/CodeBotOfficial), you need to learn the [basics of BotScript](https://github.com/JoshBolitho/CodeBot/blob/main/Guide.md). 
 
-Notes: ...
-
 ## Features
 For more information about using BotScript, check out [the guide](https://github.com/JoshBolitho/CodeBot/blob/main/Guide.md).
 
 ### Variables
+Defining Variables is as simple as writing `x = 10`. 
 Variables can be any of the following types: 
 - String `"Example"`
 - Integer `123`
 - Float `3.14159`
 - Boolean `true`
 - Array `[1, 2, 0.5, true, "Example", [3, 4]]`
-- Image `(See following section)`
+- Image `createImage(100,100)`
 ### Images 
-...
+BotScript supports image variables, which can be rendered to the canvas and displayed along with the text output.
+Currently, there are two 500x500 image variables that are included in the program by default: `sun` and `monky`.
+
+<img width="288" alt="Sun" src="https://user-images.githubusercontent.com/17404588/124071417-62594f80-da93-11eb-95e6-a50943856d8a.PNG">
+
+Here are some of the things you can do with Images
+- `myImage = createImage(10,10) creates a 10x10 image.`
+- `setPixel(myImage, 0,0, 255,255,255) sets the pixel at location x=0, y=0 of myImage to the RGB colour white (255,255,255).`
+- `getPixel(myImage,5,5) gets the RGB values of a pixel as an array variable in the form [R,G,B]`
+- `setCanvas(myImage) sets the output canvas to the image we made. canvasVisible(true) tells the program to display the canvas.`
+
+Here's an example of some code which creates an image:
+```
+img = createImage(100,100)
+% loop through all x values
+x=0
+while(x<100){
+
+% loop through all y values
+y=0
+while(y<100){
+% set each pixel to magenta 
+setPixel(img, x, y,255,0,255)
+y = y + 1
+}
+
+x = x + 1
+}
+
+setCanvas(img)
+```
+Output:
+
+![Magenta](https://user-images.githubusercontent.com/17404588/120744578-6c009d80-c54f-11eb-8d65-94487815afcc.png)
+
+
 
 ### Operators
 BotScript has all the standard operators you'd expect to see in a simple scripting language. 
 
 - Maths: `+`  `-` `*`  `/` `%` `()`
-- Comparators `>` `<` `=` 
+- Comparator: `>` `<` `=` 
 - Boolean: `&` `|` `!`
 
 ### Functions 
@@ -71,17 +105,54 @@ print(fact(5))
 ```
 
 As well as writing your own functions, BotScript comes with a bunch of functions already defined, such as `print()`, `cos()`, `length()`, `getPixel()`, and much more! [Here is the full list of functions that come with BotScript.](https://github.com/JoshBolitho/CodeBot/blob/main/Guide.md#functions) 
+
 ### If/Else Block
-...
+If statements can be created, with optional else statements
+```
+if(1>2){
+print("wrong!")
+}else{
+print("right!")
+}
+```
 
 ### While Block
-...
+While loops can be created too
+```
+i=0
+While(i<10){
+print(i)
+i=i+1
+}
+```
 
 ### Casting
-...
+BotScript includes several casting functions. [Instructions can be found in the guide](https://github.com/JoshBolitho/CodeBot/blob/main/Guide.md#casting).
+- `castInteger()`
+- `castFloat()`
+- `castString()`
+- `castBoolean()`
 
 ### Error Handling
-...
+CodeBot will catch errors on the line they occur at, printing the current location and the error. 
+```
+function throwError(){
+print()
+}
+throwError()
+```
+```
+Execution error at: print()
+print: Wrong number of parameters: expecting 1, received 0
+```
+
+### Commenting
+Code comments can be written by starting a line with a `%`
+```
+print("Hello")
+% This line is a comment and will not be executed
+print("World")
+```
 
 ## Setup
 This project is designed to run on my computer, and control the [CodeBot Facebook page](https://facebook.com/CodeBotOfficial), but if you wanted, you could take it and run your own page! You can also use this project to test your BotScript code locally. 
