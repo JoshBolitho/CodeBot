@@ -457,6 +457,7 @@ public class Parser {
         if(functionNames.contains(name)){
             throw new ScriptException("Invalid function name (trying to use name of already defined function): "+name);
         }
+        //Add new function name to list of recognised function names, so the parser can reference it later.
         functionNames.add(name);
 
         require(OpenParenthesis,s);
@@ -488,7 +489,6 @@ public class Parser {
         require(OpenBrace,s);
         optionalRequire(NewLine,s);
         while(!s.hasNext(CloseBrace)){
-            //Add new function name to list of recognised variables, so the compiler can reference them later.
             functionScript.addExecutableNode(parseExecutableNode(s));
         }
         require(CloseBrace,s);

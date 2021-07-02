@@ -13,11 +13,6 @@ public class NullVariable implements Variable{
     }
 
     @Override
-    public Object getValue() {
-        return "null";
-    }
-
-    @Override
     public VariableType getType() {
         return VariableType.NULL;
     }

@@ -43,14 +43,6 @@ public class ArrayVariable implements Variable{
         return result;
     }
 
-    @Override
-    public Object getValue() {
-        if(!hasValue()){
-            System.out.println("Warning: Accessing valueArray, which is null and may not have been initialised yet.");
-        }
-        return valueArray;
-    }
-
     public Boolean hasValue(){
         return !(valueArray == null);
     }

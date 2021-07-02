@@ -75,11 +75,6 @@ public class ImageVariable implements Variable{
     }
 
     @Override
-    public Object getValue() {
-        return image;
-    }
-
-    @Override
     public VariableType getType() {
         return VariableType.IMAGE;
     }

@@ -17,11 +17,6 @@ public class IntegerVariable implements Variable{
     }
 
     @Override
-    public Object getValue() {
-        return value;
-    }
-
-    @Override
     public VariableType getType() {
         return VariableType.INTEGER;
     }
