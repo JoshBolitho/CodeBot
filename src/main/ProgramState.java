@@ -10,7 +10,7 @@ import java.util.HashMap;
 
 public class ProgramState {
 
-    private HashMap<String,Variable> programVariables = new HashMap<>();
+    private HashMap<String, Value> programVariables = new HashMap<>();
     private HashMap<String,Function> programFunctions = new HashMap<>();
     private String consoleOutput = "";
 
@@ -45,7 +45,7 @@ public class ProgramState {
     }
 
     //retrieve a variable by name
-    public Variable getProgramVariable(String key){
+    public Value getProgramVariable(String key){
         if(programVariables.containsKey(key)){
             return programVariables.get(key);
         }
@@ -57,7 +57,7 @@ public class ProgramState {
     }
 
     //add a variable
-    public void addProgramVariable(String s,Variable v){
+    public void addProgramVariable(String s, Value v){
         programVariables.put(s,v);
     }
 
@@ -78,7 +78,7 @@ public class ProgramState {
 
 
     //For testing only
-    public HashMap<String, Variable> getProgramVariables() {return programVariables; }
+    public HashMap<String, Value> getProgramVariables() {return programVariables; }
     public HashMap<String, Function> getProgramFunctions() {return programFunctions; }
 
     public ProgramState() {}

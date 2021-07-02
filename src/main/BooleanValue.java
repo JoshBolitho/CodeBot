@@ -3,11 +3,11 @@ package main;
 import java.awt.image.BufferedImage;
 import java.util.ArrayList;
 
-public class BooleanVariable implements Variable{
+public class BooleanValue implements Value {
 
     private boolean value;
 
-    public BooleanVariable(boolean value) {
+    public BooleanValue(boolean value) {
         this.value = value;
     }
 
@@ -17,13 +17,13 @@ public class BooleanVariable implements Variable{
     }
 
     @Override
-    public VariableType getType() {
-        return VariableType.BOOLEAN;
+    public ValueType getType() {
+        return ValueType.BOOLEAN;
     }
 
     @Override
-    public boolean isType(VariableType v) {
-        return v == VariableType.BOOLEAN;
+    public boolean isType(ValueType v) {
+        return v == ValueType.BOOLEAN;
     }
 
     @Override
@@ -47,7 +47,7 @@ public class BooleanVariable implements Variable{
     }
 
     @Override
-    public ArrayList<Variable> castArray() throws ScriptException {
+    public ArrayList<Value> castArray() throws ScriptException {
         throw new ScriptException(String.format("Failed to cast %s to array",value));
     }
 

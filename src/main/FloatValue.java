@@ -3,51 +3,51 @@ package main;
 import java.awt.image.BufferedImage;
 import java.util.ArrayList;
 
-public class IntegerVariable implements Variable{
+public class FloatValue implements Value {
 
-    private final int value;
+    private float value;
 
-    public IntegerVariable(Integer value) {
+    public FloatValue(float value) {
         this.value = value;
     }
 
     @Override
     public String toString() {
-        return Integer.toString(value);
+        return Float.toString(value);
     }
 
     @Override
-    public VariableType getType() {
-        return VariableType.INTEGER;
+    public ValueType getType() {
+        return ValueType.FLOAT;
     }
 
     @Override
-    public boolean isType(VariableType v) {
-        return v == VariableType.INTEGER;
+    public boolean isType(ValueType v) {
+        return v == ValueType.FLOAT;
     }
 
     @Override
     public String castString() {
-        return Integer.toString(value);
+        return Float.toString(value);
     }
 
     @Override
     public Integer castInteger() {
-        return value;
+        return (int)value;
     }
 
     @Override
     public Float castFloat() {
-        return value * 1.0f;
+        return value;
     }
 
     @Override
     public Boolean castBoolean() {
-        return value != 0;
+        return (int)value != 0;
     }
 
     @Override
-    public ArrayList<Variable> castArray() throws ScriptException {
+    public ArrayList<Value> castArray() throws ScriptException {
         throw new ScriptException(String.format("Failed to cast %s to array",value));
     }
 

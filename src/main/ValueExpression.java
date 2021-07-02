@@ -2,22 +2,22 @@ package main;
 
 import java.util.HashMap;
 
-import static main.VariableType.ARRAY;
+import static main.ValueType.ARRAY;
 
 public class ValueExpression implements Expression{
 
-    Variable value;
+    Value value;
 
-    public ValueExpression(Variable value){
+    public ValueExpression(Value value){
         this.value = value;
     }
 
     @Override
-    public Variable evaluate(ProgramState programState, HashMap<String, Variable> functionVariables) {
+    public Value evaluate(ProgramState programState, HashMap<String, Value> functionVariables) {
         //Arrays are parsed as an array of Expressions, which must be
         //evaluated to an array of Variables before they are accessible.
         if (value.isType(ARRAY)) {
-            ((ArrayVariable) value).evaluateArray(programState, functionVariables);
+            ((ArrayValue) value).evaluateArray(programState, functionVariables);
         }
         return value;
     }

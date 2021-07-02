@@ -11,8 +11,8 @@ public class ReferenceExpression implements Expression {
     }
 
     @Override
-    public Variable evaluate(ProgramState programState, HashMap<String, Variable> functionVariables) {
-        Variable v;
+    public Value evaluate(ProgramState programState, HashMap<String, Value> functionVariables) {
+        Value v;
         if (functionVariables != null && functionVariables.containsKey(variableReference)) {
             v = functionVariables.get(variableReference);
         } else {
@@ -20,8 +20,8 @@ public class ReferenceExpression implements Expression {
         }
         //Arrays are parsed as an array of Expressions, which must be
         //evaluated to an array of Variables before they are accessible.
-        if (v.getType() == VariableType.ARRAY) {
-            ((ArrayVariable) v).evaluateArray(programState, functionVariables);
+        if (v.getType() == ValueType.ARRAY) {
+            ((ArrayValue) v).evaluateArray(programState, functionVariables);
         }
         return v;
     }

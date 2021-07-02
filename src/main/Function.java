@@ -22,9 +22,9 @@ public class Function {
     //If this function call was called from within another function call, parentFunctionVariables are
     //any variables defined in the scope of the parent function call.
 
-    public Variable executeFunction( ArrayList<Expression> functionParameters, ProgramState programState, HashMap<String,Variable> parentFunctionVariables) throws InterruptedException{
+    public Value executeFunction(ArrayList<Expression> functionParameters, ProgramState programState, HashMap<String, Value> parentFunctionVariables) throws InterruptedException{
         //functionVariables
-        HashMap<String,Variable> functionVariables = new HashMap<>();
+        HashMap<String, Value> functionVariables = new HashMap<>();
 
         //Ensure the right number of parameters were passed
         if(functionParameters.size() != parameterNames.length){
@@ -45,7 +45,7 @@ public class Function {
             return functionVariables.get("_return");
         }
         //If this function has no return value, return null.
-        return new NullVariable();
+        return new NullValue();
     }
 
 

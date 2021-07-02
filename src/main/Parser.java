@@ -171,10 +171,10 @@ public class Parser {
 
     //Creates a variable assignment node, and adds it to the program.
     //As a result, executing the program will add the variable to the scripting environment.
-    public void addProgramVariable(ProgramNode program, String name, Variable variable){
+    public void addProgramVariable(ProgramNode program, String name, Value value){
         program.addExecutableNode(
                 new VariableAssignmentNode(name,
-                        new ValueExpression(variable)
+                        new ValueExpression(value)
                 )
         );
         variableNames.add(name);
@@ -245,20 +245,20 @@ public class Parser {
         addInternalFunction(program,"cos",new String[]{"x"},true);
         addInternalFunction(program,"pow",new String[]{"b","p"},true);
 
-        //Initialise canvas as ImageVariable called "_canvas"
+        //Initialise canvas as ImageValue called "_canvas"
         //default size is 100x100
-        addProgramVariable(program, "_canvas",new ImageVariable(100,100));
+        addProgramVariable(program, "_canvas",new ImageValue(100,100));
 
         //Initialise canvas visibility as boolean called "_canvasVisibility"
-        addProgramVariable(program, "_canvasVisibility",new BooleanVariable(false));
+        addProgramVariable(program, "_canvasVisibility",new BooleanValue(false));
 
         //Add monky image
         BufferedImage monkyImage = loadImage("src\\main\\Images\\monky.png");
-        addProgramVariable(program,"monky",new ImageVariable(monkyImage));
+        addProgramVariable(program,"monky",new ImageValue(monkyImage));
 
         //Add sun image
         BufferedImage sunImage = loadImage("src\\main\\Images\\sun.png");
-        addProgramVariable(program,"sun",new ImageVariable(sunImage));
+        addProgramVariable(program,"sun",new ImageValue(sunImage));
 
         System.out.println(commentRemovedScript);
         //Parse the user's script in a separate ProgramNode "scriptNode" and append to the main ProgramNode, "program"
@@ -513,7 +513,7 @@ public class Parser {
         if (s.hasNext(Minus)){
             require(Minus, s);
             expression = new OperationExpression(
-                    new ValueExpression(new IntegerVariable(0)),
+                    new ValueExpression(new IntegerValue(0)),
                     parseOperand(s),
                     Operation.minus
             );
@@ -549,7 +549,7 @@ public class Parser {
                 if(Float.isNaN(next) || Float.isInfinite(next)){
                     throw new ScriptException("Failed to parse float: "+ next);
                 }
-                expression = new ValueExpression(new FloatVariable(next));
+                expression = new ValueExpression(new FloatValue(next));
                 return expression;
             }
             throw new ScriptException("Invalid float value: "+s.next());
@@ -558,7 +558,7 @@ public class Parser {
         if (s.hasNext(IntegerPattern) ){
             if(s.hasNextInt()){
                 Integer result = s.nextInt();
-                expression = new ValueExpression(new IntegerVariable(result));
+                expression = new ValueExpression(new IntegerValue(result));
                 return expression;
             }
             throw new ScriptException("Invalid integer value: "+s.next());
@@ -567,7 +567,7 @@ public class Parser {
         if (s.hasNext(BooleanPattern)){
             if(s.hasNextBoolean()){
                 boolean result = s.nextBoolean();
-                expression = new ValueExpression(new BooleanVariable(result));
+                expression = new ValueExpression(new BooleanValue(result));
                 return expression;
             }
             throw new ScriptException("Invalid boolean value: "+s.next());
@@ -581,12 +581,12 @@ public class Parser {
 
             //This case catches an empty string
             if(nextString.equals("\"")){
-                expression = new ValueExpression(new StringVariable(""));
+                expression = new ValueExpression(new StringValue(""));
                 s.useDelimiter(defaultDelimiter);
             }
             //this case catches literally any other possible string
             else {
-                expression = new ValueExpression(new StringVariable(nextString));
+                expression = new ValueExpression(new StringValue(nextString));
                 s.useDelimiter(defaultDelimiter);
                 require(DoubleQuotes, s);
             }
@@ -738,7 +738,7 @@ public class Parser {
 
         require(CloseSquare,s);
 
-        return new ValueExpression(new ArrayVariable(elements));
+        return new ValueExpression(new ArrayValue(elements));
     }
 
     public Parser() {}

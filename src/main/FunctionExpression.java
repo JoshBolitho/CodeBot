@@ -13,7 +13,7 @@ public class FunctionExpression implements Expression {
     }
 
     @Override
-    public Variable evaluate(ProgramState programState, HashMap<String, Variable> functionVariables) throws ScriptException {
+    public Value evaluate(ProgramState programState, HashMap<String, Value> functionVariables) throws ScriptException {
         try {
             if (programState.hasProgramFunction(functionName)) {
                 return programState.getProgramFunction(functionName)
