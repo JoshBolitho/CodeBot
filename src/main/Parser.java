@@ -7,6 +7,8 @@ import java.io.IOException;
 import java.util.*;
 import java.util.regex.*;
 
+import static java.util.Map.entry;
+
 public class Parser {
 
     ArrayList<String> variableNames = new ArrayList<>();
@@ -65,6 +67,41 @@ public class Parser {
 
     static Pattern Name = Pattern.compile("[a-zA-Z\\d]+");
 
+    static Map<Pattern,String> patternDisplayStrings = Map.ofEntries(
+        entry(OpenParenthesis, "("),
+        entry(CloseParenthesis, ")"),
+        entry(OpenBrace, "{"),
+        entry(CloseBrace, "}"),
+        entry(OpenSquare, "["),
+        entry(CloseSquare, "]"),
+
+        entry(NewLine, "\\n"),
+        entry(DoubleQuotes, "\""),
+        entry(Not, "!"),
+
+        entry(While, "while"),
+        entry(If, "if"),
+        entry(Else, "else"),
+        entry(Function, "function"),
+        entry(Comma, ","),
+        entry(Return, "return"),
+
+        entry(Times, "*"),
+        entry(Divide, "/"),
+        entry(Modulo, "%"),
+        entry(Plus, "+"),
+        entry(Minus, "-"),
+        entry(GreaterThan, ">"),
+        entry(LessThan, "<"),
+        entry(Equals, "="),
+        entry(And, "&"),
+        entry(Or, "|"),
+
+        entry(IntegerPattern, "Integer"),
+        entry(FloatPattern, "Float"),
+        entry(BooleanPattern, "Boolean")
+    );
+
     static ArrayList<Operator> operators = new ArrayList<>(
             Set.of(
                     new Operator(Times,Operation.times,5),
@@ -99,9 +136,11 @@ public class Parser {
             return s.next();
         }
         //if the require fails:
-        //TODO Fix how patterns are written in error messages
-        if(p.equals(NewLine)){throw new ScriptException("Expected \"\\n\"");}
-        throw new ScriptException("Expected \""+p+"\"");
+        if(patternDisplayStrings.containsKey(p)) {
+            throw new ScriptException("Expected \"" + patternDisplayStrings.get(p) + "\"");
+        }else{
+            throw new ScriptException("Expected \"" + p + "\"");
+        }
     }
 
     //Return true if scanner has the following pattern.
