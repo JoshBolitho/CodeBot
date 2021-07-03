@@ -33,6 +33,9 @@ public class CodeBot {
     //Cloudinary config
     static String cloudinary_upload_preset = "";
 
+    //Profanity filter
+    static String[] profanity_list = new String[]{};
+
     public static void loadConfig() throws IOException {
 
         Path fileName = Path.of("src/main/config.json");
@@ -44,6 +47,7 @@ public class CodeBot {
         page_access_token = config.getPage_access_token();
         page_ID = config.getPage_ID();
         cloudinary_upload_preset = config.getCloudinary_upload_preset();
+        profanity_list = config.getProfanity_list();
 
     }
 
@@ -102,7 +106,7 @@ public class CodeBot {
                 inputImage = ImageIO.read(new URL(commentImageURL));
             }
 
-            //Create and run the scriptExecutor with
+            //Create and run the scriptExecutor
             ScriptExecutor scriptExecutor = new ScriptExecutor(c.getMessage(), inputImage);
             scriptExecutor.run();
             String result = scriptExecutor.getResult();
@@ -110,6 +114,24 @@ public class CodeBot {
             System.out.println(result);
             System.out.println("replying to comment: "+c.getId());
 
+
+            //Test comment and result for profanity
+            boolean containsProfanity = false;
+            for(String s : profanity_list){
+                if(c.getMessage().contains(s) || result.contains(s)){
+                    System.out.println("replying to comment: "+c.getId());
+                    replyComment(c.getId(), "Profanity detected. Delete your comment.");
+
+                    //update repliedComments and write to post.json
+                    repliedComments.add(c.getId());
+                    writePostData();
+                    containsProfanity = true;
+                }
+            }
+            if(containsProfanity){continue;}
+
+
+            //Reply to comment, with or without an image!
             if(scriptExecutor.getCanvasVisibility() && scriptExecutor.getCanvas()!=null){
                 replyCommentImage(c.getId(), result,scriptExecutor.getCanvas(), cloudinary_upload_preset);
             } else{
