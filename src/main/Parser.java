@@ -99,8 +99,9 @@ public class Parser {
             return s.next();
         }
         //if the require fails:
+        //TODO Fix how patterns are written in error messages
         if(p.equals(NewLine)){throw new ScriptException("Expected \"\\n\"");}
-        throw new ScriptException("Expected \""+p.toString()+"\"");
+        throw new ScriptException("Expected \""+p+"\"");
     }
 
     //Return true if scanner has the following pattern.
@@ -125,7 +126,7 @@ public class Parser {
                 log.append("[").append(s.next()).append("], ");}
         }
         System.out.println(log);
-        throw new ScriptException("Expected "+str);
+        throw new ScriptException("Expected \""+str+"\"");
     }
 
     //Creates a function assignment node, and adds it to the program.
@@ -304,7 +305,6 @@ public class Parser {
             //currently missing a test to see if parsing is currently in a function,
             //so in theory someone could add a return statement without being in a function
             return parseReturn(s);
-//            throw new ScriptException("Can't return when not inside a function");
         }else{
             //test whether scanner.next() has a variable name already defined in the script
             for(String str : variableNames){

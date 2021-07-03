@@ -26,7 +26,8 @@ public class ProgramState {
     //Print an error to console output, and truncate if the string is too long rather than throwing another error.
     public void printError(String s){
 
-        String temp = "\n" + s;
+        //Strip newlines from error message.
+        String temp = "\n" + s.replace("\n","\\n");
 
         //ensure the error string isn't too long
         if(temp.length()>=ScriptExecutor.getMaxOutputLength()){return;}

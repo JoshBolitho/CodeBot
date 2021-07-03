@@ -243,7 +243,7 @@ public class OperationExpression implements Expression {
         return v != null;
     }
     private void fail() throws ScriptException {
-        throw new ScriptException(String.format("Failed to evaluate %s", this.toString()));
+        throw new ScriptException(String.format("Failed to evaluate %s", this));
     }
     private void assertValidFloat(Float f) throws ScriptException {
         if(     f == null || 

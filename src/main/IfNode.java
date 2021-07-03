@@ -28,7 +28,7 @@ public class IfNode implements ExecutableNode{
                 }
 
         Value conditionResult = condition.evaluate(programState, functionVariables);
-        if(conditionResult.getType() != ValueType.BOOLEAN){throw new ScriptException("if statement's condition didn't evaluate to a boolean value");}
+        if(conditionResult.getType() != ValueType.BOOLEAN){throw new ScriptException("\"If\" statement's condition did not evaluate to a boolean value");}
 
         if(conditionResult.castBoolean()){
             //if condition evaluates to true

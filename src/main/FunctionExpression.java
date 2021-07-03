@@ -28,7 +28,7 @@ public class FunctionExpression implements Expression {
             throw new ScriptException("Program ran for too long");
         } catch (Exception e){
             e.printStackTrace();
-            throw new ScriptException("Function call failed: " + this.toString());
+            throw new ScriptException("Function call failed: " + this);
         }
     }
 

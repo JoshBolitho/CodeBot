@@ -120,6 +120,7 @@ public class CodeBot {
             for(String s : profanity_list){
                 if(c.getMessage().contains(s) || result.contains(s)){
                     System.out.println("replying to comment: "+c.getId());
+                    System.out.println("Profanity detected");
                     replyComment(c.getId(), "Profanity detected. Delete your comment.");
 
                     //update repliedComments and write to post.json
