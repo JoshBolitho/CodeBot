@@ -197,7 +197,7 @@ If you find yourself writing the same piece of code over and over again, it migh
 
 To write a function which will return the sum of two numbers, you would type the following:
 
-Note: The function's name must only contain upper/lower case characters i.e. A-Z, a-z
+Note: The function's name must only contain alphanumerics.
 ```
 function sum(a,b){
 return a + b

@@ -33,8 +33,8 @@ public class ProgramState {
 
         //test whether printing the error will cause the consoleOutput to go over maxOutputLength
         if(consoleOutput.length()+temp.length() > ScriptExecutor.getMaxOutputLength()){
-            //truncate the console output, and leave enough space for the temp string.
-            consoleOutput = consoleOutput.substring(0,ScriptExecutor.getMaxOutputLength()-1-temp.length());
+            //truncate the console output, and leave enough space for the temp string. (with a 1000 character buffer just to be sure)
+            consoleOutput = consoleOutput.substring(0,ScriptExecutor.getMaxOutputLength()-1-temp.length()-1000);
         }
         consoleOutput = consoleOutput + temp;
     }

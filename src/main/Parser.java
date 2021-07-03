@@ -196,7 +196,7 @@ public class Parser {
         return bi;
     }
 
-    public ProgramNode parseScript(String script) throws StopException{
+    public ProgramNode parseScript(String script, BufferedImage inputImage) throws StopException{
 
         //Remove any lines beginning with "%". These lines are treated as comments by the parser.
         String[] lines = script.split("\n");
@@ -251,6 +251,12 @@ public class Parser {
 
         //Initialise canvas visibility as boolean called "_canvasVisibility"
         addProgramVariable(program, "_canvasVisibility",new BooleanValue(false));
+
+        //Add input image
+        if(inputImage==null){
+            inputImage = loadImage("src\\main\\Images\\input.png");
+        }
+        addProgramVariable(program,"input",new ImageValue(inputImage));
 
         //Add monky image
         BufferedImage monkyImage = loadImage("src\\main\\Images\\monky.png");

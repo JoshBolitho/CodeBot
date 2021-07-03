@@ -10,6 +10,7 @@ import java.util.Scanner;
 public class ScriptExecutor {
 
     private final String script;
+    private BufferedImage inputImage;
 
     private final ProgramState programState;
     private final Parser parser;
@@ -20,14 +21,15 @@ public class ScriptExecutor {
     private BufferedImage canvas = null;
 
 
-    private static final Integer maxImageSize = 1000;//pixels
-    private static final Integer maxExecutionTime = 30;//seconds
+    private static final Integer maxImageSize = 2000;//pixels
+    private static final Integer maxExecutionTime = 60;//seconds
     private static final Integer maxOutputLength = 7000;//characters
 
 
     //Initialise ScriptExecutor
-    public ScriptExecutor(String script) {
+    public ScriptExecutor(String script, BufferedImage inputImage) {
         this.script = script;
+        this.inputImage = inputImage;
 
         parser = new Parser();
         program = new ProgramNode();
@@ -37,7 +39,7 @@ public class ScriptExecutor {
 
     //Parse script to ProgramNode
     public void parseScript() throws StopException{
-        program = parser.parseScript(script);
+        program = parser.parseScript(script, inputImage);
     }
 
     public void displayProgram(){
@@ -73,7 +75,7 @@ public class ScriptExecutor {
             parseScript();
         } catch (StopException e){
             //if parsing fails, result is set to the error message output
-            result = e.getMessage();
+            result = e.getMessage()+ "\n[^_^] Check out the guide for help with programming! https://github.com/JoshBolitho/CodeBot/blob/main/Guide.md";
             return;
         }
 
@@ -90,6 +92,7 @@ public class ScriptExecutor {
                     executeProgram();
                 }catch (InterruptedException e){
                     programState.printError("Program ran for too long");
+                    programState.printError("[^_^] Check out the guide for help with programming! https://github.com/JoshBolitho/CodeBot/blob/main/Guide.md");
                 }catch (StopException e){
                     //StopException means that a ScriptException has already been caught and handled.
                     //We only have to end execution, no further processing is required.
@@ -111,7 +114,10 @@ public class ScriptExecutor {
 
             //Give the execution thread another second to finish up
             Thread.sleep(1000L);
-            if(executionThread.isAlive()){ programState.printError("Program ran for too long"); }
+            if(executionThread.isAlive()){
+                programState.printError("Program ran for too long");
+                programState.printError("[^_^] Check out the guide for help with programming! https://github.com/JoshBolitho/CodeBot/blob/main/Guide.md");
+            }
 
             result = getConsoleOutput();
 
@@ -152,7 +158,7 @@ public class ScriptExecutor {
             return;
         }
 
-        ScriptExecutor scriptExecutor = new ScriptExecutor(testScript.toString());
+        ScriptExecutor scriptExecutor = new ScriptExecutor(testScript.toString(), null );
         scriptExecutor.run();
         String result = scriptExecutor.getResult();
 

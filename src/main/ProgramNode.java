@@ -67,6 +67,7 @@ public class ProgramNode implements ExecutableNode{
         //Otherwise, handle the exception and throw a StopException
         programState.printError("Execution error at: "+ex.display(0).split("\n")[0]);
         programState.printError(message);
+        programState.printError("[^_^] Check out the guide for help with programming! https://github.com/JoshBolitho/CodeBot/blob/main/Guide.md");
 
         throw new StopException(message);
     }

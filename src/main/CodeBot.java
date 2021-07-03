@@ -8,20 +8,18 @@ import javax.imageio.ImageIO;
 import java.awt.image.BufferedImage;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
-
 import java.net.URI;
+import java.net.URL;
 import java.net.URLEncoder;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.nio.charset.StandardCharsets;
-import java.util.Base64;
-
 import java.nio.file.Files;
 import java.nio.file.Path;
-
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Base64;
 
 public class CodeBot {
     static String user_access_token = "";
@@ -80,17 +78,38 @@ public class CodeBot {
         Comment[] comments = messageWrapper.getData();
 
         for(Comment c : comments){
-
             //if this comment has been replied to already, ignore it.
             if(repliedComments.contains(c.getId())){continue;}
 
+            //Empty message
+            if(c.getMessage().equals("")){
+                if(c.getAttachment()!=null){
+                    System.out.println("replying to comment: "+c.getId());
+                    replyComment(c.getId(), "[^_^] Nice pic!");
+
+                    //update repliedComments and write to post.json
+                    repliedComments.add(c.getId());
+                    writePostData();
+
+                    continue;
+                }
+                continue;
+            }
+
+            BufferedImage inputImage = null;
+            if(c.getAttachment()!=null){
+                String commentImageURL = c.getAttachment().getMedia().getImage().getSrc();
+                inputImage = ImageIO.read(new URL(commentImageURL));
+            }
+
             //Create and run the scriptExecutor with
-            ScriptExecutor scriptExecutor = new ScriptExecutor(c.getMessage());
+            ScriptExecutor scriptExecutor = new ScriptExecutor(c.getMessage(), inputImage);
             scriptExecutor.run();
             String result = scriptExecutor.getResult();
 
             System.out.println(result);
             System.out.println("replying to comment: "+c.getId());
+
             if(scriptExecutor.getCanvasVisibility() && scriptExecutor.getCanvas()!=null){
                 replyCommentImage(c.getId(), result,scriptExecutor.getCanvas(), cloudinary_upload_preset);
             } else{
@@ -111,7 +130,7 @@ public class CodeBot {
 
         // Get comments
         var getComments = HttpRequest.newBuilder(
-                URI.create(String.format("https://graph.facebook.com/v9.0/%s/comments?access_token=%s",objectID, user_access_token))
+                URI.create(String.format("https://graph.facebook.com/v9.0/%s/comments?access_token=%s&fields=message,id,attachment",objectID, user_access_token))
         ).build();
 
         // use the client to send the request
@@ -122,7 +141,7 @@ public class CodeBot {
     }
 
     public static void replyComment(String objectID, String message) throws IOException, InterruptedException {
-        if(message.equals("")){message = "No Console Output";}
+        if(message.equals("")){message = "[^_^]";}
         message = URLEncoder.encode(message,StandardCharsets.UTF_8.toString());
 
         // Create a client
@@ -141,8 +160,6 @@ public class CodeBot {
     }
 
     public static void replyCommentImage(String objectID, String message, BufferedImage bufferedImage,String uploadPreset) throws IOException, InterruptedException {
-        if(message.equals("")){message = "No Console Output";}
-        message = URLEncoder.encode(message,StandardCharsets.UTF_8.toString());
 
         //write bufferedImage to byte array
         ByteArrayOutputStream out = new ByteArrayOutputStream();
@@ -175,6 +192,14 @@ public class CodeBot {
         String imageURL = cloudinaryResponseWrapper.getUrl();
         System.out.println("imageURL: "+imageURL);
 
+        //Cloudinary api fail
+        if(imageURL==null){
+            replyComment(objectID,message +"\n(Image upload failed)");
+            return;
+        }
+
+        if(message.equals("")){message = "[^_^]";}
+        message = URLEncoder.encode(message,StandardCharsets.UTF_8.toString());
 
         // Create a client for facebook image comment upload
         var facebookClient = HttpClient.newHttpClient();
