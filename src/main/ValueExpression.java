@@ -19,6 +19,10 @@ public class ValueExpression implements Expression{
         if (value.isType(ARRAY)) {
             ((ArrayValue) value).evaluateArray(programState, functionVariables);
         }
+        if(value==null){
+            System.out.println("Warning: value field in ValueExpression was null when evaluating. Returning new NullVariable");
+            return new NullValue();
+        }
         return value;
     }
 
