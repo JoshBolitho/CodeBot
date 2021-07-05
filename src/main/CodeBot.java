@@ -94,98 +94,100 @@ public class CodeBot {
 
         for(Comment c : comments){
 
-            //Test whether Bot has replied to comment c already.
-            if(c.getComments()!=null) {
-                boolean replied = false;
-                Comment[] replies = c.getComments().getData();
-                for (Comment r : replies) {
-                    //If Comment c has been replied to by this bot already, ignore it.
-                    if (r.getFrom().getId().equals(page_ID)) {
-                        replied = true;
-                        break;
+            try {
+                //Test whether Bot has replied to comment c already.
+                if(c.getComments()!=null) {
+                    boolean replied = false;
+                    Comment[] replies = c.getComments().getData();
+                    for (Comment r : replies) {
+                        //If Comment c has been replied to by this bot already, ignore it.
+                        if (r.getFrom().getId().equals(page_ID)) {
+                            replied = true;
+                            break;
+                        }
                     }
+                    if(replied){continue;}
                 }
-                if(replied){continue;}
-            }
 
-            //Empty message
-            if(c.getMessage().equals("")){
-                if(c.getAttachment()!=null){
-                    System.out.println("replying to comment: "+c.getId());
-                    replyComment(c.getId(), "[^_^] Nice pic!");
+                //Empty message
+                if(c.getMessage().equals("")){
+                    if(c.getAttachment()!=null){
+                        System.out.println("replying to comment: "+c.getId());
+                        replyComment(c.getId(), "[^_^] Nice pic!");
+                        continue;
+                    }
                     continue;
                 }
-                continue;
-            }
 
-            BufferedImage inputImage = null;
-            if(c.getAttachment()!=null){
-                try {
-                    String commentImageURL = c.getAttachment().getMedia().getImage().getSrc();
-                    inputImage = ImageIO.read(new URL(commentImageURL));
+                BufferedImage inputImage = null;
+                if(c.getAttachment()!=null){
+                    try {
+                        String commentImageURL = c.getAttachment().getMedia().getImage().getSrc();
+                        inputImage = ImageIO.read(new URL(commentImageURL));
 
-                    //Trim image if it exceeds maxImageSize
-                    int width = inputImage.getWidth();
-                    int height = inputImage.getHeight();
-                    int max = ScriptExecutor.getMaxImageSize();
+                        //Trim image if it exceeds maxImageSize
+                        int width = inputImage.getWidth();
+                        int height = inputImage.getHeight();
+                        int max = ScriptExecutor.getMaxImageSize();
 
-                    //truncate width
-                    if(width>max){
-                        int startPoint = Math.floorDiv(width-max,2);
-                        inputImage = inputImage.getSubimage(startPoint,0,max,height);
+                        //truncate width
+                        if(width>max){
+                            int startPoint = Math.floorDiv(width-max,2);
+                            inputImage = inputImage.getSubimage(startPoint,0,max,height);
 
-                        System.out.printf("rescaling %sx%s to %sx%s\n",width,height,max,height);
+                            System.out.printf("rescaling %sx%s to %sx%s\n",width,height,max,height);
+                        }
+
+                        //Updated dimensions
+                        width = inputImage.getWidth();
+                        height = inputImage.getHeight();
+
+                        //truncate height
+                        if(height>max){
+                            int startPoint = Math.floorDiv(height-max,2);
+                            inputImage = inputImage.getSubimage(0,startPoint,width,max);
+                            System.out.printf("rescaling %sx%s to %sx%s\n",width,height,width,max);
+                        }
+
+                    }catch (IOException e){
+                        log(e,"IOException while trying to load input image");
+                        //non critical error, no need to break.
                     }
+                }
 
-                    //Updated dimensions
-                    width = inputImage.getWidth();
-                    height = inputImage.getHeight();
+                //Create and run the scriptExecutor
+                ScriptExecutor scriptExecutor = new ScriptExecutor(c.getMessage(), inputImage);
+                scriptExecutor.run();
+                String result = scriptExecutor.getResult();
 
-                    //truncate height
-                    if(height>max){
-                        int startPoint = Math.floorDiv(height-max,2);
-                        inputImage = inputImage.getSubimage(0,startPoint,width,max);
-                        System.out.printf("rescaling %sx%s to %sx%s\n",width,height,width,max);
+                System.out.println(result);
+                System.out.println("replying to comment: "+c.getId());
+
+
+                //Test comment and result for profanity
+                boolean containsProfanity = false;
+                for(String s : profanity_list){
+                    if(c.getMessage().contains(s) || result.contains(s)){
+                        System.out.println("Profanity detected");
+                        replyComment(c.getId(), "Profanity detected. Delete your comment.");
+
+                        log(c,"Comment failed the profanity filter.");
+                        containsProfanity = true;
                     }
-
-                }catch (IOException e){
-                    log(e,"IOException while trying to load input image");
-                    //non critical error, no need to break.
                 }
-            }
-
-            //Create and run the scriptExecutor
-            ScriptExecutor scriptExecutor = new ScriptExecutor(c.getMessage(), inputImage);
-            scriptExecutor.run();
-            String result = scriptExecutor.getResult();
-
-            System.out.println(result);
-            System.out.println("replying to comment: "+c.getId());
+                if(containsProfanity){continue;}
 
 
-            //Test comment and result for profanity
-            boolean containsProfanity = false;
-            for(String s : profanity_list){
-                if(c.getMessage().contains(s) || result.contains(s)){
-                    System.out.println("Profanity detected");
-                    replyComment(c.getId(), "Profanity detected. Delete your comment.");
-
-                    log(c,"Comment failed the profanity filter.");
-                    containsProfanity = true;
+                //Reply to comment, with or without an image!
+                if(scriptExecutor.getCanvasVisibility() && scriptExecutor.getCanvas()!=null){
+                    replyCommentImage(c.getId(), result,scriptExecutor.getCanvas(), cloudinary_upload_preset);
+                } else{
+                    replyComment(c.getId(), result);
                 }
+            }catch (Throwable e){
+                log(e,"Unanticipated error type thrown during executeComments");
             }
-            if(containsProfanity){continue;}
-
-
-            //Reply to comment, with or without an image!
-            if(scriptExecutor.getCanvasVisibility() && scriptExecutor.getCanvas()!=null){
-                replyCommentImage(c.getId(), result,scriptExecutor.getCanvas(), cloudinary_upload_preset);
-            } else{
-                replyComment(c.getId(), result);
-            }
-
         }
-
     }
 
     // Request the comments on a Facebook Graph API Element by its object ID
