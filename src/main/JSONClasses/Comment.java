@@ -4,6 +4,9 @@ public class Comment {
     String message;
     String id;
     Attachment attachment;
+    CommentData comments;
+
+    From from;
 
     public String getMessage() {
         return message;
@@ -15,5 +18,13 @@ public class Comment {
 
     public Attachment getAttachment() {
         return attachment;
+    }
+
+    public CommentData getComments() {
+        return comments;
+    }
+
+    public From getFrom() {
+        return from;
     }
 }

@@ -764,7 +764,7 @@ public class Parser {
 
         while (true){
             //ignore Newlines
-            if(s.hasNext(NewLine)){ require(NewLine,s);}
+            optionalRequire(NewLine,s);
 
             if(s.hasNext(CloseSquare)){
                 break;
@@ -772,7 +772,7 @@ public class Parser {
             elements.add(parseExpression(s,null,null));
 
             //ignore Newlines
-            if(s.hasNext(NewLine)){ require(NewLine,s);}
+            optionalRequire(NewLine,s);
 
             if(s.hasNext(Comma)){
                 require(Comma,s);

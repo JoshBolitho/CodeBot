@@ -1,19 +1,19 @@
 package main.JSONClasses;
 
 public class Post {
-    String currentPost;
-    String[] repliedComments;
+    String currentPostID;
+    String currentPostText;
 
-    public Post(String currentPost, String[] repliedComments) {
-        this.currentPost = currentPost;
-        this.repliedComments = repliedComments;
+    public String getCurrentPostID() {
+        return currentPostID;
     }
 
-    public String getCurrentPost() {
-        return currentPost;
+    public String getCurrentPostText() {
+        return currentPostText;
     }
 
-    public String[] getRepliedComments() {
-        return repliedComments;
+    public Post(String currentPostID, String currentPostText) {
+        this.currentPostID = currentPostID;
+        this.currentPostText = currentPostText;
     }
 }

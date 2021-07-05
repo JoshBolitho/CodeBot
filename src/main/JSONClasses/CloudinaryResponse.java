@@ -20,7 +20,13 @@ public class CloudinaryResponse {
     String secure_url;
     String access_mode;
 
+    APIError error;
+
     public String getUrl() {
         return url;
+    }
+
+    public APIError getError() {
+        return error;
     }
 }
