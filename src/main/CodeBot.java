@@ -19,6 +19,7 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.text.SimpleDateFormat;
+import java.util.Arrays;
 import java.util.Base64;
 import java.util.Date;
 
@@ -30,6 +31,8 @@ public class CodeBot {
     //The current post
     static String postID = "";
     static String postText = "";
+    static String[] queuedPosts;
+    static String[] pastPosts;
 
     //Cloudinary config
     static String cloudinary_upload_preset = "";
@@ -61,12 +64,14 @@ public class CodeBot {
         Post post = gson.fromJson(postJSON, Post.class);
         postID = post.getCurrentPostID();
         postText = post.getCurrentPostText();
+        queuedPosts = post.getQueuedPosts();
+        pastPosts = post.getPastPosts();
 
     }
 
     public static void writePostData() throws IOException {
 
-        Post post = new Post(postID,postText);
+        Post post = new Post(postID,postText,queuedPosts,pastPosts);
 
         Gson gson = new GsonBuilder().setPrettyPrinting().create();
         String postJSON = gson.toJson(post);
@@ -96,7 +101,7 @@ public class CodeBot {
 
             try {
                 //Test whether Bot has replied to comment c already.
-                if(c.getComments()!=null) {
+                if (c.getComments() != null) {
                     boolean replied = false;
                     Comment[] replies = c.getComments().getData();
                     for (Comment r : replies) {
@@ -106,21 +111,22 @@ public class CodeBot {
                             break;
                         }
                     }
-                    if(replied){continue;}
+                    if (replied) {
+                        continue;
+                    }
                 }
 
                 //Empty message
-                if(c.getMessage().equals("")){
-                    if(c.getAttachment()!=null){
-                        System.out.println("replying to comment: "+c.getId());
-                        replyComment(c.getId(), "[^_^] Nice pic!");
+                if (c.getMessage().equals("")) {
+                    if (c.getAttachment() != null) {
+                        publishComment(c.getId(), "[^_^] Nice pic!");
                         continue;
                     }
                     continue;
                 }
 
                 BufferedImage inputImage = null;
-                if(c.getAttachment()!=null){
+                if (c.getAttachment() != null) {
                     try {
                         String commentImageURL = c.getAttachment().getMedia().getImage().getSrc();
                         inputImage = ImageIO.read(new URL(commentImageURL));
@@ -131,11 +137,11 @@ public class CodeBot {
                         int max = ScriptExecutor.getMaxImageSize();
 
                         //truncate width
-                        if(width>max){
-                            int startPoint = Math.floorDiv(width-max,2);
-                            inputImage = inputImage.getSubimage(startPoint,0,max,height);
+                        if (width > max) {
+                            int startPoint = Math.floorDiv(width - max, 2);
+                            inputImage = inputImage.getSubimage(startPoint, 0, max, height);
 
-                            System.out.printf("rescaling %sx%s to %sx%s\n",width,height,max,height);
+                            System.out.printf("rescaling %sx%s to %sx%s\n", width, height, max, height);
                         }
 
                         //Updated dimensions
@@ -143,14 +149,14 @@ public class CodeBot {
                         height = inputImage.getHeight();
 
                         //truncate height
-                        if(height>max){
-                            int startPoint = Math.floorDiv(height-max,2);
-                            inputImage = inputImage.getSubimage(0,startPoint,width,max);
-                            System.out.printf("rescaling %sx%s to %sx%s\n",width,height,width,max);
+                        if (height > max) {
+                            int startPoint = Math.floorDiv(height - max, 2);
+                            inputImage = inputImage.getSubimage(0, startPoint, width, max);
+                            System.out.printf("rescaling %sx%s to %sx%s\n", width, height, width, max);
                         }
 
-                    }catch (IOException e){
-                        log(e,"IOException while trying to load input image");
+                    } catch (IOException e) {
+                        log(e, "IOException while trying to load input image");
                         //non critical error, no need to break.
                     }
                 }
@@ -161,29 +167,31 @@ public class CodeBot {
                 String result = scriptExecutor.getResult();
 
                 System.out.println(result);
-                System.out.println("replying to comment: "+c.getId());
-
 
                 //Test comment and result for profanity
                 boolean containsProfanity = false;
-                for(String s : profanity_list){
-                    if(c.getMessage().contains(s) || result.contains(s)){
+                for (String s : profanity_list) {
+                    if (c.getMessage().contains(s) || result.contains(s)) {
                         System.out.println("Profanity detected");
-                        replyComment(c.getId(), "Profanity detected. Delete your comment.");
+                        publishComment(c.getId(), "Profanity detected. Delete your comment.");
 
-                        log(c,"Comment failed the profanity filter.");
+                        log(c, "Comment failed the profanity filter.");
                         containsProfanity = true;
                     }
                 }
-                if(containsProfanity){continue;}
+                if (containsProfanity) {
+                    continue;
+                }
 
 
                 //Reply to comment, with or without an image!
-                if(scriptExecutor.getCanvasVisibility() && scriptExecutor.getCanvas()!=null){
-                    replyCommentImage(c.getId(), result,scriptExecutor.getCanvas(), cloudinary_upload_preset);
-                } else{
-                    replyComment(c.getId(), result);
+                if (scriptExecutor.getCanvasVisibility() && scriptExecutor.getCanvas() != null) {
+                    publishCommentImage(c.getId(), result, scriptExecutor.getCanvas(), cloudinary_upload_preset);
+                } else {
+                    publishComment(c.getId(), result);
                 }
+            }catch (InterruptedException e){
+                throw e;
             }catch (Throwable e){
                 log(e,"Unanticipated error type thrown during executeComments");
             }
@@ -212,7 +220,8 @@ public class CodeBot {
         }
     }
 
-    public static void replyComment(String objectID, String message) throws InterruptedException {
+    public static void publishComment(String objectID, String message) throws InterruptedException {
+        System.out.println("replying to: "+objectID);
         if(message.equals("")){message = "[^_^]";}
         try {
             message = URLEncoder.encode(message, StandardCharsets.UTF_8.toString());
@@ -235,11 +244,11 @@ public class CodeBot {
             HttpResponse<String> response = client.send(publishComment, HttpResponse.BodyHandlers.ofString());
             System.out.println(response);
         } catch (IOException e){
-            log("Connection error while trying to reply to comment",e.getMessage());
+            log("Connection error while trying to send a commentF",e.getMessage());
         }
     }
 
-    public static void replyCommentImage(String objectID, String message, BufferedImage bufferedImage,String uploadPreset) throws InterruptedException {
+    public static void publishCommentImage(String objectID, String message, BufferedImage bufferedImage, String uploadPreset) throws InterruptedException {
 
         //write bufferedImage to byte array
         ByteArrayOutputStream out = new ByteArrayOutputStream();
@@ -247,7 +256,7 @@ public class CodeBot {
             ImageIO.write(bufferedImage, "PNG", out);
         }catch (IOException e){
             log("Connection error while trying to write bufferedImage to ByteArrayOutputStream",e.getMessage());
-            replyComment(objectID,message +"\n(Image upload failed)");
+            publishComment(objectID,message +"\n(Image upload failed)");
             return;
         }
         byte[] bytes = out.toByteArray();
@@ -263,7 +272,7 @@ public class CodeBot {
             encodedImageDataURI = URLEncoder.encode(imageDataURI, StandardCharsets.UTF_8.toString());
         } catch (UnsupportedEncodingException e){
             log(e,"UnsupportedEncodingException while trying to encode response message to UTF8");
-            replyComment(objectID,message +"\n(Image upload failed)");
+            publishComment(objectID,message +"\n(Image upload failed)");
             return;
         }
 
@@ -281,7 +290,7 @@ public class CodeBot {
             cloudinaryResponse = cloudinaryClient.send(uploadImage, HttpResponse.BodyHandlers.ofString());
         }catch (IOException e){
             log(e,"IO Exception while uploading image to cloudinary");
-            replyComment(objectID,message +"\n(Image upload failed)");
+            publishComment(objectID,message +"\n(Image upload failed)");
             return;
         }
 
@@ -292,13 +301,13 @@ public class CodeBot {
         //Cloudinary API response included an error.
         if(cloudinaryResponseWrapper.getError()!=null){
             log(cloudinaryResponseWrapper.getError(),"Cloudinary Error: Failed to upload image");
-            replyComment(objectID,message +"\n(Image upload failed)");
+            publishComment(objectID,message +"\n(Image upload failed)");
             return;
         }
 
         if(cloudinaryResponseWrapper.getUrl()==null){
             log("Cloudinary response didn't include an image URL","");
-            replyComment(objectID,message +"\n(Image upload failed)");
+            publishComment(objectID,message +"\n(Image upload failed)");
             return;
         }
 
@@ -307,7 +316,7 @@ public class CodeBot {
 
         //Cloudinary api fail
         if(imageURL==null){
-            replyComment(objectID,message +"\n(Image upload failed)");
+            publishComment(objectID,message +"\n(Image upload failed)");
             return;
         }
 
@@ -327,6 +336,8 @@ public class CodeBot {
                 .POST(HttpRequest.BodyPublishers.ofString(facebookBody))
                 .build();
 
+        System.out.println("replying to: "+objectID);
+
         // use the client to send the request
         HttpResponse<String> facebookResponse;
         try {
@@ -340,7 +351,21 @@ public class CodeBot {
 
     }
 
-    public static String publishPost(String message) throws InterruptedException {
+    //requires loadConfig() and loadPostData() to have been run.
+    public static String publishPost(String message, boolean overrideQueuedPosts) throws InterruptedException {
+        System.out.println("\n===============Publishing new post==================\n");
+
+        //check for queued posts first
+        //queued posts override any message sent if the boolean parameter is set.
+        if(queuedPosts.length>0 & !overrideQueuedPosts){
+
+            //post first string in queuedPosts
+            message = queuedPosts[0];
+
+            //Update queuedPosts: remove first string from queuedPosts
+            queuedPosts = Arrays.copyOfRange(queuedPosts,1,queuedPosts.length);
+        }
+
         // create a client
         var client = HttpClient.newHttpClient();
 
@@ -360,6 +385,7 @@ public class CodeBot {
             log(e,"IOException while trying to upload new post");
             return null;
         }
+
         //Handle the response
         Gson gson = new Gson();
         PostResponse postResponse = gson.fromJson(response.body(), PostResponse.class);
@@ -375,9 +401,25 @@ public class CodeBot {
             return null;
         }
 
-        //Overwrite post.json with new post ID.
+        //Post a comment update to previous post to indicate that the post is no longer
+        //tracked by the bot.
+        publishComment(postID,"This post is no longer active! Check the page for the most recent post [^_^]");
+
+
+        //Grow past posts array by 1
+        String[] newPastPosts = new String[pastPosts.length+1];
+        for(int i=0;i<pastPosts.length;i++){
+            newPastPosts[i] = pastPosts[i];
+        }
+
+        //Update pastPosts array
+        newPastPosts[newPastPosts.length-1] = postText;
+        pastPosts = newPastPosts;
+
+        //Update postID and postText
         postID = postResponse.getId();
         postText = message;
+
         try{
             writePostData();
         }catch (IOException e){
@@ -386,22 +428,6 @@ public class CodeBot {
         }
         // the response from facebook graph API:
         return postResponse.getId();
-    }
-
-    public static void publishComment(String objectID, String message) throws IOException, InterruptedException {
-        // Create a client
-        var client = HttpClient.newHttpClient();
-
-        // Publish Comment
-        var publishComment = HttpRequest.newBuilder().uri(
-                URI.create(String.format("https://graph.facebook.com/v9.0/%s/comments/",objectID)))
-                .POST(HttpRequest.BodyPublishers.ofString(
-                        String.format("message=%s&access_token=%s",message,user_access_token))
-                ).build();
-
-        // use the client to send the request
-        HttpResponse<String> response = client.send(publishComment, HttpResponse.BodyHandlers.ofString());
-        System.out.println(response);
     }
 
     //Record Errors that caused program failure.
@@ -512,28 +538,43 @@ public class CodeBot {
         }
     }
 
-    public static void main(String[] args) throws IOException, InterruptedException {
+    public static void main(String[] args) {
 
-        //Options: Comment, Post
-        String mode = "Comment";
-        String message = "New new post 5th July!";
-
-        if(mode.equals("Comment")){
+        //Load config data
+        try {
             loadConfig();
             loadPostData();
-
-            String commentData = requestComments(postID);
-            if(commentData==null){return;}
-            executeComments(commentData);
-
+        } catch (IOException e) {
+            e.printStackTrace();
+            return;
         }
 
-        if(mode.equals("Post")){
-            loadConfig();
-            loadPostData();
+        //Default mode. Options: Comment, Post
+        String mode = "Comment";
+        //Default post message
+        String message = "New post: "+dateTimeString();
 
-            String res = publishPost(message);
-            if(res!=null){System.out.println(res);}
+        //CLI args overwrite default mode and message
+        if(args.length>0){
+            mode = args[0];
+        }
+        if(args.length>1){
+            message = args[1];
+        }
+
+        try{
+            if(mode.equals("Comment")){
+                String commentData = requestComments(postID);
+                if(commentData==null){return;}
+                executeComments(commentData);
+            }
+
+            if(mode.equals("Post")){
+                String res = publishPost(message,false);
+                if(res!=null){System.out.println(res);}
+            }
+        } catch (InterruptedException e) {
+            log(e,"InterruptedException in CodeBot.main, mode: "+mode);
         }
 
     }
