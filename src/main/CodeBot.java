@@ -6,9 +6,7 @@ import main.JSONClasses.*;
 
 import javax.imageio.ImageIO;
 import java.awt.image.BufferedImage;
-import java.io.ByteArrayOutputStream;
-import java.io.IOException;
-import java.io.UnsupportedEncodingException;
+import java.io.*;
 import java.net.URI;
 import java.net.URL;
 import java.net.URLEncoder;
@@ -19,26 +17,28 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.text.SimpleDateFormat;
-import java.util.Arrays;
-import java.util.Base64;
-import java.util.Date;
+import java.util.*;
 
 public class CodeBot {
+
+    //Config
     static String user_access_token = "";
     static String page_access_token = "";
     static String page_ID = "";
+    static String cloudinary_upload_preset = "";
+    static String[] profanity_list = new String[]{};
 
     //The current post
-    static String postID = "";
-    static String postText = "";
-    static String[] queuedPosts;
-    static String[] pastPosts;
+    static String currentPostID = "";
+    static String currentPostText = "";
 
-    //Cloudinary config
-    static String cloudinary_upload_preset = "";
+    static String[] queuedPosts = new String[]{};
+    static String[] pastPosts = new String[]{};
 
-    //Profanity filter
-    static String[] profanity_list = new String[]{};
+    static String currentSubmissionsID = "";
+    static String[] facebookSubmissions = new String[]{};
+
+    static String[] curatedChallenges = new String[]{};
 
     public static void loadConfig() throws IOException {
 
@@ -47,10 +47,13 @@ public class CodeBot {
 
         Gson gson = new Gson();
         Config config = gson.fromJson(configJSON, Config.class);
+
         user_access_token = config.getUser_access_token();
         page_access_token = config.getPage_access_token();
         page_ID = config.getPage_ID();
+
         cloudinary_upload_preset = config.getCloudinary_upload_preset();
+
         profanity_list = config.getProfanity_list();
 
     }
@@ -62,16 +65,30 @@ public class CodeBot {
 
         Gson gson = new Gson();
         Post post = gson.fromJson(postJSON, Post.class);
-        postID = post.getCurrentPostID();
-        postText = post.getCurrentPostText();
+
+        currentPostID = post.getCurrentPostID();
+        currentPostText = post.getCurrentPostText();
+
         queuedPosts = post.getQueuedPosts();
         pastPosts = post.getPastPosts();
 
+        currentSubmissionsID = post.getCurrentSubmissionsID();
+        facebookSubmissions = post.getFacebookSubmissions();
+
+        curatedChallenges = post.getCuratedChallenges();
     }
 
     public static void writePostData() throws IOException {
 
-        Post post = new Post(postID,postText,queuedPosts,pastPosts);
+        Post post = new Post(
+                currentPostID,
+                currentPostText,
+                queuedPosts,
+                pastPosts,
+                currentSubmissionsID,
+                facebookSubmissions,
+                curatedChallenges
+                );
 
         Gson gson = new GsonBuilder().setPrettyPrinting().create();
         String postJSON = gson.toJson(post);
@@ -125,6 +142,7 @@ public class CodeBot {
                     continue;
                 }
 
+                //Load input image from comment attachment
                 BufferedImage inputImage = null;
                 if (c.getAttachment() != null) {
                     try {
@@ -198,6 +216,121 @@ public class CodeBot {
         }
     }
 
+    public static void loadSubmissionComments(String APIResponse) throws InterruptedException {
+
+        Gson gson = new Gson();
+        CommentData commentData = gson.fromJson(APIResponse, CommentData.class);
+
+        if(commentData.getError()!=null){
+            log(commentData.getError(),"FB Graph API - Error retrieving comments");
+            return;
+        }
+
+        Comment[] comments = commentData.getData();
+
+        if(comments==null){
+            log("FB Graph API - Error retrieving comments","Comments array is null");
+            return;
+        }
+
+        ArrayList<String> submissionsList = new ArrayList<>();
+
+        for(Comment c : comments){
+
+            try {
+                //Test whether Bot has replied to comment c already.
+                if (c.getComments() != null) {
+                    boolean replied = false;
+                    Comment[] replies = c.getComments().getData();
+                    for (Comment r : replies) {
+                        //If Comment c has been replied to by this bot already, ignore it.
+                        if (r.getFrom().getId().equals(page_ID)) {
+                            replied = true;
+                            break;
+                        }
+                    }
+                    if (replied) {
+                        continue;
+                    }
+                }
+
+                //Empty message
+                if (c.getMessage().equals("")) {
+                    if (c.getAttachment() != null) {
+                        publishComment(c.getId(), "[^_^] Nice pic!");
+                        continue;
+                    }
+                    continue;
+                }
+
+                //Test comment and result for profanity
+                boolean containsProfanity = false;
+                for (String s : profanity_list) {
+                    if (c.getMessage().contains(s)) {
+                        System.out.println("Profanity detected");
+                        publishComment(c.getId(), "Profanity detected. Delete your comment.");
+
+                        log(c, "Comment failed the profanity filter.");
+                        containsProfanity = true;
+                    }
+                }
+                if (containsProfanity) {
+                    continue;
+                }
+
+                //Add comment to temporary submissions array
+                submissionsList.add(String.format("%s\n\nThanks to %s for this idea! [^_^]",c.getMessage(),c.getFrom().getName()));
+
+
+                String[] thankYous = new String[]{
+                        "Thanks so much for your submission! [^_^]",
+                        "Cheers! Awesome idea :)",
+                        "Good on ya! Thanks for the submission :D",
+                        "Great work, keep it up [^_^]",
+                        "Legend! [^_^]",
+                        "Much appreciated!!",
+                        "Awesome, thanks :)",
+                        "thank u <3",
+                        "thanks xx",
+                        "Yay! Thanks <333",
+                        "Love it! [^_^]",
+                        "CodeBot appreciates your generosity!",
+                        "How very kind of you! Thanks!",
+                        "Thanks heaps <3",
+                        "Thankies :)",
+                        "Thanks for supporting my page :)",
+                        "Thanks, very epic [^_^]"
+                };
+                String message = randomString(thankYous);
+
+                //Reply to comment with nice message
+                publishComment(c.getId(), message);
+
+            }catch (InterruptedException e){
+                throw e;
+            }catch (Throwable e){
+                log(e,"Unanticipated error type thrown during executeComments");
+            }
+        }
+
+        //add facebookSubmissions and submissionsList together in new array, submissionArray
+        String[] submissionArray = new String[facebookSubmissions.length+submissionsList.size()];
+        for(int i=0; i<facebookSubmissions.length;i++){
+            submissionArray[i] = facebookSubmissions[i];
+        }
+        for(int i=0; i<submissionsList.size();i++){
+            submissionArray[i+facebookSubmissions.length] = submissionsList.get(i);
+        }
+        //replace facebookSubmissions with the newly grown array
+        facebookSubmissions = submissionArray;
+
+        try{
+            writePostData();
+        }catch (IOException e){
+            log(e, "IOException while trying to save new facebook submissions");
+        }
+    }
+
     // Request the comments on a Facebook Graph API Element by its object ID
     public static String requestComments(String objectID) throws InterruptedException {
         // Create a client
@@ -222,7 +355,7 @@ public class CodeBot {
 
     public static void publishComment(String objectID, String message) throws InterruptedException {
         System.out.println("replying to: "+objectID);
-        if(message.equals("")){message = "[^_^]";}
+        if(message == null || message.equals("")){message = "[^_^]";}
         try {
             message = URLEncoder.encode(message, StandardCharsets.UTF_8.toString());
         }catch (UnsupportedEncodingException e){
@@ -246,6 +379,8 @@ public class CodeBot {
         } catch (IOException e){
             log("Connection error while trying to send a commentF",e.getMessage());
         }
+        //TODO handle errors in facebookresponse, we need to know if they succeeded or not,
+        // and then log and potentially retry sending the comment
     }
 
     public static void publishCommentImage(String objectID, String message, BufferedImage bufferedImage, String uploadPreset) throws InterruptedException {
@@ -320,7 +455,7 @@ public class CodeBot {
             return;
         }
 
-        if(message.equals("")){message = "[^_^]";}
+        if(message == null || message.equals("")){message = "[^_^]";}
         try {
             message = URLEncoder.encode(message, StandardCharsets.UTF_8.toString());
         } catch (UnsupportedEncodingException e) {
@@ -346,13 +481,15 @@ public class CodeBot {
             log(e,"IOException while trying to publish comment");
             return;
         }
+        //TODO handle errors in facebookresponse, we need to know if they succeeded or not,
+        // and then log and potentially retry sending the comment
 
         System.out.println(facebookResponse);
 
     }
 
     //requires loadConfig() and loadPostData() to have been run.
-    public static String publishPost(String message, boolean overrideQueuedPosts) throws InterruptedException {
+    public static String publishPost(String message, boolean overrideQueuedPosts, boolean submissionsPost) throws InterruptedException {
         System.out.println("\n===============Publishing new post==================\n");
 
         //check for queued posts first
@@ -403,8 +540,15 @@ public class CodeBot {
 
         //Post a comment update to previous post to indicate that the post is no longer
         //tracked by the bot.
-        publishComment(postID,"This post is no longer active! Check the page for the most recent post [^_^]");
-
+        if(submissionsPost) {
+            if(currentSubmissionsID!=null && !currentSubmissionsID.equals("")) {
+                publishComment(currentSubmissionsID, "This post is no longer active! Check the page for the most recent post [^_^]");
+            }
+        }else{
+            if(currentPostID!=null && !currentPostID.equals("")) {
+                publishComment(currentPostID, "This post is no longer active! Check the page for the most recent post [^_^]");
+            }
+        }
 
         //Grow past posts array by 1
         String[] newPastPosts = new String[pastPosts.length+1];
@@ -413,22 +557,268 @@ public class CodeBot {
         }
 
         //Update pastPosts array
-        newPastPosts[newPastPosts.length-1] = postText;
+        newPastPosts[newPastPosts.length-1] = currentPostText;
         pastPosts = newPastPosts;
 
-        //Update postID and postText
-        postID = postResponse.getId();
-        postText = message;
+        if (submissionsPost) {
+            //Update submissions ID
+            currentSubmissionsID = postResponse.getId();
+        } else {
+            //Update post ID and post text
+            currentPostID = postResponse.getId();
+            currentPostText = message;
+        }
 
         try{
             writePostData();
         }catch (IOException e){
-            log(e,"IOException while trying to save new post data");
+            if(submissionsPost){
+                log(e,String.format("IOException while trying to save new submissions post data: %s, %s",message,currentSubmissionsID));
+            }else{
+                log(e,String.format("IOException while trying to save new post data: %s, %s",message,currentPostID));
+            }
             return null;
         }
         // the response from facebook graph API:
         return postResponse.getId();
     }
+
+    public static String randomString(String[] array){
+        if(array!=null && array.length>0){
+            return array[(int)(Math.random()*array.length)];
+        }
+        return "[^_^]";
+    }
+
+    public static String randomString(ArrayList<String> array){
+        if(array!=null && array.size()>0){
+            return array.get( (int)( Math.random()*array.size() ) );
+        }
+        return "[^_^]";
+    }
+
+    public static int randomDigit(){
+        return (int)(Math.random()*10);
+    }
+
+    public static ArrayList<String> loadWords(){
+        ArrayList<String> words = new ArrayList<>();
+        try {
+            File wordFile = new File("src/main/words.txt");
+            Scanner scanner = new Scanner(wordFile);
+            while (scanner.hasNextLine()) {
+                String line = scanner.nextLine();
+                words.add(line);
+            }
+            scanner.close();
+        } catch (FileNotFoundException e) {
+            log(e,"FileNotFoundException while loading words.txt for random post generator");
+            ArrayList<String> temp = new ArrayList<>();
+            temp.add("[^_^]");
+            return temp;
+        }
+        return words;
+    }
+
+    public static String generatePost(){
+
+        //Random chance to do cute fun challenge
+        if(Math.random()<0.05){
+
+            ArrayList<String> words = loadWords();
+
+            String[] consonants = new String[]{
+                    "B","C","D","F","G","H","J","K","L","M","N","P","Q","R","S","T","V","W","X","Y","Z"
+            };
+
+            String[] vowels = new String[]{
+                    "A","E","I","O","U"
+            };
+            String[] prompts = new String[]{
+                    String.format(
+                            "Countdown numbers challenge! Use +, -, *, /, and the following numbers up to once each: %s, %s, %s, %s%s, %s%s, %s%s"
+                            +"\n Your target is: %s%s%s. Write your answer in the comments, no cheating!",
+                            randomDigit(),randomDigit(),randomDigit(),randomDigit(),randomDigit(),randomDigit(),randomDigit(),randomDigit(),randomDigit(),
+                            randomDigit(),randomDigit(),randomDigit()
+                    ),
+                    String.format(
+                            "Countdown word challenge! Use the following letters up to once each to create the longest word possible: %s, %s, %s, %s, %s, %s, %s, %s"
+                            +"\nWrite your answer in the comments, no cheating!",
+                            randomString(consonants), randomString(vowels), randomString(consonants), randomString(consonants),
+                            randomString(vowels), randomString(vowels),randomString(consonants), randomString(consonants)
+                    ),
+                    String.format("Give your %s @ a nice compliment [^_^] ",
+                            randomString(new String[]{"1st","2nd","3rd","4th","5th"})
+                    ),
+                    String.format("Art challenge! Feel free to use the following words for inspiration: %s, %s, %s",
+                            randomString(words), randomString(words), randomString(words)
+                    ),
+                    String.format("Writing challenge! write a %s, using the following words for inspiration: %s, %s, %s",
+                            randomString(new String[]{"haiku","limerick","short paragraph","recipe","review"}),
+                            randomString(words), randomString(words), randomString(words)
+                    )
+            };
+
+            return randomString(prompts)
+                    + "\nCode execution is still running on this post if you just wanna mess around with some code instead! [^_^]";
+        }
+
+
+        //Pick a challenge generation mode
+        String[] modes = new String[]{
+                "facebook submission",
+                "sentence generator",
+                "curated from website"
+        };
+        String mode = modes[(int)(Math.random()* modes.length)];
+
+        //Generate challenge string
+        switch (mode) {
+            case "facebook submission" -> {
+                return "Today's challenge: "
+                        + facebookSubmissions[(int) (Math.random() * facebookSubmissions.length)]
+                        + "\n\nAlternatively, do whatever the heck you feel like! [^_^]";
+            }
+            case "sentence generator" -> {
+                //load random words array
+                ArrayList<String> words = loadWords();
+
+                String[] functions = new String[]{
+                        "Sine(x)",
+                        "Tangent(x)",
+                        "Cosine(x)",
+                        "ln(x)",
+                        "n^x",
+                        "x^n",
+                        "mx+c",
+                        "arcTangent(x)",
+                        "arcCosine(x)",
+                        "arcSine(x)",
+                        "floor(x)"
+                };
+                String[] imageFilters = new String[]{
+                        "using the canny edge detection filter",
+                        "with a brightness threshold filter",
+                        "with a blur filter",
+                        "with a filter you created!",
+                        "by using a paint-bucket fill effect at some random pixel locations",
+                        "with a black an white filter",
+                        "to increase or decrease the contrast between bright and dark pixels",
+                        "by warping it in a cool way",
+                        "using a convolution filter of some kind!",
+                        "by sorting all the pixels in order of brightness",
+                        "by changing it to a 16-colour palette"
+                };
+                String[] shapes = new String[]{
+                        "a triangle defined by random points",
+                        "a circle defined by random parameters",
+                        "a square defined by random parameters",
+                        "a spiral",
+                        "a smiley face!",
+                        "a polygon defined by random points",
+                        "a hexagon"
+                };
+                String[] renders = new String[]{
+                        "a Mandelbrot set fractal",
+                        "a Sierpiński triangle fractal",
+                        "an Apollonian gasket fractal",
+                        "a Cantor set fractal",
+                        "a rectangular cuboid from random x,y,z coordinates",
+                        "a Koch snowflake fractal",
+                        "a pretty looking gradient",
+                        "an interesting noise function",
+                        "a simulation of Conway's game of life",
+                        "a simulation of Langton's ant or come up with rules for a new \"ant\" simulation"
+                };
+                String[] sortingAlgorithms = new String[]{
+                        "using the quicksort algorithm",
+                        "using the mergesort algorithm",
+                        "using the bubble sort algorithm",
+                        "using the bogosort algorithm",
+                        "using the insertion sort algorithm",
+                        "using the selection sort algorithm"
+                };
+
+                String[] prompts = new String[]{
+                    String.format(
+                            "Code something random using these words as inspiration! \"%s,\" \"%s\"",
+                            randomString(words),
+                            randomString(words)
+                    ),
+                    String.format(
+                            "Write a script that can graph a mathematical function. Test it out with variations of the function %s",
+                            randomString(functions)
+                    ),
+                    String.format(
+                            "Write a script that filters an image %s ",
+                            randomString(imageFilters)
+                    ),
+                    //a shape
+                    String.format(
+                            "Write a script that draws %s",
+                            randomString(shapes)
+                    ),
+                    String.format(
+                            "Render %s",
+                            randomString(renders)
+                    ),
+                    String.format(
+                            "Write a script that creates an abstract art piece incorporating the concepts of \"%s\" and \"%s\"",
+                            randomString(words),
+                            randomString(words)
+                    ),
+                    String.format(
+                            "Write a random %s generator using your own idea or something relating to \"%s\"",
+                            randomString(new String[]{"sentence","shopping list","newspaper headline","username","movie title","video game idea","short story","groundbreaking invention"}),
+                            randomString(words)
+                    ),
+                    String.format(
+                            "Design a calculator function for something related to %s",
+                            randomString(words)
+                    ),
+                    String.format(
+                            "Write a function that can convert a string to a%s value",
+                            randomString(new String[]{"n integer", " float", " boolean","n array"})
+                    ),
+                    String.format(
+                            "Write a script that sorts an array %s",
+                            randomString(sortingAlgorithms)
+                    ),
+                    String.format(
+                            "Write a script that draws some ASCII art to the console! You might like to use %s or %s for inspiration",
+                            randomString(words),
+                            randomString(words)
+                    ),
+                };
+
+                String[] extra = new String[]{
+                        "You must use recursion",
+                        "You can only use the print() function once",
+                        "Using the \"+\" symbol is not allowed",
+                        "No casting functions are allowed",
+                        "No array variables are allowed",
+                        "Incorporate the concept of "+randomString(words),
+                        "While loops are not allowed",
+                        "If statements are not allowed!!",
+                        "Code golf: Try to complete the challenge in as few characters as possible",
+                        "You can't use the letter \"E\""
+                };
+
+                return "Today's challenge: " + randomString(prompts)
+                        + "\nExtra for experts: " + randomString(extra)
+                        + "\n\nAlternatively, do whatever the heck you feel like! [^_^]";
+            }
+            case "curated from website" -> {
+                return "Today's challenge: "
+                        + curatedChallenges[(int) (Math.random() * curatedChallenges.length)]
+                        + "\n\nAlternatively, do whatever the heck you feel like! [^_^]";
+            }
+            default -> {
+                return "ERROR ERROR ERROR BEEP BOOP";
+            }
+        }
+    }
+
 
     //Record Errors that caused program failure.
     //Generally these will be internet connection errors, and occasionally API errors.
@@ -452,9 +842,9 @@ public class CodeBot {
 
         try{
             loadPostData();
-            errorMessage += String.format("Post: %s\nPost ID: %s\n",postText,postID);
+            errorMessage += String.format("Post: %s\nPost ID: %s\n",currentPostText,currentPostID);
         }catch (IOException ignored){
-            //Not exactly critical that we get post text and ID
+            //Not exactly critical that we get post text and ID for the error message
         }
 
         String dateTime = dateTimeString();
@@ -474,8 +864,8 @@ public class CodeBot {
                 c.getMessage(),
                 c.getFrom().getName(),
                 c.getFrom().getId(),
-                postID,
-                postText
+                currentPostID,
+                currentPostText
         );
 
         String dateTime = dateTimeString();
@@ -534,7 +924,7 @@ public class CodeBot {
 
             System.out.printf("\n============= New Log =============\nMessage: %s\nError: %s\n%s\n===================================\n",message,errorMessage,dateTime);
         }catch (IOException e){
-            System.out.println(e);
+            System.out.println(e.getMessage());
         }
     }
 
@@ -545,34 +935,63 @@ public class CodeBot {
             loadConfig();
             loadPostData();
         } catch (IOException e) {
+            log(e,"IOException in CodeBot.main while trying to load config and post data from JSON");
             e.printStackTrace();
             return;
         }
 
-        //Default mode. Options: Comment, Post
-        String mode = "Comment";
-        //Default post message
-        String message = "New post: "+dateTimeString();
+        //CodeBot mode
+        String mode;
+        String message;
 
         //CLI args overwrite default mode and message
         if(args.length>0){
             mode = args[0];
+        }else{
+            mode = "Comment";
         }
+
         if(args.length>1){
             message = args[1];
+        }else{
+            message = generatePost();
         }
 
         try{
+            //read and execute comments from the current post
             if(mode.equals("Comment")){
-                String commentData = requestComments(postID);
+                System.out.println("Comment mode");
+                String commentData = requestComments(currentPostID);
                 if(commentData==null){return;}
                 executeComments(commentData);
             }
 
+            //upload a new post
             if(mode.equals("Post")){
-                String res = publishPost(message,false);
+                System.out.println("Post mode");
+                String res = publishPost(message,false,false);
                 if(res!=null){System.out.println(res);}
             }
+
+            //Handling the post which takes programming challenge submissions
+            if(mode.equals("CommentSubmissions")){
+                System.out.println("Comment Submissions mode");
+                String commentData = requestComments(currentSubmissionsID);
+                if(commentData==null){return;}
+                loadSubmissionComments(commentData);
+            }
+
+            //Create a new monitored post to ask for submissions
+            if(mode.equals("PostSubmissions")){
+                System.out.println("Post Submissions mode");
+                String res = publishPost(
+                    "CodeBot is now accepting challenge submissions! Please comment your coding challenge ideas below! Thanks [^_^]"
+                    ,true
+                    ,true
+                );
+                if(res!=null){System.out.println(res);}
+            }
+
         } catch (InterruptedException e) {
             log(e,"InterruptedException in CodeBot.main, mode: "+mode);
         }

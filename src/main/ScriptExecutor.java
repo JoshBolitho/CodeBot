@@ -22,7 +22,7 @@ public class ScriptExecutor {
 
 
     private static final Integer maxImageSize = 2000;//pixels
-    private static final Integer maxExecutionTime = 120;//seconds
+    private static final Integer maxExecutionTime = 300;//seconds
     private static final Integer maxOutputLength = 7000;//characters
 
 
