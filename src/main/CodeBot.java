@@ -97,6 +97,7 @@ public class CodeBot {
         Files.writeString(fileName,postJSON);
     }
 
+    //Return string contains the most reacted comment
     public static void executeComments(String APIResponse) throws InterruptedException {
 
         Gson gson = new Gson();
@@ -200,7 +201,6 @@ public class CodeBot {
                 if (containsProfanity) {
                     continue;
                 }
-
 
                 //Reply to comment, with or without an image!
                 if (scriptExecutor.getCanvasVisibility() && scriptExecutor.getCanvas() != null) {
@@ -338,7 +338,7 @@ public class CodeBot {
 
         // Get comments
         var getComments = HttpRequest.newBuilder(
-                URI.create(String.format("https://graph.facebook.com/v9.0/%s/comments?access_token=%s&fields=message,id,attachment,from,comments",objectID, user_access_token))
+                URI.create(String.format("https://graph.facebook.com/v9.0/%s/comments?access_token=%s&fields=message,id,attachment,from,comments,reactions.summary(total_count)",objectID, user_access_token))
         ).build();
 
         // use the client to send the request
@@ -502,6 +502,7 @@ public class CodeBot {
             //Update queuedPosts: remove first string from queuedPosts
             queuedPosts = Arrays.copyOfRange(queuedPosts,1,queuedPosts.length);
         }
+        System.out.println("Message: "+message);
 
         // create a client
         var client = HttpClient.newHttpClient();
@@ -647,7 +648,7 @@ public class CodeBot {
                             randomString(consonants), randomString(vowels), randomString(consonants), randomString(consonants),
                             randomString(vowels), randomString(vowels),randomString(consonants), randomString(consonants)
                     ),
-                    String.format("Give your %s @ a nice compliment [^_^] ",
+                    String.format("Give your %s @ a nice compliment!",
                             randomString(new String[]{"1st","2nd","3rd","4th","5th"})
                     ),
                     String.format("Art challenge! Feel free to use the following words for inspiration: %s, %s, %s",
@@ -677,7 +678,7 @@ public class CodeBot {
             case "facebook submission" -> {
                 return "Today's challenge: "
                         + facebookSubmissions[(int) (Math.random() * facebookSubmissions.length)]
-                        + "\n\nAlternatively, do whatever the heck you feel like! [^_^]";
+                        + "\n\nAlternatively, do whatever the heck you feel like!";
             }
             case "sentence generator" -> {
                 //load random words array
@@ -773,11 +774,11 @@ public class CodeBot {
                             randomString(words)
                     ),
                     String.format(
-                            "Design a calculator function for something related to %s",
+                            "Design a calculator function for something related to \"%s\"",
                             randomString(words)
                     ),
                     String.format(
-                            "Write a function that can convert a string to a%s value",
+                            "Write a function that can manually convert a string to a%s value",
                             randomString(new String[]{"n integer", " float", " boolean","n array"})
                     ),
                     String.format(
@@ -785,7 +786,7 @@ public class CodeBot {
                             randomString(sortingAlgorithms)
                     ),
                     String.format(
-                            "Write a script that draws some ASCII art to the console! You might like to use %s or %s for inspiration",
+                            "Write a script that draws some ASCII art to the console! You might like to use \"%s\" or \"%s\" for inspiration",
                             randomString(words),
                             randomString(words)
                     ),
@@ -794,14 +795,15 @@ public class CodeBot {
                 String[] extra = new String[]{
                         "You must use recursion",
                         "You can only use the print() function once",
-                        "Using the \"+\" symbol is not allowed",
+                        "Using the + symbol is not allowed",
                         "No casting functions are allowed",
                         "No array variables are allowed",
-                        "Incorporate the concept of "+randomString(words),
+                        "Incorporate the concept of \""+randomString(words)+"\"",
                         "While loops are not allowed",
                         "If statements are not allowed!!",
-                        "Code golf: Try to complete the challenge in as few characters as possible",
-                        "You can't use the letter \"E\""
+                        "Code golf - Try to complete the challenge in as few characters as possible",
+                        "You can't use the letter \"E\"",
+                        "You can't use the letter \"A\""
                 };
 
                 return "Today's challenge: " + randomString(prompts)
@@ -818,6 +820,71 @@ public class CodeBot {
             }
         }
     }
+
+    private static String getMostReacted(String APIResponse) throws InterruptedException {
+        Gson gson = new Gson();
+        CommentData commentData = gson.fromJson(APIResponse, CommentData.class);
+
+        if(commentData.getError()!=null){
+            log(commentData.getError(),"FB Graph API - Error retrieving comments");
+            return null;
+        }
+
+        Comment[] comments = commentData.getData();
+
+        if(comments==null){
+            log("FB Graph API - Error retrieving comments","Comments array is null");
+            return null;
+        }
+
+
+        //Congratulate the most reacted comment
+        Comment mostReacted = null;
+        Integer maxReacted = 0;
+
+        for(Comment c : comments){
+
+            try {
+                //Test comment for profanity
+                boolean containsProfanity = false;
+                for (String s : profanity_list) {
+                    if (c.getMessage().contains(s)) {
+                        System.out.println("Profanity detected");
+                        publishComment(c.getId(), "Profanity detected. Delete your comment.");
+
+                        log(c, "Comment failed the profanity filter.");
+                        containsProfanity = true;
+                    }
+                }
+                if (containsProfanity) {
+                    continue;
+                }
+
+                //Check whether current comment has more reacts than maxReacted
+                if(c.getReactions()!=null && c.getReactions().getSummary()!=null){
+                   Summary summary = c.getReactions().getSummary();
+                   if(summary.getTotal_count()!=null && summary.getTotal_count()>maxReacted){
+                       mostReacted = c;
+                       maxReacted = summary.getTotal_count();
+                   }
+                }
+
+            }catch (InterruptedException e){
+                throw e;
+            }catch (Throwable e){
+                log(e,"Unanticipated error type thrown during getMostReacted");
+            }
+        }
+
+        //ensure everything has been initialised etc and there is a comment which received the most reactions.
+        if(mostReacted!=null){
+            Summary summary = mostReacted.getReactions().getSummary();
+            Integer total_count = summary.getTotal_count();
+            return String.format("Congratulations to %s for having the top comment in the last post! (%s reaction%s)\n\n",mostReacted.getFrom().getName(),total_count,total_count==1?"":"s");
+        }
+        return null;
+    }
+
 
 
     //Record Errors that caused program failure.
@@ -968,8 +1035,22 @@ public class CodeBot {
 
             //upload a new post
             if(mode.equals("Post")){
+                String topCommentMessage = null;
+
+                //First reply to remaining comments on current post
+                System.out.println("Comment mode");
+                String commentData = requestComments(currentPostID);
+                if(commentData!=null){
+                    executeComments(commentData);
+                    topCommentMessage = getMostReacted(commentData);
+                }
+
+                //Upload post
                 System.out.println("Post mode");
-                String res = publishPost(message,false,false);
+                String res = publishPost(
+                        (topCommentMessage==null?"":topCommentMessage)+message,
+                        false,
+                        false);
                 if(res!=null){System.out.println(res);}
             }
 

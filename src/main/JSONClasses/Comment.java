@@ -8,6 +8,8 @@ public class Comment {
 
     From from;
 
+    Reactions reactions;
+
     public String getMessage() {
         return message;
     }
@@ -23,8 +25,11 @@ public class Comment {
     public CommentData getComments() {
         return comments;
     }
-
     public From getFrom() {
         return from;
+    }
+
+    public Reactions getReactions() {
+        return reactions;
     }
 }
