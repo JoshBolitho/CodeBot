@@ -1,5 +1,9 @@
 {
-  "currentPost": "",
-  "repliedComments": [
-  ]
+  "currentPostID": "",
+  "currentPostText": "",
+  "queuedPosts": [],
+  "pastPosts": [],
+  "currentSubmissionsID": "",
+  "facebookSubmissions": [],
+  "curatedChallenges": []
 }
