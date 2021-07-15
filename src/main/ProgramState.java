@@ -10,7 +10,7 @@ import java.util.HashMap;
 
 public class ProgramState {
 
-    private HashMap<String,Variable> programVariables = new HashMap<>();
+    private HashMap<String, Value> programVariables = new HashMap<>();
     private HashMap<String,Function> programFunctions = new HashMap<>();
     private String consoleOutput = "";
 
@@ -26,15 +26,16 @@ public class ProgramState {
     //Print an error to console output, and truncate if the string is too long rather than throwing another error.
     public void printError(String s){
 
-        String temp = "\n" + s;
+        //Strip newlines from error message.
+        String temp = "\n" + s.replace("\n","\\n");
 
         //ensure the error string isn't too long
         if(temp.length()>=ScriptExecutor.getMaxOutputLength()){return;}
 
         //test whether printing the error will cause the consoleOutput to go over maxOutputLength
         if(consoleOutput.length()+temp.length() > ScriptExecutor.getMaxOutputLength()){
-            //truncate the console output, and leave enough space for the temp string.
-            consoleOutput = consoleOutput.substring(0,ScriptExecutor.getMaxOutputLength()-1-temp.length());
+            //truncate the console output, and leave enough space for the temp string. (with a 1000 character buffer just to be sure)
+            consoleOutput = consoleOutput.substring(0,ScriptExecutor.getMaxOutputLength()-1-temp.length()-1000);
         }
         consoleOutput = consoleOutput + temp;
     }
@@ -45,7 +46,7 @@ public class ProgramState {
     }
 
     //retrieve a variable by name
-    public Variable getProgramVariable(String key){
+    public Value getProgramVariable(String key){
         if(programVariables.containsKey(key)){
             return programVariables.get(key);
         }
@@ -57,7 +58,7 @@ public class ProgramState {
     }
 
     //add a variable
-    public void addProgramVariable(String s,Variable v){
+    public void addProgramVariable(String s, Value v){
         programVariables.put(s,v);
     }
 
@@ -78,7 +79,7 @@ public class ProgramState {
 
 
     //For testing only
-    public HashMap<String, Variable> getProgramVariables() {return programVariables; }
+    public HashMap<String, Value> getProgramVariables() {return programVariables; }
     public HashMap<String, Function> getProgramFunctions() {return programFunctions; }
 
     public ProgramState() {}

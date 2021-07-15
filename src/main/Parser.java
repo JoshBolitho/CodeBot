@@ -7,6 +7,8 @@ import java.io.IOException;
 import java.util.*;
 import java.util.regex.*;
 
+import static java.util.Map.entry;
+
 public class Parser {
 
     ArrayList<String> variableNames = new ArrayList<>();
@@ -65,6 +67,41 @@ public class Parser {
 
     static Pattern Name = Pattern.compile("[a-zA-Z\\d]+");
 
+    static Map<Pattern,String> patternDisplayStrings = Map.ofEntries(
+        entry(OpenParenthesis, "("),
+        entry(CloseParenthesis, ")"),
+        entry(OpenBrace, "{"),
+        entry(CloseBrace, "}"),
+        entry(OpenSquare, "["),
+        entry(CloseSquare, "]"),
+
+        entry(NewLine, "\\n"),
+        entry(DoubleQuotes, "\""),
+        entry(Not, "!"),
+
+        entry(While, "while"),
+        entry(If, "if"),
+        entry(Else, "else"),
+        entry(Function, "function"),
+        entry(Comma, ","),
+        entry(Return, "return"),
+
+        entry(Times, "*"),
+        entry(Divide, "/"),
+        entry(Modulo, "%"),
+        entry(Plus, "+"),
+        entry(Minus, "-"),
+        entry(GreaterThan, ">"),
+        entry(LessThan, "<"),
+        entry(Equals, "="),
+        entry(And, "&"),
+        entry(Or, "|"),
+
+        entry(IntegerPattern, "Integer"),
+        entry(FloatPattern, "Float"),
+        entry(BooleanPattern, "Boolean")
+    );
+
     static ArrayList<Operator> operators = new ArrayList<>(
             Set.of(
                     new Operator(Times,Operation.times,5),
@@ -99,8 +136,11 @@ public class Parser {
             return s.next();
         }
         //if the require fails:
-        if(p.equals(NewLine)){throw new ScriptException("Expected \"\\n\"");}
-        throw new ScriptException("Expected \""+p.toString()+"\"");
+        if(patternDisplayStrings.containsKey(p)) {
+            throw new ScriptException("Expected \"" + patternDisplayStrings.get(p) + "\"");
+        }else{
+            throw new ScriptException("Expected \"" + p + "\"");
+        }
     }
 
     //Return true if scanner has the following pattern.
@@ -125,7 +165,7 @@ public class Parser {
                 log.append("[").append(s.next()).append("], ");}
         }
         System.out.println(log);
-        throw new ScriptException("Expected "+str);
+        throw new ScriptException("Expected \""+str+"\"");
     }
 
     //Creates a function assignment node, and adds it to the program.
@@ -171,10 +211,10 @@ public class Parser {
 
     //Creates a variable assignment node, and adds it to the program.
     //As a result, executing the program will add the variable to the scripting environment.
-    public void addProgramVariable(ProgramNode program, String name, Variable variable){
+    public void addProgramVariable(ProgramNode program, String name, Value value){
         program.addExecutableNode(
                 new VariableAssignmentNode(name,
-                        new ValueExpression(variable)
+                        new ValueExpression(value)
                 )
         );
         variableNames.add(name);
@@ -196,7 +236,7 @@ public class Parser {
         return bi;
     }
 
-    public ProgramNode parseScript(String script) throws StopException{
+    public ProgramNode parseScript(String script, BufferedImage inputImage) throws StopException{
 
         //Remove any lines beginning with "%". These lines are treated as comments by the parser.
         String[] lines = script.split("\n");
@@ -245,20 +285,26 @@ public class Parser {
         addInternalFunction(program,"cos",new String[]{"x"},true);
         addInternalFunction(program,"pow",new String[]{"b","p"},true);
 
-        //Initialise canvas as ImageVariable called "_canvas"
+        //Initialise canvas as ImageValue called "_canvas"
         //default size is 100x100
-        addProgramVariable(program, "_canvas",new ImageVariable(100,100));
+        addProgramVariable(program, "_canvas",new ImageValue(100,100));
 
         //Initialise canvas visibility as boolean called "_canvasVisibility"
-        addProgramVariable(program, "_canvasVisibility",new BooleanVariable(false));
+        addProgramVariable(program, "_canvasVisibility",new BooleanValue(false));
+
+        //Add input image
+        if(inputImage==null){
+            inputImage = loadImage("src\\main\\Images\\input.png");
+        }
+        addProgramVariable(program,"input",new ImageValue(inputImage));
 
         //Add monky image
         BufferedImage monkyImage = loadImage("src\\main\\Images\\monky.png");
-        addProgramVariable(program,"monky",new ImageVariable(monkyImage));
+        addProgramVariable(program,"monky",new ImageValue(monkyImage));
 
         //Add sun image
         BufferedImage sunImage = loadImage("src\\main\\Images\\sun.png");
-        addProgramVariable(program,"sun",new ImageVariable(sunImage));
+        addProgramVariable(program,"sun",new ImageValue(sunImage));
 
         System.out.println(commentRemovedScript);
         //Parse the user's script in a separate ProgramNode "scriptNode" and append to the main ProgramNode, "program"
@@ -298,7 +344,6 @@ public class Parser {
             //currently missing a test to see if parsing is currently in a function,
             //so in theory someone could add a return statement without being in a function
             return parseReturn(s);
-//            throw new ScriptException("Can't return when not inside a function");
         }else{
             //test whether scanner.next() has a variable name already defined in the script
             for(String str : variableNames){
@@ -457,6 +502,7 @@ public class Parser {
         if(functionNames.contains(name)){
             throw new ScriptException("Invalid function name (trying to use name of already defined function): "+name);
         }
+        //Add new function name to list of recognised function names, so the parser can reference it later.
         functionNames.add(name);
 
         require(OpenParenthesis,s);
@@ -488,7 +534,6 @@ public class Parser {
         require(OpenBrace,s);
         optionalRequire(NewLine,s);
         while(!s.hasNext(CloseBrace)){
-            //Add new function name to list of recognised variables, so the compiler can reference them later.
             functionScript.addExecutableNode(parseExecutableNode(s));
         }
         require(CloseBrace,s);
@@ -513,7 +558,7 @@ public class Parser {
         if (s.hasNext(Minus)){
             require(Minus, s);
             expression = new OperationExpression(
-                    new ValueExpression(new IntegerVariable(0)),
+                    new ValueExpression(new IntegerValue(0)),
                     parseOperand(s),
                     Operation.minus
             );
@@ -549,7 +594,7 @@ public class Parser {
                 if(Float.isNaN(next) || Float.isInfinite(next)){
                     throw new ScriptException("Failed to parse float: "+ next);
                 }
-                expression = new ValueExpression(new FloatVariable(next));
+                expression = new ValueExpression(new FloatValue(next));
                 return expression;
             }
             throw new ScriptException("Invalid float value: "+s.next());
@@ -558,7 +603,7 @@ public class Parser {
         if (s.hasNext(IntegerPattern) ){
             if(s.hasNextInt()){
                 Integer result = s.nextInt();
-                expression = new ValueExpression(new IntegerVariable(result));
+                expression = new ValueExpression(new IntegerValue(result));
                 return expression;
             }
             throw new ScriptException("Invalid integer value: "+s.next());
@@ -567,7 +612,7 @@ public class Parser {
         if (s.hasNext(BooleanPattern)){
             if(s.hasNextBoolean()){
                 boolean result = s.nextBoolean();
-                expression = new ValueExpression(new BooleanVariable(result));
+                expression = new ValueExpression(new BooleanValue(result));
                 return expression;
             }
             throw new ScriptException("Invalid boolean value: "+s.next());
@@ -581,12 +626,12 @@ public class Parser {
 
             //This case catches an empty string
             if(nextString.equals("\"")){
-                expression = new ValueExpression(new StringVariable(""));
+                expression = new ValueExpression(new StringValue(""));
                 s.useDelimiter(defaultDelimiter);
             }
             //this case catches literally any other possible string
             else {
-                expression = new ValueExpression(new StringVariable(nextString));
+                expression = new ValueExpression(new StringValue(nextString));
                 s.useDelimiter(defaultDelimiter);
                 require(DoubleQuotes, s);
             }
@@ -719,7 +764,7 @@ public class Parser {
 
         while (true){
             //ignore Newlines
-            if(s.hasNext(NewLine)){ require(NewLine,s);}
+            optionalRequire(NewLine,s);
 
             if(s.hasNext(CloseSquare)){
                 break;
@@ -727,7 +772,7 @@ public class Parser {
             elements.add(parseExpression(s,null,null));
 
             //ignore Newlines
-            if(s.hasNext(NewLine)){ require(NewLine,s);}
+            optionalRequire(NewLine,s);
 
             if(s.hasNext(Comma)){
                 require(Comma,s);
@@ -738,7 +783,7 @@ public class Parser {
 
         require(CloseSquare,s);
 
-        return new ValueExpression(new ArrayVariable(elements));
+        return new ValueExpression(new ArrayValue(elements));
     }
 
     public Parser() {}

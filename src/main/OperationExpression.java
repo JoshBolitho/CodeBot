@@ -4,7 +4,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 import static java.util.Map.entry;
-import static main.VariableType.*;
+import static main.ValueType.*;
 
 public class OperationExpression implements Expression {
 
@@ -31,11 +31,10 @@ public class OperationExpression implements Expression {
     }
 
     @Override
-    public Variable evaluate(ProgramState programState, HashMap<String, Variable> functionVariables) {
-        //Evaluate expression1 to a Variable
-        Variable value1 = expression1 == null ? null : expression1.evaluate(programState, functionVariables);
-
-        Variable value2 = expression2 == null ? null : expression2.evaluate(programState, functionVariables);
+    public Value evaluate(ProgramState programState, HashMap<String, Value> functionVariables) {
+        //Evaluate expressions to a Values
+        Value value1 = expression1 == null ? null : expression1.evaluate(programState, functionVariables);
+        Value value2 = expression2 == null ? null : expression2.evaluate(programState, functionVariables);
 
         try {
             switch (operation) {
@@ -48,7 +47,7 @@ public class OperationExpression implements Expression {
                             result = value1.castInteger() > value2.castInteger();
                         }
                         assertNotNull(result);
-                        return new BooleanVariable(result);
+                        return new BooleanValue(result);
                     }
                     fail();
                 }
@@ -61,7 +60,7 @@ public class OperationExpression implements Expression {
                             result = value1.castInteger() < value2.castInteger();
                         }
                         assertNotNull(result);
-                        return new BooleanVariable(result);
+                        return new BooleanValue(result);
                     }
                     fail();
                 }
@@ -84,21 +83,21 @@ public class OperationExpression implements Expression {
                         result = value1.castString().equals(value2.castString());
                     }
                     else if (value1.isType(NULL) && value2.isType(NULL)) {
-                        return new BooleanVariable(true);
+                        return new BooleanValue(true);
                     }
                     else if (value1.isType(ARRAY) && value2.isType(ARRAY)) {
 
                         //ensure both arrays are the same length
                         if (value1.castArray().size() != value2.castArray().size()) {
-                            return new BooleanVariable(false);
+                            return new BooleanValue(false);
                         }
 
                         //test whether each element in both arrays match up.
                         for (int i = 0; i < value1.castArray().size(); i++) {
-                            Variable v1 = value1.castArray().get(i);
-                            Variable v2 = value2.castArray().get(i);
+                            Value v1 = value1.castArray().get(i);
+                            Value v2 = value2.castArray().get(i);
 
-                            Variable equalityTester = new OperationExpression(
+                            Value equalityTester = new OperationExpression(
                                     new ValueExpression(v1),
                                     new ValueExpression(v2),
                                     Parser.Operation.equals
@@ -106,17 +105,17 @@ public class OperationExpression implements Expression {
 
                             assertNotNull(equalityTester.castBoolean());
                             if (!equalityTester.castBoolean()) {
-                                return new BooleanVariable(false);
+                                return new BooleanValue(false);
                             }
                         }
                         //every element of the two arrays have been tested and match.
-                        return new BooleanVariable(true);
+                        return new BooleanValue(true);
                     }
                     else{
                         result = false;
                     }
                     assertNotNull(result);
-                    return new BooleanVariable(result);
+                    return new BooleanValue(result);
 
                 }
                 case plus -> {
@@ -124,11 +123,11 @@ public class OperationExpression implements Expression {
                         if (value1.isType(FLOAT) || value2.isType(FLOAT)) {
                             float result = value1.castFloat() + value2.castFloat();
                             assertValidFloat(result);
-                            return new FloatVariable(result);
+                            return new FloatValue(result);
                         }
                         Integer result = value1.castInteger() + value2.castInteger();
                         assertNotNull(result);
-                        return new IntegerVariable(result);
+                        return new IntegerValue(result);
                     }
 
                     if (notNull(value1) && notNull(value2)
@@ -136,7 +135,7 @@ public class OperationExpression implements Expression {
                     ) {
                         String result = value1.castString() + value2.castString();
                         assertNotNull(result);
-                        return new StringVariable(result);
+                        return new StringValue(result);
                     }
 
                     fail();
@@ -146,11 +145,11 @@ public class OperationExpression implements Expression {
                         if (value1.isType(FLOAT) || value2.isType(FLOAT)) {
                             float result = value1.castFloat() - value2.castFloat();
                             assertValidFloat(result);
-                            return new FloatVariable(result);
+                            return new FloatValue(result);
                         }
                         Integer result = value1.castInteger() - value2.castInteger();
                         assertNotNull(result);
-                        return new IntegerVariable(result);
+                        return new IntegerValue(result);
                     }
                     fail();
                 }
@@ -159,12 +158,12 @@ public class OperationExpression implements Expression {
                         if (value1.isType(FLOAT) || value2.isType(FLOAT)) {
                             float result = value1.castFloat() * value2.castFloat();
                             assertValidFloat(result);
-                            return new FloatVariable(result);
+                            return new FloatValue(result);
                         }
                         //both are ints
                         Integer result = value1.castInteger() * value2.castInteger();
                         assertNotNull(result);
-                        return new IntegerVariable(result);
+                        return new IntegerValue(result);
                     }
                     fail();
                 }
@@ -175,18 +174,18 @@ public class OperationExpression implements Expression {
                             if (value2.castFloat() == 0f) { fail(); }
                             float result = value1.castFloat() / value2.castFloat();
                             assertValidFloat(result);
-                            return new FloatVariable(result);
+                            return new FloatValue(result);
                         } else {
                             if (value2.castInteger() == 0) { fail(); }
                             //if both are integers: only return float if they don't divide to a whole number.
                             if (value1.castInteger() % value2.castInteger() == 0) {
                                 Integer result = value1.castInteger() / value2.castInteger();
                                 assertNotNull(result);
-                                return new IntegerVariable(result);
+                                return new IntegerValue(result);
                             }
                             float result = value1.castFloat() / value2.castFloat();
                             assertValidFloat(result);
-                            return new FloatVariable(result);
+                            return new FloatValue(result);
                         }
                     }
                     fail();
@@ -200,25 +199,25 @@ public class OperationExpression implements Expression {
                         }
                         Integer result = value1.castInteger() % value2.castInteger();
                         assertNotNull(result);
-                        return new IntegerVariable(result);
+                        return new IntegerValue(result);
                     }
                     fail();
                 }
                 case and -> {
                     if (bothValuesAreBooleans(value1, value2)) {
-                        return new BooleanVariable(value1.castBoolean() && value2.castBoolean());
+                        return new BooleanValue(value1.castBoolean() && value2.castBoolean());
                     }
                     fail();
                 }
                 case or -> {
                     if (bothValuesAreBooleans(value1, value2)) {
-                        return new BooleanVariable(value1.castBoolean() || value2.castBoolean());
+                        return new BooleanValue(value1.castBoolean() || value2.castBoolean());
                     }
                     fail();
                 }
                 case not -> {
                     if (notNull(value1) && value1.isType(BOOLEAN)) {
-                        return new BooleanVariable(!value1.castBoolean());
+                        return new BooleanValue(!value1.castBoolean());
                     }
                     fail();
                 }
@@ -227,24 +226,24 @@ public class OperationExpression implements Expression {
         catch (Exception e){ fail();}
 
         fail();
-        return new NullVariable();
+        return new NullValue();
     }
 
     //Operation helper methods
-    private boolean bothValuesAreNumbers(Variable a, Variable b){
+    private boolean bothValuesAreNumbers(Value a, Value b){
         if(a==null || b==null){return false;}
         return  (a.isType(FLOAT) || a.isType(INTEGER))
             &&  (b.isType(FLOAT) || b.isType(INTEGER));
     }
-    private boolean bothValuesAreBooleans(Variable a, Variable b){
+    private boolean bothValuesAreBooleans(Value a, Value b){
         if(a==null || b==null){return false;}
         return  a.isType(BOOLEAN) && b.isType(BOOLEAN);
     }
-    private boolean notNull(Variable v){
+    private boolean notNull(Value v){
         return v != null;
     }
     private void fail() throws ScriptException {
-        throw new ScriptException(String.format("Failed to evaluate %s", this.toString()));
+        throw new ScriptException(String.format("Failed to evaluate %s", this));
     }
     private void assertValidFloat(Float f) throws ScriptException {
         if(     f == null || 

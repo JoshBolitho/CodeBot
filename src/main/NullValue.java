@@ -3,9 +3,9 @@ package main;
 import java.awt.image.BufferedImage;
 import java.util.ArrayList;
 
-public class NullVariable implements Variable{
+public class NullValue implements Value {
 
-    public NullVariable() {}
+    public NullValue() {}
 
     @Override
     public String toString() {
@@ -13,18 +13,13 @@ public class NullVariable implements Variable{
     }
 
     @Override
-    public Object getValue() {
-        return "null";
+    public ValueType getType() {
+        return ValueType.NULL;
     }
 
     @Override
-    public VariableType getType() {
-        return VariableType.NULL;
-    }
-
-    @Override
-    public boolean isType(VariableType v) {
-        return v == VariableType.NULL;
+    public boolean isType(ValueType v) {
+        return v == ValueType.NULL;
     }
 
     @Override
@@ -48,7 +43,7 @@ public class NullVariable implements Variable{
     }
 
     @Override
-    public ArrayList<Variable> castArray() throws ScriptException {
+    public ArrayList<Value> castArray() throws ScriptException {
         throw new ScriptException("Failed to cast null to array");
     }
 

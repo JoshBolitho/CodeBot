@@ -21,7 +21,7 @@ public class ProgramNode implements ExecutableNode{
     }
 
     @Override
-    public void execute(ProgramState programState, HashMap<String,Variable> functionVariables) throws InterruptedException {
+    public void execute(ProgramState programState, HashMap<String, Value> functionVariables) throws InterruptedException {
         //Stop execution if the thread is interrupted (program has taken too long to complete execution)
         if (Thread.interrupted()){
             Thread.currentThread().interrupt();
@@ -67,6 +67,7 @@ public class ProgramNode implements ExecutableNode{
         //Otherwise, handle the exception and throw a StopException
         programState.printError("Execution error at: "+ex.display(0).split("\n")[0]);
         programState.printError(message);
+        programState.printError("[^_^] Check out the guide for help with programming! https://github.com/JoshBolitho/CodeBot/blob/main/Guide.md");
 
         throw new StopException(message);
     }

@@ -3,11 +3,11 @@ package main;
 import java.awt.image.BufferedImage;
 import java.util.ArrayList;
 
-public class StringVariable implements Variable{
+public class StringValue implements Value {
 
     private String value;
 
-    public StringVariable(String value) {
+    public StringValue(String value) {
         this.value = value;
     }
 
@@ -17,18 +17,13 @@ public class StringVariable implements Variable{
     }
 
     @Override
-    public Object getValue() {
-        return value;
+    public ValueType getType() {
+        return ValueType.STRING;
     }
 
     @Override
-    public VariableType getType() {
-        return VariableType.STRING;
-    }
-
-    @Override
-    public boolean isType(VariableType v) {
-        return v == VariableType.STRING; }
+    public boolean isType(ValueType v) {
+        return v == ValueType.STRING; }
 
     @Override
     public String castString() {
@@ -64,7 +59,7 @@ public class StringVariable implements Variable{
     }
 
     @Override
-    public ArrayList<Variable> castArray() throws ScriptException {
+    public ArrayList<Value> castArray() throws ScriptException {
         throw new ScriptException(String.format("Failed to cast %s to array",value));
     }
 

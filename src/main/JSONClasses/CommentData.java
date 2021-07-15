@@ -1,13 +1,17 @@
 package main.JSONClasses;
 
 public class CommentData {
+
     Comment[] data;
-    CommentResponseInfo paging;
+
+    APIError error;
 
     public Comment[] getData() {
         return data;
     }
-    public CommentResponseInfo getPaging() {
-        return paging;
+
+    public APIError getError() {
+        return error;
     }
+
 }

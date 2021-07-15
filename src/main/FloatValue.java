@@ -3,11 +3,11 @@ package main;
 import java.awt.image.BufferedImage;
 import java.util.ArrayList;
 
-public class FloatVariable implements Variable{
+public class FloatValue implements Value {
 
     private float value;
 
-    public FloatVariable(float value) {
+    public FloatValue(float value) {
         this.value = value;
     }
 
@@ -17,18 +17,13 @@ public class FloatVariable implements Variable{
     }
 
     @Override
-    public Object getValue() {
-        return value;
+    public ValueType getType() {
+        return ValueType.FLOAT;
     }
 
     @Override
-    public VariableType getType() {
-        return VariableType.FLOAT;
-    }
-
-    @Override
-    public boolean isType(VariableType v) {
-        return v == VariableType.FLOAT;
+    public boolean isType(ValueType v) {
+        return v == ValueType.FLOAT;
     }
 
     @Override
@@ -52,7 +47,7 @@ public class FloatVariable implements Variable{
     }
 
     @Override
-    public ArrayList<Variable> castArray() throws ScriptException {
+    public ArrayList<Value> castArray() throws ScriptException {
         throw new ScriptException(String.format("Failed to cast %s to array",value));
     }
 

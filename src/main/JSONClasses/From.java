@@ -1,6 +1,6 @@
 package main.JSONClasses;
 
-public class CommentNameID {
+public class From {
     String name;
     String id;
 

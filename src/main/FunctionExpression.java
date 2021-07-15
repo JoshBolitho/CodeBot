@@ -13,7 +13,7 @@ public class FunctionExpression implements Expression {
     }
 
     @Override
-    public Variable evaluate(ProgramState programState, HashMap<String, Variable> functionVariables) throws ScriptException {
+    public Value evaluate(ProgramState programState, HashMap<String, Value> functionVariables) throws ScriptException {
         try {
             if (programState.hasProgramFunction(functionName)) {
                 return programState.getProgramFunction(functionName)
@@ -28,7 +28,7 @@ public class FunctionExpression implements Expression {
             throw new ScriptException("Program ran for too long");
         } catch (Exception e){
             e.printStackTrace();
-            throw new ScriptException("Function call failed: " + this.toString());
+            throw new ScriptException("Function call failed: " + this);
         }
     }
 

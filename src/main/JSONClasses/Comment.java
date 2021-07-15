@@ -1,18 +1,14 @@
 package main.JSONClasses;
 
 public class Comment {
-    String created_time;
-    CommentNameID from;
     String message;
     String id;
+    Attachment attachment;
+    CommentData comments;
 
-    public String getCreated_time() {
-        return created_time;
-    }
+    From from;
 
-    public CommentNameID getFrom() {
-        return from;
-    }
+    Reactions reactions;
 
     public String getMessage() {
         return message;
@@ -20,5 +16,20 @@ public class Comment {
 
     public String getId() {
         return id;
+    }
+
+    public Attachment getAttachment() {
+        return attachment;
+    }
+
+    public CommentData getComments() {
+        return comments;
+    }
+    public From getFrom() {
+        return from;
+    }
+
+    public Reactions getReactions() {
+        return reactions;
     }
 }

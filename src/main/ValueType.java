@@ -1,6 +1,6 @@
 package main;
 
-public enum VariableType {
+public enum ValueType {
     INTEGER,
     FLOAT,
     STRING,

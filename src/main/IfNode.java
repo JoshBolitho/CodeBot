@@ -20,15 +20,15 @@ public class IfNode implements ExecutableNode{
     }
 
     @Override
-    public void execute(ProgramState programState, HashMap<String,Variable> functionVariables) throws InterruptedException{
+    public void execute(ProgramState programState, HashMap<String, Value> functionVariables) throws InterruptedException{
         //Stop execution if the thread is interrupted (program has taken too long to complete execution)
         if (Thread.interrupted()){
                     Thread.currentThread().interrupt();
                     throw new InterruptedException("Thread Interrupted");
                 }
 
-        Variable conditionResult = condition.evaluate(programState, functionVariables);
-        if(conditionResult.getType() != VariableType.BOOLEAN){throw new ScriptException("if statement's condition didn't evaluate to a boolean value");}
+        Value conditionResult = condition.evaluate(programState, functionVariables);
+        if(conditionResult.getType() != ValueType.BOOLEAN){throw new ScriptException("\"If\" statement's condition did not evaluate to a boolean value");}
 
         if(conditionResult.castBoolean()){
             //if condition evaluates to true

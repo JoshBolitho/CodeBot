@@ -5,7 +5,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 
-import static main.VariableType.*;
+import static main.ValueType.*;
 
 public class InternalFunctionExpression implements Expression{
 
@@ -18,42 +18,42 @@ public class InternalFunctionExpression implements Expression{
     }
 
     @Override
-    public Variable evaluate(ProgramState programState, HashMap<String, Variable> functionVariables) {
+    public Value evaluate(ProgramState programState, HashMap<String, Value> functionVariables) {
         try {
             switch (functionName) {
                 case "print": {
                     assertParameters(1);
 
-                    Variable x = getParameter(0, programState, functionVariables);
+                    Value x = getParameter(0, programState, functionVariables);
 
                     programState.print(x.castString());
 
                     //print() returns nothing
-                    return new NullVariable();
+                    return new NullValue();
                 }
                 case "add": {
                     assertParameters(2);
 
-                    Variable arr = getParameter(0, programState, functionVariables);
-                    Variable element = getParameter(1, programState, functionVariables);
+                    Value arr = getParameter(0, programState, functionVariables);
+                    Value element = getParameter(1, programState, functionVariables);
 
                     assertType(arr, ARRAY);
-                    ((ArrayVariable) arr).addElement(element);
+                    ((ArrayValue) arr).addElement(element);
 
                     //add() returns nothing
-                    return new NullVariable();
+                    return new NullValue();
 
                 }
                 case "remove": {
                     assertParameters(2);
 
-                    Variable arr = getParameter(0, programState, functionVariables);
-                    Variable i = getParameter(1, programState, functionVariables);
+                    Value arr = getParameter(0, programState, functionVariables);
+                    Value i = getParameter(1, programState, functionVariables);
 
                     assertType(arr, ARRAY);
                     assertType(i, INTEGER);
 
-                    ArrayVariable array = (ArrayVariable) arr;
+                    ArrayValue array = (ArrayValue) arr;
                     int index = i.castInteger();
 
                     //if the Variable array is null, evaluate the Expression array, and set the Variable array.
@@ -66,19 +66,19 @@ public class InternalFunctionExpression implements Expression{
                     array.removeElement(index);
 
                     //remove() returns nothing
-                    return new NullVariable();
+                    return new NullValue();
                 }
                 case "set": {
                     assertParameters(3);
 
-                    Variable arr = getParameter(0, programState, functionVariables);
-                    Variable i = getParameter(1, programState, functionVariables);
-                    Variable element = getParameter(2, programState, functionVariables);
+                    Value arr = getParameter(0, programState, functionVariables);
+                    Value i = getParameter(1, programState, functionVariables);
+                    Value element = getParameter(2, programState, functionVariables);
 
                     assertType(arr, ARRAY);
                     assertType(i, INTEGER);
 
-                    ArrayVariable array = (ArrayVariable) arr;
+                    ArrayValue array = (ArrayValue) arr;
                     int index = i.castInteger();
 
                     //if the Variable array is null, evaluate the Expression array, and set the Variable array.
@@ -91,18 +91,18 @@ public class InternalFunctionExpression implements Expression{
                     array.setElement(index, element);
 
                     //set() returns nothing
-                    return new NullVariable();
+                    return new NullValue();
                 }
                 case "get": {
                     assertParameters(2);
 
-                    Variable arr = getParameter(0, programState, functionVariables);
-                    Variable i = getParameter(1, programState, functionVariables);
+                    Value arr = getParameter(0, programState, functionVariables);
+                    Value i = getParameter(1, programState, functionVariables);
 
                     assertType(arr, ARRAY);
                     assertType(i, INTEGER);
 
-                    ArrayVariable array = (ArrayVariable) arr;
+                    ArrayValue array = (ArrayValue) arr;
                     int index = i.castInteger();
 
                     //if the Variable array is null, evaluate the Expression array, and set the Variable array.
@@ -116,52 +116,52 @@ public class InternalFunctionExpression implements Expression{
                 }
                 case "castString": {
                     assertParameters(1);
-                    Variable variable = getParameter(0, programState, functionVariables);
-                    return new StringVariable(variable.castString());
+                    Value value = getParameter(0, programState, functionVariables);
+                    return new StringValue(value.castString());
                 }
                 case "castInteger": {
                     assertParameters(1);
-                    Variable variable = getParameter(0, programState, functionVariables);
-                    return new IntegerVariable(variable.castInteger());
+                    Value value = getParameter(0, programState, functionVariables);
+                    return new IntegerValue(value.castInteger());
                 }
                 case "castFloat": {
                     assertParameters(1);
-                    Variable variable = getParameter(0, programState, functionVariables);
-                    return new FloatVariable(variable.castFloat());
+                    Value value = getParameter(0, programState, functionVariables);
+                    return new FloatValue(value.castFloat());
                 }
                 case "castBoolean": {
                     assertParameters(1);
-                    Variable variable = getParameter(0, programState, functionVariables);
-                    return new BooleanVariable(variable.castBoolean());
+                    Value value = getParameter(0, programState, functionVariables);
+                    return new BooleanValue(value.castBoolean());
                 }
                 case "random": {
                     assertParameters(0);
-                    return new FloatVariable((float) Math.random());
+                    return new FloatValue((float) Math.random());
                 }
                 case "length": {
                     assertParameters(1);
-                    Variable variable = getParameter(0, programState, functionVariables);
+                    Value value = getParameter(0, programState, functionVariables);
 
-                    if (variable.isType(STRING)) {
-                        return new IntegerVariable(variable.castString().length());
+                    if (value.isType(STRING)) {
+                        return new IntegerValue(value.castString().length());
                     }
-                    if (variable.isType(ARRAY)) {
-                        ArrayVariable array = (ArrayVariable) variable;
+                    if (value.isType(ARRAY)) {
+                        ArrayValue array = (ArrayValue) value;
 
                         //if the Variable array is null, evaluate the Expression array, and set the Variable array.
                         if (!array.hasValue()) {
                             array.evaluateArray(programState, functionVariables);
                         }
 
-                        return new IntegerVariable(variable.castArray().size());
+                        return new IntegerValue(value.castArray().size());
                     }
                     fail();
                 }
                 case "charAt": {
                     assertParameters(2);
 
-                    Variable str = getParameter(0, programState, functionVariables);
-                    Variable i = getParameter(1, programState, functionVariables);
+                    Value str = getParameter(0, programState, functionVariables);
+                    Value i = getParameter(1, programState, functionVariables);
 
                     assertType(str, STRING);
                     assertType(i, INTEGER);
@@ -171,12 +171,12 @@ public class InternalFunctionExpression implements Expression{
 
                     assertRange(index, 0, string.length() - 1);
 
-                    return new StringVariable(Character.toString(string.charAt(index)));
+                    return new StringValue(Character.toString(string.charAt(index)));
                 }
                 case "type": {
                     assertParameters(1);
-                    Variable variable = getParameter(0, programState, functionVariables);
-                    return new StringVariable(variable.getType().toString());
+                    Value value = getParameter(0, programState, functionVariables);
+                    return new StringValue(value.getType().toString());
                 }
                 case "createImage": {
                     assertParameters(2);
@@ -188,12 +188,12 @@ public class InternalFunctionExpression implements Expression{
                     assertRange(y,0,ScriptExecutor.getMaxImageSize());
 
                     //createImage() returns an image variable
-                    return new ImageVariable(x, y);
+                    return new ImageValue(x, y);
                 }
                 case "setPixel": {
                     assertParameters(6);
 
-                    Variable img = getParameter(0, programState, functionVariables);
+                    Value img = getParameter(0, programState, functionVariables);
 
                     int x = getParameter(1, programState, functionVariables).castInteger();
                     int y = getParameter(2, programState, functionVariables).castInteger();
@@ -203,7 +203,7 @@ public class InternalFunctionExpression implements Expression{
                     int b = getParameter(5, programState, functionVariables).castInteger();
 
                     assertType(img, IMAGE);
-                    ImageVariable image = (ImageVariable) img;
+                    ImageValue image = (ImageValue) img;
 
                     assertRange(x, 0, image.getWidth() - 1);
                     assertRange(y, 0, image.getWidth() - 1);
@@ -216,18 +216,18 @@ public class InternalFunctionExpression implements Expression{
                     image.setPixel(x, y, colour);
 
                     //setPixel() returns nothing
-                    return new NullVariable();
+                    return new NullValue();
                 }
                 case "getPixel": {
                     assertParameters(3);
 
-                    Variable img = getParameter(0, programState, functionVariables);
+                    Value img = getParameter(0, programState, functionVariables);
 
                     int x = getParameter(1, programState, functionVariables).castInteger();
                     int y = getParameter(2, programState, functionVariables).castInteger();
 
                     assertType(img, IMAGE);
-                    ImageVariable image = (ImageVariable) img;
+                    ImageValue image = (ImageValue) img;
 
                     assertRange(x, 0, image.getWidth() - 1);
                     assertRange(y, 0, image.getWidth() - 1);
@@ -237,52 +237,52 @@ public class InternalFunctionExpression implements Expression{
                 case "setCanvas": {
                     assertParameters(1);
 
-                    Variable img = getParameter(0, programState, functionVariables);
+                    Value img = getParameter(0, programState, functionVariables);
                     assertType(img, IMAGE);
-                    ImageVariable image = (ImageVariable) img;
+                    ImageValue image = (ImageValue) img;
 
                     programState.addProgramVariable("_canvas", image);
-                    programState.addProgramVariable("_canvasVisibility", new BooleanVariable(true));
+                    programState.addProgramVariable("_canvasVisibility", new BooleanValue(true));
 
                     //setCanvas() returns nothing
-                    return new NullVariable();
+                    return new NullValue();
                 }
                 case "canvasVisible": {
                     assertParameters(1);
 
-                    Variable b = getParameter(0, programState, functionVariables);
+                    Value b = getParameter(0, programState, functionVariables);
                     assertType(b, BOOLEAN);
-                    BooleanVariable bool = (BooleanVariable) b;
+                    BooleanValue bool = (BooleanValue) b;
 
                     programState.addProgramVariable("_canvasVisibility", bool);
 
                     //canvasVisible() returns nothing
-                    return new NullVariable();
+                    return new NullValue();
                 }
                 case "getDimensions": {
                     assertParameters(1);
 
-                    Variable img = getParameter(0, programState, functionVariables);
+                    Value img = getParameter(0, programState, functionVariables);
                     assertType(img, IMAGE);
-                    ImageVariable image = (ImageVariable) img;
+                    ImageValue image = (ImageValue) img;
 
                     ArrayList<Expression> array = new ArrayList<>(Arrays.asList(
-                            new ValueExpression(new IntegerVariable(image.getWidth())),
-                            new ValueExpression(new IntegerVariable(image.getHeight())))
+                            new ValueExpression(new IntegerValue(image.getWidth())),
+                            new ValueExpression(new IntegerValue(image.getHeight())))
                     );
-                    return new ArrayVariable(array);
+                    return new ArrayValue(array);
                 }
                 case "sin": {
                     assertParameters(1);
 
                     float x = getParameter(0, programState, functionVariables).castFloat();
-                    return new FloatVariable((float) Math.sin(x));
+                    return new FloatValue((float) Math.sin(x));
                 }
                 case "cos": {
                     assertParameters(1);
 
                     float x = getParameter(0, programState, functionVariables).castFloat();
-                    return new FloatVariable((float) Math.cos(x));
+                    return new FloatValue((float) Math.cos(x));
                 }
                 case "pow": {
                     assertParameters(2);
@@ -298,17 +298,17 @@ public class InternalFunctionExpression implements Expression{
                         fail();
                     }
 
-                    return new FloatVariable(result);
+                    return new FloatValue(result);
                 }
                 default:{ fail();}
             }
         }catch (ScriptException | StopException e){ throw e; }
         catch (Exception e){ fail();}
-        return new NullVariable();
+        return new NullValue();
     }
 
     //Internal Function helper methods
-    private Variable getParameter(int i, ProgramState programState, HashMap<String,Variable> functionVariables ){
+    private Value getParameter(int i, ProgramState programState, HashMap<String, Value> functionVariables ){
         return parameters.get(i).evaluate(programState, functionVariables);
     }
     private void fail() throws ScriptException{
@@ -322,8 +322,8 @@ public class InternalFunctionExpression implements Expression{
             );
         }
     }
-    private void assertType(Variable variable,VariableType variableType){
-        if( variable.getType() != variableType ){
+    private void assertType(Value value, ValueType valueType){
+        if( value.getType() != valueType){
             fail();}
     }
     private void assertRange(int i, int min, int max) throws ScriptException {

@@ -4,21 +4,21 @@ import java.awt.*;
 import java.awt.image.BufferedImage;
 import java.util.ArrayList;
 
-public class ImageVariable implements Variable{
+public class ImageValue implements Value {
 
     BufferedImage image;
 
-    //Create an ImageVariable from dimensions
-    public ImageVariable(int x, int y){
+    //Create an ImageValue from dimensions
+    public ImageValue(int x, int y){
         if(x>ScriptExecutor.getMaxImageSize() || x<0 || y>ScriptExecutor.getMaxImageSize() || y<0) {
             throw new ScriptException("Unable to create image with dimensions: "+x+","+y);
         }
         this.image = new BufferedImage(x,y,BufferedImage.TYPE_INT_RGB);
     }
 
-    //Create and ImageVariable from existing BufferedImage
+    //Create and ImageValue from existing BufferedImage
     //Will be inaccessible to BotScript users, and will be used to import custom images
-    public ImageVariable(BufferedImage image) {
+    public ImageValue(BufferedImage image) {
         if(image == null){
             System.out.println("Warning: null image parameter, initialising image as blank 100x100 instead.");
             this.image = new BufferedImage(100,100,BufferedImage.TYPE_INT_RGB); }
@@ -43,17 +43,17 @@ public class ImageVariable implements Variable{
         }
     }
 
-    public ArrayVariable getPixel(int x, int y){
+    public ArrayValue getPixel(int x, int y){
         //Ensure x,y are in bounds
         if(x<image.getWidth() && y< image.getHeight() && x>=0 && y >=0) {
             Color myColour = new Color(image.getRGB(x,y));
 
             ArrayList<Expression> elements = new ArrayList<>();
-            elements.add(new ValueExpression(new IntegerVariable(myColour.getRed())));
-            elements.add(new ValueExpression(new IntegerVariable(myColour.getGreen())));
-            elements.add(new ValueExpression(new IntegerVariable(myColour.getBlue())));
+            elements.add(new ValueExpression(new IntegerValue(myColour.getRed())));
+            elements.add(new ValueExpression(new IntegerValue(myColour.getGreen())));
+            elements.add(new ValueExpression(new IntegerValue(myColour.getBlue())));
 
-            return new ArrayVariable(elements);
+            return new ArrayValue(elements);
 
         }else{
             throw new ScriptException(String.format("Coordinates (%s,%s) don't fit within image dimensions (%s,%s)",x,y,image.getWidth(),image.getHeight()));
@@ -75,18 +75,13 @@ public class ImageVariable implements Variable{
     }
 
     @Override
-    public Object getValue() {
-        return image;
+    public ValueType getType() {
+        return ValueType.IMAGE;
     }
 
     @Override
-    public VariableType getType() {
-        return VariableType.IMAGE;
-    }
-
-    @Override
-    public boolean isType(VariableType v) {
-        return v == VariableType.IMAGE;
+    public boolean isType(ValueType v) {
+        return v == ValueType.IMAGE;
     }
 
     @Override
@@ -110,7 +105,7 @@ public class ImageVariable implements Variable{
     }
 
     @Override
-    public ArrayList<Variable> castArray() throws ScriptException {
+    public ArrayList<Value> castArray() throws ScriptException {
         throw new ScriptException(String.format("Failed to cast image to array"));
     }
 

@@ -2,12 +2,13 @@ package main.JSONClasses;
 
 public class PostResponse {
     String id;
-
-    public PostResponse(String id) {
-        this.id = id;
-    }
+    APIError error;
 
     public String getId() {
         return id;
+    }
+
+    public APIError getError() {
+        return error;
     }
 }

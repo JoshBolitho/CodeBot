@@ -14,6 +14,21 @@ public class FunctionExecutionNode implements ExecutableNode{
     }
 
     @Override
+    public void execute(ProgramState programState, HashMap<String, Value> functionVariables) throws InterruptedException{
+        //Stop execution if the thread is interrupted (program has taken too long to complete execution)
+        if (Thread.interrupted()){
+                    Thread.currentThread().interrupt();
+                    throw new InterruptedException("Thread Interrupted");
+                }
+
+        if(programState.hasProgramFunction(name)) {
+            programState.getProgramFunction(name).executeFunction(parameters, programState, functionVariables);
+        }else{
+            throw new ScriptException("Unable to find reference to function \""+name+"\" in program");
+        }
+    }
+
+    @Override
     public String toString() {
         String out = name + "(";
         for(int i=0;i<parameters.size();i++){
@@ -23,17 +38,6 @@ public class FunctionExecutionNode implements ExecutableNode{
             }
         }
         return out + ")\n";
-    }
-
-    @Override
-    public void execute(ProgramState programState, HashMap<String, Variable> functionVariables) throws InterruptedException{
-        //Stop execution if the thread is interrupted (program has taken too long to complete execution)
-        if (Thread.interrupted()){
-                    Thread.currentThread().interrupt();
-                    throw new InterruptedException("Thread Interrupted");
-                }
-
-        programState.getProgramFunction(name).executeFunction(parameters,programState, functionVariables);
     }
 
     public String display(int depth) {

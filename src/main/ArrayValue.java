@@ -4,16 +4,16 @@ import java.awt.image.BufferedImage;
 import java.util.ArrayList;
 import java.util.HashMap;
 
-public class ArrayVariable implements Variable{
+public class ArrayValue implements Value {
 
     //Stores all parsed expressions in the array, ready to be evaluated once the program is running.
     private final ArrayList<Expression> expressionArray;
 
     //When the Array needs to be Evaluated during execution, probably to assign to a variable or to print the array,
     //Expressions in expressionArray will be evaluated and valueArray will be set.
-    private ArrayList<Variable> valueArray;
+    private ArrayList<Value> valueArray;
 
-    public ArrayVariable(ArrayList<Expression> expressionArray) {
+    public ArrayValue(ArrayList<Expression> expressionArray) {
         this.expressionArray = expressionArray;
     }
 
@@ -43,39 +43,31 @@ public class ArrayVariable implements Variable{
         return result;
     }
 
-    @Override
-    public Object getValue() {
-        if(!hasValue()){
-            System.out.println("Warning: Accessing valueArray, which is null and may not have been initialised yet.");
-        }
-        return valueArray;
-    }
-
     public Boolean hasValue(){
         return !(valueArray == null);
     }
 
-    public void evaluateArray(ProgramState programState, HashMap<String,Variable> functionVariables){
+    public void evaluateArray(ProgramState programState, HashMap<String, Value> functionVariables){
         if(!hasValue()){
-            ArrayList<Variable> variables = new ArrayList<>();
+            ArrayList<Value> values = new ArrayList<>();
 
             for (Expression exp : getExpressionArray()){
-                variables.add(exp.evaluate(programState, functionVariables));
+                values.add(exp.evaluate(programState, functionVariables));
             }
 
-            setValueArray(variables);
+            setValueArray(values);
         }
     }
 
 
     @Override
-    public VariableType getType() {
-        return VariableType.ARRAY;
+    public ValueType getType() {
+        return ValueType.ARRAY;
     }
 
     @Override
-    public boolean isType(VariableType v) {
-        return v == VariableType.ARRAY;
+    public boolean isType(ValueType v) {
+        return v == ValueType.ARRAY;
     }
 
     @Override
@@ -112,7 +104,7 @@ public class ArrayVariable implements Variable{
     }
 
     @Override
-    public ArrayList<Variable> castArray() throws ScriptException {
+    public ArrayList<Value> castArray() throws ScriptException {
         if(!hasValue()){
             //Need to ensure that any call of castString() also makes use of evaluateArray() beforehand.
             throw new ScriptException("Trying to cast array to array that has not yet been evaluated");
@@ -130,18 +122,18 @@ public class ArrayVariable implements Variable{
     }
 
     //Might need to add some error handling stuff around these methods
-    public void addElement(Variable value){
+    public void addElement(Value value){
         valueArray.add(value);
     }
     public void removeElement(int i){
         valueArray.remove(i);
     }
-    public void setElement(int i, Variable value){
+    public void setElement(int i, Value value){
         valueArray.set(i,value);
     }
 
 
-    public void setValueArray(ArrayList<Variable> valueArray) {
+    public void setValueArray(ArrayList<Value> valueArray) {
         this.valueArray = valueArray;
     }
 }
