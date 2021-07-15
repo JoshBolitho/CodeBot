@@ -366,7 +366,7 @@ public class CodeBot {
         var client = HttpClient.newHttpClient();
 
         // Publish Comment
-        var publishComment = HttpRequest.newBuilder().uri(
+        var publishComment = HttpRequest.newBuilder(
                 URI.create(String.format("https://graph.facebook.com/v9.0/%s/comments/",objectID)))
                 .POST(HttpRequest.BodyPublishers.ofString(
                         String.format("message=%s&access_token=%s",message,user_access_token))
@@ -377,10 +377,10 @@ public class CodeBot {
             HttpResponse<String> response = client.send(publishComment, HttpResponse.BodyHandlers.ofString());
             System.out.println(response);
         } catch (IOException e){
-            log("Connection error while trying to send a commentF",e.getMessage());
+            log("Connection error while trying to send a comment",e.getMessage());
         }
         //TODO handle errors in facebookresponse, we need to know if they succeeded or not,
-        // and then log and potentially retry sending the comment
+        // and then log and potentially retry sending the comment / send an error comment
     }
 
     public static void publishCommentImage(String objectID, String message, BufferedImage bufferedImage, String uploadPreset) throws InterruptedException {
@@ -440,17 +440,12 @@ public class CodeBot {
             return;
         }
 
-        if(cloudinaryResponseWrapper.getUrl()==null){
-            log("Cloudinary response didn't include an image URL","");
-            publishComment(objectID,message +"\n(Image upload failed)");
-            return;
-        }
-
         String imageURL = cloudinaryResponseWrapper.getUrl();
         System.out.println("imageURL: "+imageURL);
 
         //Cloudinary api fail
         if(imageURL==null){
+            log("Cloudinary response didn't include an image URL","");
             publishComment(objectID,message +"\n(Image upload failed)");
             return;
         }
@@ -466,7 +461,7 @@ public class CodeBot {
         // Create a client for facebook image comment upload
         var facebookClient = HttpClient.newHttpClient();
         String facebookBody = String.format("message=%s&attachment_url=%s&access_token=%s",message,imageURL,user_access_token);
-        var publishComment = HttpRequest.newBuilder().uri(
+        var publishComment = HttpRequest.newBuilder(
                 URI.create(String.format("https://graph.facebook.com/v9.0/%s/comments/",objectID)))
                 .POST(HttpRequest.BodyPublishers.ofString(facebookBody))
                 .build();
