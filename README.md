@@ -400,3 +400,24 @@ print(fact(5))
 ```
 ![Abstract Syntax Tree](https://user-images.githubusercontent.com/17404588/124100906-f981cf80-dab2-11eb-8a9c-c72811e8ded2.png)
 
+## Credits
+### Tools
+- [IntelliJ Idea](https://www.jetbrains.com/idea/)
+- [Cloudinary API](https://cloudinary.com/documentation/image_upload_api_reference)
+- [Facebook Graph API](https://developers.facebook.com/docs/graph-api/)
+
+### Libraries
+- [Gson](https://github.com/google/gson)
+- [JUnit 5](https://github.com/junit-team/junit5/)
+
+
+### Resources
+- [Eff.org](https://www.eff.org/files/2016/07/18/eff_large_wordlist.txt) for the big list of random words
+- [Edabit.com](https://edabit.com/challenges) for some of the coding challenges
+- [Victoria University of Wellington](https://www.wgtn.ac.nz/)'s COMP261 course, for teaching syntax parsing, and the "robot" assignment, which inspired early versions of CodeBot
+- [Sunflower Image](https://www.almanac.com/sites/default/files/styles/amp_metadata_content_image_min_696px_wide/public/image_nodes/sunflower-1627193_1920.jpg)
+- [Monkey Image](https://i.kym-cdn.com/photos/images/original/001/131/258/07c.jpg)
+
+### People
+-  [Boidushya](https://github.com/boidushya) for helping me sort out my API token using their [Facebook Graph API token guide](https://github.com/Boidushya/FrameBot/blob/master/generateToken.md)!
+- People of the Bot Appreciation Society Discord channel, for general support!
