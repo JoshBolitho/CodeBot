@@ -372,15 +372,21 @@ public class CodeBot {
                         String.format("message=%s&access_token=%s",message,user_access_token))
         ).build();
 
+        HttpResponse<String> facebookResponse;
         // use the client to send the request
         try {
-            HttpResponse<String> response = client.send(publishComment, HttpResponse.BodyHandlers.ofString());
-            System.out.println(response);
+            facebookResponse = client.send(publishComment, HttpResponse.BodyHandlers.ofString());
+
         } catch (IOException e){
             log("Connection error while trying to send a comment",e.getMessage());
+            return;
         }
+        System.out.println(facebookResponse);
+        
+
         //TODO handle errors in facebookresponse, we need to know if they succeeded or not,
         // and then log and potentially retry sending the comment / send an error comment
+
     }
 
     public static void publishCommentImage(String objectID, String message, BufferedImage bufferedImage, String uploadPreset) throws InterruptedException {
@@ -476,10 +482,11 @@ public class CodeBot {
             log(e,"IOException while trying to publish comment");
             return;
         }
+        System.out.println(facebookResponse);
+
         //TODO handle errors in facebookresponse, we need to know if they succeeded or not,
         // and then log and potentially retry sending the comment
 
-        System.out.println(facebookResponse);
 
     }
 
@@ -508,7 +515,6 @@ public class CodeBot {
                 .POST(HttpRequest.BodyPublishers.ofString(
                         String.format("message=%s&access_token=%s",message, user_access_token))
                 ).build();
-
 
         //Use the client to send the request
         HttpResponse<String> response;
@@ -546,15 +552,15 @@ public class CodeBot {
             }
         }
 
-        //Grow past posts array by 1
-        String[] newPastPosts = new String[pastPosts.length+1];
-        for(int i=0;i<pastPosts.length;i++){
-            newPastPosts[i] = pastPosts[i];
-        }
+        if(!currentPostText.equals("")) {
+            //Grow past posts array by 1
+            String[] newPastPosts = new String[pastPosts.length + 1];
+            System.arraycopy(pastPosts, 0, newPastPosts, 0, pastPosts.length);
 
-        //Update pastPosts array
-        newPastPosts[newPastPosts.length-1] = currentPostText;
-        pastPosts = newPastPosts;
+            //Update pastPosts array
+            newPastPosts[newPastPosts.length - 1] = currentPostText;
+            pastPosts = newPastPosts;
+        }
 
         if (submissionsPost) {
             //Update submissions ID
@@ -1007,67 +1013,79 @@ public class CodeBot {
         String message;
 
         //CLI args overwrite default mode and message
-        if(args.length>0){
-            mode = args[0];
-        }else{
-            mode = "Comment";
-        }
+        if(args.length>0){ mode = args[0];
+        }else{ mode = "Comment"; }
 
-        if(args.length>1){
-            message = args[1];
-        }else{
-            message = generatePost();
-        }
+        if(args.length>1){ message = args[1];
+        }else{ message = generatePost(); }
 
         try{
-            //read and execute comments from the current post
-            if(mode.equals("Comment")){
-                System.out.println("Comment mode");
-                String commentData = requestComments(currentPostID);
-                if(commentData==null){return;}
-                executeComments(commentData);
-            }
+            switch (mode){
 
-            //upload a new post
-            if(mode.equals("Post")){
-                String topCommentMessage = null;
+                //read and execute comments from the current post
+                case "Comment" -> {
+                    System.out.println("Comment mode");
 
-                //First reply to remaining comments on current post
-                System.out.println("Comment mode");
-                String commentData = requestComments(currentPostID);
-                if(commentData!=null){
-                    executeComments(commentData);
-                    topCommentMessage = getMostReacted(commentData);
+                    if (currentPostID != null) {
+                        String commentData = requestComments(currentPostID);
+                        if(commentData==null){return;}
+                        executeComments(commentData);
+                    }else{
+                        log("Comment mode failure","currentPostID was null.");
+                    }
                 }
 
-                //Upload post
-                System.out.println("Post mode");
-                String res = publishPost(
-                        (topCommentMessage==null?"":topCommentMessage)+message,
-                        false,
-                        false);
-                if(res!=null){System.out.println(res);}
-            }
+                //Upload a new post
+                case "Post" -> {
+                    String topCommentMessage = null;
 
-            //Handling the post which takes programming challenge submissions
-            if(mode.equals("CommentSubmissions")){
-                System.out.println("Comment Submissions mode");
-                String commentData = requestComments(currentSubmissionsID);
-                if(commentData==null){return;}
-                loadSubmissionComments(commentData);
-            }
+                    //First reply to remaining comments on current post,
+                    //and get the top reacted comment.
+                    System.out.println("Comment mode");
 
-            //Create a new monitored post to ask for submissions
-            if(mode.equals("PostSubmissions")){
-                System.out.println("Post Submissions mode");
-                String res = publishPost(
-                    "CodeBot is now accepting challenge submissions! Please comment your coding challenge ideas below! Thanks [^_^]"
-                    ,true
-                    ,true
-                );
-                if(res!=null){System.out.println(res);}
-            }
+                    if (currentPostID != null) {
+                        String commentData = requestComments(currentPostID);
+                        if(commentData!=null){
+                            executeComments(commentData);
+                            topCommentMessage = getMostReacted(commentData);
+                        }
+                    }else{
+                        log("Comment mode failure","currentPostID was null.");
+                    }
 
+                    //Upload post
+                    System.out.println("Post mode");
+                    String res = publishPost(
+                            (topCommentMessage==null?"":topCommentMessage)+message,
+                            false,
+                            false);
+                    if(res!=null){System.out.println(res);}
+                }
+
+                //Handling the post which takes programming challenge submissions
+                case "CommentSubmissions" -> {
+                    System.out.println("Comment Submissions mode");
+                    if(!currentSubmissionsID.equals("")) {
+                        String commentData = requestComments(currentSubmissionsID);
+                        if (commentData == null) {
+                            return;
+                        }
+                        loadSubmissionComments(commentData);
+                    }
+                }
+
+                //Create a new monitored post to ask for submissions
+                case "PostSubmissions" -> {
+                    System.out.println("Post Submissions mode");
+                    String res = publishPost(
+                            "CodeBot is now accepting challenge submissions! Please comment your coding challenge ideas below! Thanks [^_^]"
+                            ,true
+                            ,true
+                    );
+                    if(res!=null){System.out.println(res);}
+                }
+
+            }
         } catch (InterruptedException e) {
             log(e,"InterruptedException in CodeBot.main, mode: "+mode);
         }

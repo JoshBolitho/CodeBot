@@ -3,7 +3,7 @@ package main;
 //Stores the current state of the program during execution.
 //This includes all variables and functions, as well as program output (console or canvas)
 
-//All operations executed by the script are applied to the ProgramState.
+//All operations executed by a CodeBot script are applied to the ProgramState.
 //This includes getting/setting program variables, and calling functions that trigger output e.g. print("hello")
 
 import java.util.HashMap;
