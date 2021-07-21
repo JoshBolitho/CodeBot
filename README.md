@@ -153,4 +153,250 @@ Sure, it would be pretty easy to take comments, run them as Python code and repl
 The solution? Create a scripting language in Java to add a layer of abstraction above the raw code and prevent users from destroying my computer! This also gave me a lot of freedom in what I wanted in my scripting language.
 
 ## How does it work?
-...
+
+### Using the Facebook Graph API
+This section details how CodeBot uses Facebook's Graph API to upload posts to facebook, and to read and reply to comments.
+
+#### The Facebook Graph API
+The [Facebook Graph API](https://developers.facebook.com/docs/graph-api/) is an HTTP API which allows programmatical access to the Facebook graph. The data on Facebook is represented by a "social graph" represented by nodes and edges. 
+
+Like in graph theory, nodes are objects: a page, user, post, comment etc. These nodes are connected by "edges" or links.
+
+CodeBot uses two Graph API edges:
+
+- `/comments`: The `/comments` edge links any object to all the comments on it. 
+	
+	`CodeBot.requestComments()` sends a `GET` request to the `/comments` edge of a Facebook post to retrieve data about all the comments on that post. 
+	```java
+	var getComments = HttpRequest.newBuilder(
+		URI.create(String.format("https://graph.facebook.com/v9.0/%s/comments?"
+			+ "access_token=%s&fields=message,id,attachment,from,comments,reactions.summary(total_count)",
+			objectID, user_access_token)))
+		.build();
+	HttpResponse<String> response = client.send(getComments, HttpResponse.BodyHandlers.ofString());
+	```
+
+	`CodeBot.publishComment()` sends a `POST` request to the `/comments` edge of an object.
+	
+	`CodeBot.publishCommentImage()` also sends a `POST` request to the `/comments` edge of an object, with an additional  parameter, `attachment_url`. The [Cloudinary](#Cloudinary) section covers obtaining this URL.
+	```java
+	var publishComment = HttpRequest.newBuilder(  
+        URI.create(String.format("https://graph.facebook.com/v9.0/%s/comments/", objectID)))
+	    .POST(HttpRequest.BodyPublishers.ofString(  
+            String.format("message=%s&access_token=%s", message, user_access_token)))
+        .build();
+    HttpResponse<String> response = client.send(publishComment, HttpResponse.BodyHandlers.ofString());
+	```
+
+- `/feed`: The `/feed` edge links a page or user to all the posts they have made. CodeBot sends a `POST` requests to `/feed` edge of the CodeBot page to upload posts to the page.
+ 
+	`CodeBot.publishPost()` sends a `POST` request to the `/feed` edge of the CodeBot page to publish a Facebook post.
+	```java
+	var publishPost = HttpRequest.newBuilder().uri(  
+        URI.create(String.format("https://graph.facebook.com/v9.0/%s/feed",page_ID)))  
+        .POST(HttpRequest.BodyPublishers.ofString(  
+                String.format("message=%s&access_token=%s",message, user_access_token))  
+        ).build();
+    HttpResponse<String> response = client.send(publishPost, HttpResponse.BodyHandlers.ofString());
+	```
+
+
+### Cloudinary
+####  Uploading image to unsigned something or rather to host image link for image upload
+
+#### The Gson library  
+CodeBot uses Google's GSON library to manage JSON formatting for several purposes.
+
+- Loading config values - where secret tokens and profanity list is kept
+
+- Persistent memory to keep track of the current post ID and managing 
+
+- post scheduling  
+
+- Logging errors
+
+the POST and GET requests return responses in JSON format.
+Most importantly, the GET \comments on a post. traversing the JSON respons allows CodeBot to read messages , ignore replied ones ... 
+
+### How is a BotScript program represented in Java code?  
+This section describes the classes used to represent a program that can be executed.
+#### Abstract syntax trees
+...AST theory .... Parsing is explained later...
+
+A variety of classes are used to represent a program. At its core, a program is simply a list of instructions, or "statements."
+ 
+
+`print("Hello")` is a statement that causes the expression `"hello"` to be written to the output.
+
+
+`x = 1 + 2` is a statement that causes the variable `x` to be added to the program's memory, and assigns it to the expression `1 + 2`. 
+ 
+The following is a statement that evaluates the expression `x=3`, and if it evaluates to `true`, it executes all the code within the "if" block `{}`. 
+In this case, the "if" block simply contains a print statement, like in the first example.  
+```
+if(x=3){
+print("Yay, maths!")
+}
+```
+
+-----
+
+#### Representing Values
+The classes representing the different value types all implement the `Value` Interface. These classes act as wrappers around their respective values.
+- `StringValue(String value)`
+- `IntegerValue(int value)`
+- `FloatValue(float value)`
+- `BooleanValue(boolean value)`
+- `ArrayValue(ArrayList<Expression> expressionArray)`
+- `ImageValue(BufferedImage image)`  or `ImageValue(int x, int y)`
+- `NullValue()`
+
+```java
+public interface Value {
+	//Helpful methods which allow testing of a Value's type.
+	//These methods make use of the ValueType enum.
+	ValueType getType();
+	boolean isType(ValueType v);
+	
+	// Casting methods are used to retrieve the value.
+	// If we know a Value is a StringValue type by calling Value.isType(STRING),
+	//we can call Value.castString() with certainty that the value will be returned.
+
+	//We can also attempt to cast it to another type using the other casting methods. 
+	//If our StringValue's value is "12", we could call castInteger() and it would succeed.
+	String castString() throws ScriptException;  
+	Integer castInteger() throws ScriptException;  
+	Float castFloat() throws ScriptException;  
+	Boolean castBoolean() throws ScriptException;  
+	ArrayList<Variable> castArray() throws ScriptException;  
+	BufferedImage castImage() throws ScriptException;
+}
+```
+
+#### Representing Expressions
+What is an expression, and how are they used?
+Similar to an expression in maths,  An expression in programming is a combination of values, operations, and functions which can be evaluated to create a new value.
+
+In maths, an expression may look like this: `x² + 3x + sin(x)`.
+In BotScript, the same expression would look like this:  `pow(x,2) + 3*x + sin(x)`.
+If the variable "x" has been defined already, we can evaluate this expression to a number. 
+
+`Expression` classes all implement the `Expression` interface, which contains a single method, `evaluate()`.   
+```
+public interface Expression {  
+    Variable evaluate(ProgramState programState, HashMap<String, Variable> functionVariables);  
+}
+```
+Expressions come in several forms: 
+
+-----
+A value, represented by the `ValueExpression` class e.g.
+- `5`
+- `true`
+- `[1,2,3]`
+
+-----
+A reference to a `Variable` defined in the program, represented by the `ReferenceExpression` class e.g. 
+```
+x = 5
+
+% The "x" here is a reference to the x variable.
+% It will be represented as a ReferenceExpression.
+print(x)
+``` 
+
+-----
+An operation, represented by the `OperationExpression` class.
+Operations can be any of the following: 
+-   Maths:  `+`  `-`  `*`  `/`  `%`  `()`
+-   Comparator:  `>`  `<`  `=`
+-   Boolean:  `&`  `|`  `!`
+
+Here are some examples of `OperationExpression`s:
+- `1+2`: (value 1) plus (value 2)
+- `true | false`: (value true) or (value false)
+- `x > 10`: (variable reference "x") greater than (value 10)
+- `y < random()`: (variable reference "y") less than (function expression "random")
+- `!true`: not (value true)
+-----
+
+A `Function` call, represented by the `FunctionExpression` class 
+e.g. In the line `x = length("Hi")`, `length("hi")` is a FunctionExpression that causes the function `length()` to be called with the ValueExpression `"hi"` as its parameter.
+This FunctionExpression will evaluate to the value `2`.	
+
+-----
+An Internal `Function` call, represented by the `InternalFunctionExpression` class. Internal functions aren't available for users to define or directly access themselves. 
+They are used by the many pre-defined functions included in BotScript, such as `print()` or `getPixel()`, to manipulate values with Java code behind the scenes.
+
+-----
+
+#### Representing the state of the program
+The program's state is represented by a `ProgramState` object. a `ProgramState` stores all the variables and functions that are currently defined in the program, as well as a string that represents everything which has been printed to the console. 
+
+An empty `ProgramState` is initialised before parsing a script, and is passed throughout the program during execution so it is accessable everywhere.
+
+```
+private HashMap<String,Variable> programVariables = new HashMap<>();  
+private HashMap<String,Function> programFunctions = new HashMap<>();  
+private String consoleOutput = "";
+```
+- `programVariables` contains all the `Variable`s, accessable by name. Running the BotScript code `x = 10` would cause a the following entry to be added: `x, new IntegerVariable(10)`
+
+- Similarly, `programFunctions` contains all the `Function`s, accessable by name.
+ 
+- `consoleOutput` Stores everything that has been printed to the console.
+Running `print("Hello World")` would cause `consoleOutput` to equal `"Hello World\n"`.
+ 
+ 
+#### Representing the structure of the program
+Each line or "statement" in a program is represented by a class implementing the `ExecutableNode` Interface. 
+`ExecutableNode`s provide the entry point for execution of the program. The nodes in a program combine to form a program tree. 
+
+```java
+public interface ExecutableNode {
+	void execute(ProgramState programState, HashMap<String, Variable> functionVariables) throws InterruptedException;
+	String display(int depth);  
+}
+```
+`ExecutableNode` classes include:
+
+`ProgramNode`,  which stores an array of ExecutableNodes. 
+When executed, this node executes all its sub-nodes in order.
+
+-----
+`VariableAssignmentNode`, which has the main purpose of adding an entry to to the `programState`'s `programVariables`  HashMap. This is how variables are defined in a program. 
+
+If a `VariableAssignmentNode` is called from within a function, it will instead add an entry to the `functionVariables` HashMap which is also passed during execution.
+
+-----
+`FunctionAssignmentNode` Stores a `Function` object, and adds it to the programState's `programFunctions` HashMap.
+
+-----
+`FunctionExecutionNode` Represents a Function call. It stores the name of the function being executed, as well as an ArrayList of Expressions which represent the parameters to be passed.
+
+-----
+`IfNode`
+
+-----
+`WhileNode`
+
+
+
+
+### Parsing 
+This section covers the process of turning a string into a program.
+
+Parsing is handled by `Parser.java`, a [recursive descent parser]() which builds an [Abstract Syntax Tree]() to represents the program. 
+
+The image below shows a slightly simplified version of how the following code for a factorial function would be represented. 
+```
+function fact(x){
+if(x=1){
+return x
+}
+return x * fact(x-1)
+}
+print(fact(5))
+```
+![Abstract Syntax Tree](https://user-images.githubusercontent.com/17404588/124100906-f981cf80-dab2-11eb-8a9c-c72811e8ded2.png)
+
