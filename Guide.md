@@ -3,13 +3,30 @@
 
 BotScript has been created for beginners, but hopefully has something for people of all skill levels! This guide will go over some coding basics to get you started, and act as a language reference.
 
+### Contents
+- [First things first](#first-things-first)
+- [Commenting out code](#commenting-out-code)
+- [Values](#values)
+- [Declaring Variables](#declaring-variables)
+- [Operators](#operators)
+- [Functions](#functions)
+- [Defining Functions](#defining-functions)
+- [While Loop](#while-loop)
+- [If/Else Statement](#ifelse-statement)
+- [Casting](#casting)
+- [Images](#images)
+- [Image Examples](#image-examples)
+- [Errors](#errors)
+- [Notes](#notes)
+
+
 ### First things first
 
 The first thing coders do when learning a new language, is to write "Hello World" on the screen.
 
 In BotScript it is quite easy! Simply type `print("Hello World")` !
 
- ### Commenting
+ ### Commenting out code
  Sometimes, you want to write a note, description, or label in your code.
  Add `%` at the start of any line, and it will be completely ignored as code.
   
@@ -350,8 +367,17 @@ This table shows what types can be cast to each other
 BotScript has support for image values, which can be rendered to the canvas and displayed along with the text output.
 
 Images are essentially big 2D arrays of pixels, where each pixel is located at an x,y coordinate, and stores an array of integers representing its colour in RGB.
+
+#### Input an image
+If you are writing a script for a CodeBot comment section, you may also attach an image to your comment, and it will be loaded into your program! It will be assigned to the varible name `input`. You can manipulate it just like any other image. 
+
+![205505315_2593998520901770_4454234929828484802_n](https://user-images.githubusercontent.com/17404588/127153720-215c145e-e140-4353-bd90-e444d706b0cd.png)
+
+<img width="482" alt="a" src="https://user-images.githubusercontent.com/17404588/127153741-10f8c63e-d604-47e5-ba71-db22a3aefca4.png">
+
+
 #### Create an image
-`myImage = createImage(10,10)` creates a 10x10 image.
+`myImage = createImage(10,10)` creates a blank 10x10 image.
 #### Change pixels
 `setPixel(myImage, 0,0, 255,255,255)` sets the pixel at location `x=0`, `y=0` of `myImage` to the RGB colour white (`255,255,255`).
 #### Get the values of a pixel
@@ -446,3 +472,11 @@ function test1(){
 % Can't call "length()" on a boolean value
 print(length(true))
 ```
+
+### Notes
+#### Limitations
+Because BotScript was designed to run in a Facebook comments section, it has some limitations that you may not expect from other scripting languages.
+
+- Output length - Facebook doesn't allow comments of more than 8000 characters. CodeBot has to limit the console output of every script that runs. If a script prints out more than 4000 characters, an error will be thrown and execution ends. 
+- Image size - Similarly, CodeBot limits Images to a maximum size of 2000x2000 pixels. Images attached to a comment which are larger will still be loaded, but they will be trimmed down. Attempting to create an image larger than 2000x2000 will cause an error to be thrown.
+- Execution time - CodeBot is run on a PC and needs to share processing time between all the commented scripts, so the execution time is limited to 5 minutes per script, which should hopefully be ample time to render some pretty fractals or mine a billionth of a Bitcoin or something.
