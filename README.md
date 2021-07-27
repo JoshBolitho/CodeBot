@@ -1,3 +1,4 @@
+
 # CodeBot
 ![GitHub](https://img.shields.io/github/license/JoshBolitho/CodeBot) ![GitHub last commit](https://img.shields.io/github/last-commit/JoshBolitho/CodeBot) ![GitHub issues](https://img.shields.io/github/issues/JoshBolitho/CodeBot) ![GitHub issues](https://img.shields.io/github/issues-raw/JoshBolitho/CodeBot)
 
@@ -204,7 +205,7 @@ CodeBot uses two Graph API edges:
 ### Cloudinary
 ####  Uploading image to unsigned something or rather to host image link for image upload
 
-#### The Gson library  
+### The Gson library  
 CodeBot uses Google's GSON library to manage JSON formatting for several purposes.
 
 - Loading config values - where secret tokens and profanity list is kept
@@ -220,24 +221,38 @@ Most importantly, the GET \comments on a post. traversing the JSON respons allow
 
 ### How is a BotScript program represented in Java code?  
 This section describes the classes used to represent a program that can be executed.
-#### Abstract syntax trees
-...AST theory .... Parsing is explained later...
 
-A variety of classes are used to represent a program. At its core, a program is simply a list of instructions, or "statements."
+A variety of Java classes are used to represent a program. At its core, a program is simply a list of instructions, or "statements." In CodeBot, these instructions are represented by `ExecutableNode`s. 
+
+E.g.
+`print("Hello")` is an instruction that causes the expression `"hello"` to be written to the output.
+
+
+`x = 1 + 2` is an instruction that causes the variable `x` to be added to the program's memory, and assigns it to the expression `1 + 2`. 
  
-
-`print("Hello")` is a statement that causes the expression `"hello"` to be written to the output.
-
-
-`x = 1 + 2` is a statement that causes the variable `x` to be added to the program's memory, and assigns it to the expression `1 + 2`. 
- 
-The following is a statement that evaluates the expression `x=3`, and if it evaluates to `true`, it executes all the code within the "if" block `{}`. 
+The following is a instruction that evaluates the expression `x=3`, and if it evaluates to `true`, it executes all the code within the "if" block `{}`. 
 In this case, the "if" block simply contains a print statement, like in the first example.  
 ```
 if(x=3){
 print("Yay, maths!")
 }
 ```
+#### Abstract syntax trees
+An [Abstract Syntax Tree (AST)](https://en.wikipedia.org/wiki/Abstract_syntax_tree) is a representation of the recursive, branching structure of the code defining a program. CodeBot creates ASTs to represent scripts. Executing the root node of the AST is equivalent to running the script. The parsing of a script from a string into an abstract syntax tree is covered in the [Parsing Section](#parsing).
+
+The image below shows a slightly simplified version of how the following code for a factorial function would be represented as an abstract syntax tree. 
+```
+function fact(x){
+if(x=1){
+return x
+}
+return x * fact(x-1)
+}
+print(fact(5))
+```
+![Abstract Syntax Tree](https://user-images.githubusercontent.com/17404588/124100906-f981cf80-dab2-11eb-8a9c-c72811e8ded2.png)
+
+When the root `ExecutableNode` "Program" is executed, it executes each of its sub-nodes  in order (shown here as left to right). Different `ExecutableNode`s have different behaviours, described in the [Representing the structure of the program](#representing-the-structure-of-the-program) section.
 
 -----
 
@@ -375,30 +390,140 @@ If a `VariableAssignmentNode` is called from within a function, it will instead 
 `FunctionExecutionNode` Represents a Function call. It stores the name of the function being executed, as well as an ArrayList of Expressions which represent the parameters to be passed.
 
 -----
-`IfNode`
+`IfNode` Represents an if statement. It stores a condition `Expression` which should evaluate to a boolean, an "if block" `ProgramNode`, and optionally an "else block" `ProgramNode`. If the the condition evaluates to `true`, the "if block" will execute. Otherwise, the "else block" will be executed (if it exists.) 
 
 -----
-`WhileNode`
-
+`WhileNode` Represents a while loop statement. It stores a condition `Expression` which should evaluate to a boolean, and a "while block" `ProgramNode`. The "while block" will be executed repeatedly in a loop as long as the condition evaluates to `true`.
 
 
 
 ### Parsing 
 This section covers the process of turning a string into a program.
 
-Parsing is handled by `Parser.java`, a [recursive descent parser]() which builds an [Abstract Syntax Tree]() to represents the program. 
+Parsing is handled by `Parser.java`, a [recursive descent parser]() which builds an [Abstract Syntax Tree (AST)]() to represents the program. 
 
-The image below shows a slightly simplified version of how the following code for a factorial function would be represented. 
-```
-function fact(x){
-if(x=1){
-return x
+`Parser.parseScript(String script, ...)` is the entry point for parsing, taking a `String`, and returning a `ProgramNode` that is the root node of the Abstract Syntax Tree representing the parsed program.
+
+#### Pre-processing
+Empty lines and lines starting with the line comment character `%` are removed from the string before parsing begins.
+
+#### Parser.parseScript()
+`parseScript()` creates an empty `ProgramNode` called `program` to represent the parsed AST.
+`parseScript()` then creates a `Scanner` which allows the string to be split into tokens as it is iterated through. 
+
+After manually adding [internal functions]() to `program`, parsing begins. This simplified view of the code shows `parseScript()`  calling `parseExecutableNode(scanner)` until the scanner is empty.
+```java
+while (scanner.hasNext()) {
+	scriptNode.addExecutableNode(parseExecutableNode(scanner));  
 }
-return x * fact(x-1)
-}
-print(fact(5))
+``` 
+#### Parser.parseExecutableNode()
+As described [earlier](#representing-the-structure-of-the-program), `ExecutableNode`s represent the main structure of the program. `ExecutableNode`s are parsed using the scanner by looking ahead at the next token, and testing it against patterns to decide what `ExecutableNode` needs to be parsed. The appropriate `ExecutableNode` parsing function is then run.
+
+`parseExecutableNode()` tests the scanner `s`'s next token using the `Scanner.hasNext(Pattern)` method. 
+```java
+...
+static Pattern While = Pattern.compile("while");  
+static Pattern If = Pattern.compile("if");
+static Pattern Function = Pattern.compile("function");
+...
+if(s.hasNext(If)){  
+    return parseIfNode(s);  
+}else if(s.hasNext(While)){  
+    return parseWhileNode(s);  
+}else if(s.hasNext(Function)){  
+    return parseFunctionAssignment(s);
+}else if(...
 ```
-![Abstract Syntax Tree](https://user-images.githubusercontent.com/17404588/124100906-f981cf80-dab2-11eb-8a9c-c72811e8ded2.png)
+#### require()
+`require()` is a handy function that is used constantly while parsing. It looks at the next token of a scanner and either matches and consumes the token, or throws an error. 
+
+`require()` is used when we know what the next token should be, and we want to ensure it exists, and then move the scanner past it so it can deal with the next token. 
+
+```java
+String require (Pattern p, Scanner s) throws ScriptException {  
+    if (s.hasNext(p)) {
+	    ...
+        return s.next();  
+  }  
+    //if the require fails:  
+  ...
+  throw new ScriptException("Expected \"" + p + "\"");  
+  ...  
+}
+```
+
+There are 3 different require methods:
+- `require(String str, Scanner s)` matches the next token against a `String`
+- `require (Pattern p, Scanner s)` matches the next token against a `Pattern`
+- `optionalRequire(Pattern p, Scanner s)` matches the next token against a `Pattern`. If it is a match, it is consumed. otherwise, it does nothing.
+
+#### Example: parseIfNode()
+When `parseWhileNode()` is called, this means that `parseExecutableNode()` has matched the next token with the `While` pattern. In BotScript, a while statement looks like the following:
+```
+while(condition){
+statement 1
+statement 2
+...
+statement n
+}
+```
+The first token we expect is `"While"`. 
+We can also expect the open parentheses character `"("`.
+Here are the first couple lines of `parseWhileNode()`:
+
+```java
+public WhileNode parseWhileNode(Scanner s){  
+	require(While, s);
+	require(OpenParenthesis, s);
+	...
+```
+Next we need to parse the condition, which is an `Expression`. Therefore, we call `parseExpression()`.
+After the condition, we parse the close parentheses character `)`, the open brace character `{`, and optionally a newline character.
+```java
+	Expression condition = parseExpression(s,null,null);  
+	require(CloseParenthesis, s);  
+	require(OpenBrace, s);  
+	optionalRequire(NewLine, s);
+```	
+
+We are now up to parsing the code block of the while statement. 
+A `ProgramNode` is created to store this code block.
+
+We need to be able to parse any number of `ExecutableNode`s. The code block is closed off with a close brace character `}`, so we parse `ExecutableNode`s repeatedly until a `}` is reached.
+```java
+	//while scanner doesn't have close brace  
+	ProgramNode whileBlock = new ProgramNode();  
+	while(!s.hasNext(CloseBrace)){
+		whileBlock.addExecutableNode(parseExecutableNode(s));
+	}
+```
+The close brace character that ended the while statement's code block is then consumed, as well as a newline character which should follow it.
+
+A new `WhileNode` is created and returned, with the condition and whileBlock as its parameters. The while statement has successfully been parsed.
+```java
+    require(CloseBrace, s);
+    require(NewLine, s);
+    
+    return new WhileNode(condition,whileBlock);  
+}
+```
+
+#### parseExpression()
+This method is used anywhere that an `Expression` of any kind is expected e.g. The condition `Expression` of a while statement in the previous example.
+
+Parsing `Expressions`, especially `OperationExpression`s, are particularly challenging because of the order of operations.
+
+| Operator | Priority Level |
+|--|--|
+| * / % | 5 |
+| + - | 4 |
+| > < | 3 |
+| = | 2 |
+| & | 1 |
+| \| | 0 |
+
+
 
 ## Credits
 ### Tools
