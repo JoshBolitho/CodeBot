@@ -98,22 +98,7 @@ public class CodeBot {
     }
 
     //Return string contains the most reacted comment
-    public static void executeComments(String APIResponse) throws InterruptedException {
-
-        Gson gson = new Gson();
-        CommentData commentData = gson.fromJson(APIResponse, CommentData.class);
-
-        if(commentData.getError()!=null){
-            log(commentData.getError(),"FB Graph API - Error retrieving comments");
-            return;
-        }
-
-        Comment[] comments = commentData.getData();
-
-        if(comments==null){
-            log("FB Graph API - Error retrieving comments","Comments array is null");
-            return;
-        }
+    public static void executeComments(Comment[] comments) throws InterruptedException {
 
         for(Comment c : comments){
 
@@ -140,6 +125,7 @@ public class CodeBot {
                         publishComment(c.getId(), "[^_^] Nice pic!");
                         continue;
                     }
+                    publishComment(c.getId(), "[^_^]");
                     continue;
                 }
 
@@ -216,22 +202,7 @@ public class CodeBot {
         }
     }
 
-    public static void loadSubmissionComments(String APIResponse) throws InterruptedException {
-
-        Gson gson = new Gson();
-        CommentData commentData = gson.fromJson(APIResponse, CommentData.class);
-
-        if(commentData.getError()!=null){
-            log(commentData.getError(),"FB Graph API - Error retrieving comments");
-            return;
-        }
-
-        Comment[] comments = commentData.getData();
-
-        if(comments==null){
-            log("FB Graph API - Error retrieving comments","Comments array is null");
-            return;
-        }
+    public static void loadSubmissionComments(Comment[] comments) throws InterruptedException {
 
         ArrayList<String> submissionsList = new ArrayList<>();
 
@@ -332,7 +303,7 @@ public class CodeBot {
     }
 
     // Request the comments on a Facebook Graph API Element by its object ID
-    public static String requestComments(String objectID) throws InterruptedException {
+    public static Comment[] requestComments(String objectID) throws InterruptedException {
         // Create a client
         var client = HttpClient.newHttpClient();
 
@@ -343,25 +314,111 @@ public class CodeBot {
 
         // use the client to send the request
         HttpResponse<String> response;
+        String responseBody;
         try {
-            // Return Facebook Graph response:
+            //Get Facebook Graph response:
             response = client.send(getComments, HttpResponse.BodyHandlers.ofString());
-            return response.body();
+            responseBody = response.body();
         } catch (IOException e){
             log(e,"IOException while trying to get FB comments");
-            return null;
+            return new Comment[]{};
         }
+
+        //Parse JSON response
+        Gson gson = new Gson();
+        CommentData commentData = gson.fromJson(responseBody, CommentData.class);
+
+        if(commentData.getError()!=null){
+            log(commentData.getError(),"FB Graph API - Error retrieving comments");
+            return new Comment[]{};
+        }
+
+        Comment[] comments = commentData.getData();
+
+        if(comments==null){
+            log("FB Graph API - Error retrieving comments","Comments array is null");
+            return new Comment[]{};
+        }
+
+        //recursively page comments
+        if(commentData.getPaging()!=null && commentData.getPaging().getNext()!=null){
+            Comment[] nextComments = pageComments(commentData.getPaging().getNext());
+            Comment[] concat = new Comment[comments.length+nextComments.length];
+            System.arraycopy(comments,0,concat,0,comments.length);
+            System.arraycopy(nextComments,0,concat,comments.length,nextComments.length);
+
+
+            return concat;
+        }
+
+        return comments;
+    }
+
+    //Recursive version of requestComments that handles Facebook Graph API's paging
+    public static Comment[] pageComments(String next) throws InterruptedException{
+
+        // Create a client
+        var client = HttpClient.newHttpClient();
+
+        // Get next page of comments
+        var nextPage = HttpRequest.newBuilder(
+                URI.create(next)
+        ).build();
+
+        // Use the client to send the request
+        HttpResponse<String> response;
+        String responseBody;
+        try {
+            // Get Facebook Graph response:
+            response = client.send(nextPage, HttpResponse.BodyHandlers.ofString());
+            responseBody = response.body();
+        } catch (IOException e){
+            log(e,"IOException while trying to get FB comments");
+            return new Comment[]{};
+        }
+
+        //Parse JSON response
+        Gson gson = new Gson();
+        CommentData commentData = gson.fromJson(responseBody, CommentData.class);
+
+        if(commentData.getError()!=null){
+            log(commentData.getError(),"FB Graph API - Error retrieving comments");
+            return new Comment[]{};
+        }
+
+        Comment[] comments = commentData.getData();
+
+        if(comments==null){
+            log("FB Graph API - Error retrieving comments","Comments array is null");
+            return new Comment[]{};
+        }
+
+        //recursively page comments
+        if(commentData.getPaging()!=null && commentData.getPaging().getNext()!=null){
+            Comment[] nextComments = pageComments(commentData.getPaging().getNext());
+            Comment[] concat = new Comment[comments.length+nextComments.length];
+            System.arraycopy(comments,0,concat,0,comments.length);
+            System.arraycopy(nextComments,0,concat,comments.length,nextComments.length);
+
+            return concat;
+        }
+
+        return comments;
     }
 
     public static void publishComment(String objectID, String message) throws InterruptedException {
         System.out.println("replying to: "+objectID);
+
         if(message == null || message.equals("")){message = "[^_^]";}
+
+        String newMessage;
         try {
-            message = URLEncoder.encode(message, StandardCharsets.UTF_8.toString());
+            newMessage = URLEncoder.encode(message, StandardCharsets.UTF_8.toString());
         }catch (UnsupportedEncodingException e){
             log(e,"UnsupportedEncodingException while trying to encode response message to UTF8");
             return;
         }
+
         // Create a client
         var client = HttpClient.newHttpClient();
 
@@ -369,7 +426,7 @@ public class CodeBot {
         var publishComment = HttpRequest.newBuilder(
                 URI.create(String.format("https://graph.facebook.com/v9.0/%s/comments/",objectID)))
                 .POST(HttpRequest.BodyPublishers.ofString(
-                        String.format("message=%s&access_token=%s",message,user_access_token))
+                        String.format("message=%s&access_token=%s",newMessage,user_access_token))
         ).build();
 
         HttpResponse<String> facebookResponse;
@@ -382,10 +439,17 @@ public class CodeBot {
             return;
         }
         System.out.println(facebookResponse);
-        
 
-        //TODO handle errors in facebookresponse, we need to know if they succeeded or not,
-        // and then log and potentially retry sending the comment / send an error comment
+        //Parse JSON response
+        Gson gson = new Gson();
+        PostResponse postResponse = gson.fromJson(facebookResponse.body(), PostResponse.class);
+
+        if(postResponse.getError()!=null){
+            log(postResponse.getError(),"FB Graph API - Error publishing comment");
+
+            //Try upload failure comment
+            publishComment(objectID, "Original comment response failed to upload [x_x]");
+        }
 
     }
 
@@ -457,8 +521,10 @@ public class CodeBot {
         }
 
         if(message == null || message.equals("")){message = "[^_^]";}
+
+        String newMessage;
         try {
-            message = URLEncoder.encode(message, StandardCharsets.UTF_8.toString());
+            newMessage = URLEncoder.encode(message, StandardCharsets.UTF_8.toString());
         } catch (UnsupportedEncodingException e) {
             log(e,"UnsupportedEncodingException while trying to encode response message to UTF8");
             return;
@@ -466,7 +532,7 @@ public class CodeBot {
 
         // Create a client for facebook image comment upload
         var facebookClient = HttpClient.newHttpClient();
-        String facebookBody = String.format("message=%s&attachment_url=%s&access_token=%s",message,imageURL,user_access_token);
+        String facebookBody = String.format("message=%s&attachment_url=%s&access_token=%s",newMessage,imageURL,user_access_token);
         var publishComment = HttpRequest.newBuilder(
                 URI.create(String.format("https://graph.facebook.com/v9.0/%s/comments/",objectID)))
                 .POST(HttpRequest.BodyPublishers.ofString(facebookBody))
@@ -484,10 +550,15 @@ public class CodeBot {
         }
         System.out.println(facebookResponse);
 
-        //TODO handle errors in facebookresponse, we need to know if they succeeded or not,
-        // and then log and potentially retry sending the comment
+        //Parse JSON response
+        PostResponse postResponse = gson.fromJson(facebookResponse.body(), PostResponse.class);
 
+        if(postResponse.getError()!=null){
+            log(postResponse.getError(),"FB Graph API - Error publishing comment");
 
+            //Try upload failure comment
+            publishCommentImage(objectID,"Original comment response failed to upload [x_x]",bufferedImage,uploadPreset);
+        }
     }
 
     //requires loadConfig() and loadPostData() to have been run.
@@ -679,7 +750,7 @@ public class CodeBot {
             case "facebook submission" -> {
                 return "Today's challenge: "
                         + facebookSubmissions[(int) (Math.random() * facebookSubmissions.length)]
-                        + "\n\nAlternatively, do whatever the heck you feel like!";
+                        + "\n\nAlternatively, do whatever you feel like!";
             }
             case "sentence generator" -> {
                 //load random words array
@@ -809,12 +880,12 @@ public class CodeBot {
 
                 return "Today's challenge: " + randomString(prompts)
                         + "\nExtra for experts: " + randomString(extra)
-                        + "\n\nAlternatively, do whatever the heck you feel like! [^_^]";
+                        + "\n\nAlternatively, do whatever you feel like! [^_^]";
             }
             case "curated from website" -> {
                 return "Today's challenge: "
                         + curatedChallenges[(int) (Math.random() * curatedChallenges.length)]
-                        + "\n\nAlternatively, do whatever the heck you feel like! [^_^]";
+                        + "\n\nAlternatively, do whatever you feel like! [^_^]";
             }
             default -> {
                 return "ERROR ERROR ERROR BEEP BOOP";
@@ -822,22 +893,7 @@ public class CodeBot {
         }
     }
 
-    private static String getMostReacted(String APIResponse) throws InterruptedException {
-        Gson gson = new Gson();
-        CommentData commentData = gson.fromJson(APIResponse, CommentData.class);
-
-        if(commentData.getError()!=null){
-            log(commentData.getError(),"FB Graph API - Error retrieving comments");
-            return null;
-        }
-
-        Comment[] comments = commentData.getData();
-
-        if(comments==null){
-            log("FB Graph API - Error retrieving comments","Comments array is null");
-            return null;
-        }
-
+    private static String getMostReacted(Comment[] comments) throws InterruptedException {
 
         //Congratulate the most reacted comment
         Comment mostReacted = null;
@@ -1027,8 +1083,7 @@ public class CodeBot {
                     System.out.println("Comment mode");
 
                     if (currentPostID != null) {
-                        String commentData = requestComments(currentPostID);
-                        if(commentData==null){return;}
+                        Comment[] commentData = requestComments(currentPostID);
                         executeComments(commentData);
                     }else{
                         log("Comment mode failure","currentPostID was null.");
@@ -1044,11 +1099,9 @@ public class CodeBot {
                     System.out.println("Comment mode");
 
                     if (currentPostID != null) {
-                        String commentData = requestComments(currentPostID);
-                        if(commentData!=null){
-                            executeComments(commentData);
-                            topCommentMessage = getMostReacted(commentData);
-                        }
+                        Comment[] commentData = requestComments(currentPostID);
+                        executeComments(commentData);
+                        topCommentMessage = getMostReacted(commentData);
                     }else{
                         log("Comment mode failure","currentPostID was null.");
                     }
@@ -1066,10 +1119,7 @@ public class CodeBot {
                 case "CommentSubmissions" -> {
                     System.out.println("Comment Submissions mode");
                     if(!currentSubmissionsID.equals("")) {
-                        String commentData = requestComments(currentSubmissionsID);
-                        if (commentData == null) {
-                            return;
-                        }
+                        Comment[] commentData = requestComments(currentSubmissionsID);
                         loadSubmissionComments(commentData);
                     }
                 }
