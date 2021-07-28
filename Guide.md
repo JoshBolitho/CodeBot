@@ -474,6 +474,9 @@ print(length(true))
 ```
 
 ### Notes
+- Newline characters are an important part of the syntax of BotScript. Facebook comments don't support indentation, so indentation is not supported.
+
+
 #### Limitations
 Because BotScript was designed to run in a Facebook comments section, it has some limitations that you may not expect from other scripting languages.
 
