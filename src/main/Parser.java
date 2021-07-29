@@ -306,6 +306,26 @@ public class Parser {
         BufferedImage sunImage = loadImage("src\\main\\Images\\sun.png");
         addProgramVariable(program,"sun",new ImageValue(sunImage));
 
+        //Add alphabet image
+        BufferedImage alphabetImage = loadImage("src\\main\\Images\\alphabet.png");
+        addProgramVariable(program,"alphabet",new ImageValue(alphabetImage));
+
+        //More images...
+        BufferedImage fiordlandImage = loadImage("src\\main\\Images\\fiordland.png");
+        addProgramVariable(program,"fiordland",new ImageValue(fiordlandImage));
+
+        BufferedImage kapitiImage = loadImage("src\\main\\Images\\kapiti.png");
+        addProgramVariable(program,"kapiti",new ImageValue(kapitiImage));
+
+        BufferedImage kiwiImage = loadImage("src\\main\\Images\\kiwi.png");
+        addProgramVariable(program,"kiwi",new ImageValue(kiwiImage));
+
+        BufferedImage pohutukawaImage = loadImage("src\\main\\Images\\pohutukawa.png");
+        addProgramVariable(program,"pohutukawa",new ImageValue(pohutukawaImage));
+
+        BufferedImage tuiImage = loadImage("src\\main\\Images\\tui.png");
+        addProgramVariable(program,"tui",new ImageValue(tuiImage));
+
         System.out.println(commentRemovedScript);
         //Parse the user's script in a separate ProgramNode "scriptNode" and append to the main ProgramNode, "program"
         //to distinguish internal functions/variables from the user's script.

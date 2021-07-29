@@ -1064,16 +1064,15 @@ public class CodeBot {
             return;
         }
 
+
         //CodeBot mode
         String mode;
-        String message;
-
-        //CLI args overwrite default mode and message
+        //CLI args overwrite default mode
         if(args.length>0){ mode = args[0];
         }else{ mode = "Comment"; }
 
-        if(args.length>1){ message = args[1];
-        }else{ message = generatePost(); }
+        //Post message
+        String message = generatePost();
 
         try{
             switch (mode){
