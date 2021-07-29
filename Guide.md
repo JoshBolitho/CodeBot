@@ -376,6 +376,13 @@ If you are writing a script for a CodeBot comment section, you may also attach a
 <img width="482" alt="a" src="https://user-images.githubusercontent.com/17404588/127153741-10f8c63e-d604-47e5-ba71-db22a3aefca4.png">
 
 
+There are several images included in the program by default:
+`sun`, `monky`, `alphabet`, `fiordland`, `kapiti`, `kiwi`, `pohutukawa`, `tui`.
+`alphabet` is a character map that can be used to render a simple pixel font to an image:
+
+<img width="288" alt="alphabet" src="https://user-images.githubusercontent.com/17404588/127492893-b803ae6d-3827-462f-8389-bef80e20001d.png">
+
+
 #### Create an image
 `myImage = createImage(10,10)` creates a blank 10x10 image.
 #### Change pixels
