@@ -6,6 +6,8 @@ public class CommentData {
 
     APIError error;
 
+    Paging paging;
+
     public Comment[] getData() {
         return data;
     }
@@ -14,4 +16,7 @@ public class CommentData {
         return error;
     }
 
+    public Paging getPaging() {
+        return paging;
+    }
 }

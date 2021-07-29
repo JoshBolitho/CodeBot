@@ -23,7 +23,8 @@ public class ScriptExecutor {
 
     private static final Integer maxImageSize = 2000;//pixels
     private static final Integer maxExecutionTime = 300;//seconds
-    private static final Integer maxOutputLength = 7000;//characters
+    private static final Integer maxOutputLength = 4000;//characters
+    private static final Integer maxErrorLength = 1000;//characters
 
 
     //Initialise ScriptExecutor
@@ -75,7 +76,7 @@ public class ScriptExecutor {
             parseScript();
         } catch (StopException e){
             //if parsing fails, result is set to the error message output
-            result = e.getMessage()+ "\n[^_^] Check out the guide for help with programming! https://github.com/JoshBolitho/CodeBot/blob/main/Guide.md";
+            result = e.getMessage() + "\n[^_^] Check out the guide for help with programming! https://github.com/JoshBolitho/CodeBot/blob/main/Guide.md";
             return;
         }
 
@@ -137,7 +138,6 @@ public class ScriptExecutor {
 
 
 
-
     //Test code in testScript.txt, rather than on facebook.
     //output canvas is saved to canvas.png.
     public static void main (String[] Args){
@@ -195,5 +195,7 @@ public class ScriptExecutor {
     public static Integer getMaxOutputLength() {
         return maxOutputLength;
     }
-
+    public static Integer getMaxErrorLength() {
+        return maxErrorLength;
+    }
 }

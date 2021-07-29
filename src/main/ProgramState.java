@@ -3,9 +3,10 @@ package main;
 //Stores the current state of the program during execution.
 //This includes all variables and functions, as well as program output (console or canvas)
 
-//All operations executed by the script are applied to the ProgramState.
+//All operations executed by a CodeBot script are applied to the ProgramState.
 //This includes getting/setting program variables, and calling functions that trigger output e.g. print("hello")
 
+import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
 
 public class ProgramState {
@@ -17,9 +18,10 @@ public class ProgramState {
 
     //Print a string line to console output
     public void print(String s){
-        if(consoleOutput.length()>ScriptExecutor.getMaxOutputLength()){
+        if((consoleOutput+s).getBytes(StandardCharsets.UTF_8).length > ScriptExecutor.getMaxOutputLength()){
             throw new ScriptException("Print failed: Exceeded maximum output length ("+ScriptExecutor.getMaxOutputLength()+" characters)" );
         }
+
         consoleOutput = consoleOutput + s + "\n";
     }
 
@@ -30,12 +32,13 @@ public class ProgramState {
         String temp = "\n" + s.replace("\n","\\n");
 
         //ensure the error string isn't too long
-        if(temp.length()>=ScriptExecutor.getMaxOutputLength()){return;}
+        if(temp.getBytes(StandardCharsets.UTF_8).length >= ScriptExecutor.getMaxErrorLength()){return;}
 
-        //test whether printing the error will cause the consoleOutput to go over maxOutputLength
-        if(consoleOutput.length()+temp.length() > ScriptExecutor.getMaxOutputLength()){
-            //truncate the console output, and leave enough space for the temp string. (with a 1000 character buffer just to be sure)
-            consoleOutput = consoleOutput.substring(0,ScriptExecutor.getMaxOutputLength()-1-temp.length()-1000);
+        //ensure printing the error won't cause the consoleOutput to go over maxOutputLength
+        while((consoleOutput+temp).getBytes(StandardCharsets.UTF_8).length > ScriptExecutor.getMaxOutputLength()){
+            //safely shave off 100 chars at a time
+            if(consoleOutput.length()<=100){return;}
+            consoleOutput = consoleOutput.substring(0,consoleOutput.length()-100);
         }
         consoleOutput = consoleOutput + temp;
     }
