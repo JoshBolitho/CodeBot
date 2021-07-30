@@ -41,9 +41,13 @@ Variables can be any of the following types:
 - Image `createImage(100,100)`
 ### Images 
 BotScript supports image variables, which can be rendered to the canvas and displayed along with the text output.
-Currently, there are two 500x500 image variables that are included in the program by default: `sun` and `monky`.
-
 <img width="288" alt="Sun" src="https://user-images.githubusercontent.com/17404588/124071417-62594f80-da93-11eb-95e6-a50943856d8a.PNG">
+
+There are several images included in the program by default:
+`sun`, `monky`, `alphabet`, `fiordland`, `kapiti`, `kiwi`, `pohutukawa`, `tui`.
+`alphabet` is a character map that can be used to render a simple pixel font to an image:
+
+<img width="288" alt="alphabet" src="https://user-images.githubusercontent.com/17404588/127492893-b803ae6d-3827-462f-8389-bef80e20001d.png">
 
 Here are some of the things you can do with Images
 - `myImage = createImage(10,10) creates a 10x10 image.`
@@ -274,21 +278,80 @@ CodeBot uses two Graph API edges:
 
 
 ### Cloudinary
-####  Uploading image to unsigned something or rather to host image link for image upload
+####  Uploading images
+CodeBot uses Cloudinary to host images to attach to comment responses. It uses an unsigned upload preset and the HTTP response from Cloudinary contains a URL to the hosted image, which can then be added to the Facebook comment post request.
+
+```java
+String cloudinaryBody = String.format("file=%s&upload_preset=%s",encodedImageDataURI,uploadPreset);  
+var uploadImage = HttpRequest.newBuilder().uri(  
+        (URI.create("https://api.cloudinary.com/v1_1/factbotimagehost/image/upload/")))  
+        .POST(HttpRequest.BodyPublishers.ofString(cloudinaryBody))  
+        .build();
+HttpResponse<String> cloudinaryResponse = cloudinaryClient.send(uploadImage, HttpResponse.BodyHandlers.ofString());
+```
 
 ### The Gson library  
-CodeBot uses Google's GSON library to manage JSON formatting for several purposes.
+CodeBot uses Google's Gson library to manage JSON formatting for several purposes. You can learn how to use Gson with [This guide](https://www.tutorialspoint.com/gson/gson_quick_guide.htm).
+The Classes in the `main.JSONClasses` package are all used for serialisation/deserialisation with Gson.
 
-- Loading config values - where secret tokens and profanity list is kept
+#### Loading data from JSON files
+CodeBot uses 3 separate .json files to store data that is important to the program.
 
-- Persistent memory to keep track of the current post ID and managing 
+- `config.json` stores all the API tokens and the profanity list. `config.json` is never modified by the program. The code below shows the deserialisation of config.json into a `Config` object and retrieval of vales:
+	```java
+	public static void loadConfig() throws IOException {  
+	  
+	  Path fileName = Path.of("src/main/config.json");  
+	  String configJSON = Files.readString(fileName);  
+	  
+	  Gson gson = new Gson();  
+	  Config config = gson.fromJson(configJSON, Config.class);  
+	  
+	  user_access_token = config.getUser_access_token();  
+	  page_access_token = config.getPage_access_token();  
+	  page_ID = config.getPage_ID();  
+	  
+	  cloudinary_upload_preset = config.getCloudinary_upload_preset();  
+	  
+	  profanity_list = config.getProfanity_list();  
+	  
+	}
+	```  
+- `post.json` keeps track of the current post, post scheduling, and handles coding challenge submissions.
+`loadPostData()` does the exact same thing that `loadConfig()` does, but for `post.json`.
+`writePostData()` is used to update `post.json`. The code below shows the serialisation of a `Post` object into json.
+	```json
+	public static void writePostData() throws IOException {  
+	  Post post = new Post(  
+		  currentPostID,  
+		  currentPostText,  
+		  queuedPosts,  
+		  pastPosts,  
+		  currentSubmissionsID,  
+		  facebookSubmissions,  
+		  curatedChallenges  
+	  );  
+	  
+	  Gson gson = new GsonBuilder().setPrettyPrinting().create();  
+	  String postJSON = gson.toJson(post);  
+	  
+	  Path fileName = Path.of("src/main/post.json");  
+	  Files.writeString(fileName,postJSON);  
+	}
+	```
 
-- post scheduling  
+- `logs.json` keeps a list of error logs. `updateLog()` is used to add a new log to this list. Here's what it does:
+-- Load `logs.json` and deserialise into a `Logs` object.
+-- Retrieve the `Log` array, and increase its length by 1, then add the new `Log`.
+-- Serialise the updated `Logs` object into a JSON string, write it back to `logs.json`.   
+#### Handling HTTP reponses
+CodeBot uses Gson to deserialise JSON formatted responses from the POST and GET requests it sends to Facebook and Cloudinary. Essentially any API calls that are made require some use of Gson. The following methods use Gson:
 
-- Logging errors
-
-the POST and GET requests return responses in JSON format.
-Most importantly, the GET \comments on a post. traversing the JSON respons allows CodeBot to read messages , ignore replied ones ... 
+- `requestComments()`
+- `pageComments()`
+- `publishComment()`
+- `publishCommentImage()`
+- `publishPost()`
 
 ### How is a BotScript program represented in Java code?  
 This section describes the classes used to represent a program that can be executed.
@@ -611,8 +674,13 @@ Parsing `Expressions`, especially `OperationExpression`s, are particularly chall
 - [Eff.org](https://www.eff.org/files/2016/07/18/eff_large_wordlist.txt) for the big list of random words
 - [Edabit.com](https://edabit.com/challenges) for some of the coding challenges
 - [Victoria University of Wellington](https://www.wgtn.ac.nz/)'s COMP261 course, for teaching syntax parsing, and the "robot" assignment, which inspired early versions of CodeBot
-- [Sunflower Image](https://www.almanac.com/sites/default/files/styles/amp_metadata_content_image_min_696px_wide/public/image_nodes/sunflower-1627193_1920.jpg)
-- [Monkey Image](https://i.kym-cdn.com/photos/images/original/001/131/258/07c.jpg)
+- sunflower - [almanac.com](https://www.almanac.com/sites/default/files/styles/amp_metadata_content_image_min_696px_wide/public/image_nodes/sunflower-1627193_1920.jpg)
+- monkey - [Surabaya Zoo](https://i.kym-cdn.com/photos/images/original/001/131/258/07c.jpg)
+- tui - [Sid Mosdell]( https://flic.kr/p/qcsb1k)
+- pohutukawa - [lostandcold]( https://flic.kr/p/bjCjEg)
+- kapiti - [Tony]( https://flic.kr/p/4P4ww5)
+- kiwi - [denisbin]( https://flic.kr/p/gpoxPc)
+- fiordland - [Bernard Spragg]( https://flic.kr/p/oC9XCR)
 
 ### People
 -  [Boidushya](https://github.com/boidushya) for helping me sort out my API token using their [Facebook Graph API token guide](https://github.com/Boidushya/FrameBot/blob/master/generateToken.md)!
