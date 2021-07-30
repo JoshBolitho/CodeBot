@@ -644,7 +644,7 @@ A new `WhileNode` is created and returned, with the condition and whileBlock as 
 ```
 
 #### parseExpression()
-This method is used anywhere that an `Expression` of any kind is expected e.g. The condition `Expression` of a while statement in the previous example.
+This method is used anywhere that an [`Expression`](#representing-expressions) of any kind is expected e.g. The condition `Expression` of a while statement in the previous example.
 
 Parsing `Expressions`, especially `OperationExpression`s, are particularly challenging because of the order of operations.
 
@@ -657,7 +657,196 @@ Parsing `Expressions`, especially `OperationExpression`s, are particularly chall
 | & | 1 |
 | \| | 0 |
 
+An `OperationExpression` is an expression which generally has two operands and one operator.  `a + b` has operands `a` and `b`, and the `+` operator. 
 
+It gets more complicated when you add order of operations: 
+`a+b*c` needs to be parsed as `a + (b*c)`, where `a` and `(b*c)` are operands for the `+` operation. `b` and `c` are also operands for the `*` operation.
+
+Here are some examples of where brackets would be added to some example expressions, with operators coloured according to their priority levels:
+
+<img width="246" alt="examples" src="https://user-images.githubusercontent.com/17404588/127677768-fa02db0d-65f1-4405-8a51-02eec8a2bb88.PNG">
+
+The brackets represent the grouping of operands and operators into  `OperationExpression` objects. Note the main rules for where brackets are drawn. knowing these rules will help with understanding the parsing logic: 
+
+- Reaching an operator higher than the current priority level will always create a new open bracket so the higher priority operator can be in its own "bubble." (Examples 1 and 2)
+- Reaching an operator lower than the current priority level will always close off the brackets. (Examples 3 and 4)
+- Reaching an operator which is equal to the current priority level has two options, and requires a lookahead. If the following operator is a higher priority, a new open bracket is created (Example 5). If the following operator is equal or lower priority, brackets are closed off (Examples 6 and 7). 
+
+Recursively calling `parseExpression()` is equivalent to "opening a new set of brackets."
+Returning the `Expression` as it has been parsed so far is equivalent to "closing the current set of brackets."
+
+The `Operator` class is used to store and give access to the priority level, regex `Pattern`,  and a `Parser.Operation` enum value for each operation supported by BotScript. 
+ 
+`parseExpression()` uses the method `parseOperator()` to parse and return the next operator token without consuming it.
+```java
+public Operator parseOperator(Scanner s){  
+	for(Operator o : operators){  
+		if(s.hasNext(o.getPattern())){  
+			return o;
+		}  
+	}  
+	throw new ScriptException("expected an operator");  
+}
+```
+
+
+`parseExpression()` uses the method `parseOperand()` to parse and return the next single operand as an expression. In order, here are the types of patterns/tokens that are accepted by `parseOperand()`:
+
+- `-` Minus sign: consumes the sign and parses next operand recursively. Returns (0 minus parsed operand).
+- `!` Not operator: boolean equivalent to the minus sign, also parsing the next operand. returns ( not (parsed operand) ).
+- `(` Open parentheses: consumes `(`, parse the expression following it, then consumes `)` and returns the parsed expression.
+- `[` Open square bracket: calls `parseArrayExpression()` and returns the result.
+- `FloatPattern`:  if the next token matches the float pattern, a float type value is parsed, and returned as a valueExpression.
+- `IntegerPattern`:  parse and return Integer value as ValueExpression
+- `BooleanPattern`:  parse and return Boolean value as ValueExpression
+- `DoubleQuotes`:  detects the start of a string value. The first `DoubleQuotes`: token is consumed, a string is parsed, and then the second `DoubleQuotes` token is consumed. The string value is returned as a ValueExpression
+- variable name: if the next token in the scanner is the name of a variable already defined in the program, then the operand is parsed as a `referenceExpression`.
+- function name: if the next token in the scanner is the name of a function already defined in the program, then the operand is parsed as a function call and a `functionExpression` is returned.
+
+```java
+public Expression parseOperand(Scanner s){
+	Expression expression;  
+  
+	//Parse n "-" characters  
+	if (s.hasNext(Minus)){
+		require(Minus, s);  
+		expression = new OperationExpression(
+			new ValueExpression(new IntegerValue(0)),  
+			parseOperand(s),  
+			Operation.minus  
+		);  
+		return expression;  
+	}  
+  
+	//Parse n "!" characters  
+	if (s.hasNext(Not)){  
+		require(Not, s);  
+		expression = new OperationExpression(  
+			parseOperand(s),  
+			null,
+			Operation.not  
+		);  
+		return expression;  
+	}
+	 
+	//Parse an expression inside parentheses "( expression )"
+	if(s.hasNext(OpenParenthesis)) {  
+		require(OpenParenthesis, s);  
+		expression = parseExpression(s,null,null);  
+		require(CloseParenthesis,s);  
+		return expression;  
+	}
+	 
+	//Parse array expression
+	if (s.hasNext(OpenSquare)) {  
+	expression = parseArrayExpression(s);  
+	return expression;  
+	}  
+
+	//Parse next operand by pattern matching
+	if (s.hasNext(FloatPattern)){  ... }  
+	if (s.hasNext(IntegerPattern) ){ ... }  
+	if (s.hasNext(BooleanPattern)){ ...	}  
+	if (s.hasNext(DoubleQuotes)){ ... }  
+
+	//Variable reference as an operand
+	for(String variableName : variableNames){  
+		if(s.hasNext(variableName)){  
+			String recognisedVariableName = s.next();  
+			expression = new ReferenceExpression(recognisedVariableName);  
+			return expression;  
+		}  
+	}  
+
+	//function reference as an operand
+	for(String functionName : functionNames) {  
+		if (s.hasNext(functionName)) {  
+			require(functionName, s);  
+			require(OpenParenthesis, s);  
+			ArrayList<Expression> parameters = new ArrayList<>();  
+			if (!s.hasNext(CloseParenthesis)) {  
+				parameters.add(parseExpression(s,null,null));  
+			}  
+			while (s.hasNext(Comma)) {  
+				require(Comma, s);  
+				parameters.add(parseExpression(s,null,null));  
+			}  
+			require(CloseParenthesis, s);  
+
+			expression =  new FunctionExpression(functionName, parameters);  
+			return expression;  
+		}  
+	}  
+	//No match for any kind of operand has been found - throw an error
+	throw new ScriptException("Unrecognised Expression"+(s.hasNext() ? ": "+s.next() : ""));  
+}
+```
+
+Using these two methods, `parseExpression()` recursively parses any `Expression` supported in BotScript, accounting for order of operations.
+
+The first few lines ensure a first operand has been parsed if this is the initial `parseExpression()` call. 
+PriorityLevel is initialised at `0`  as we haven't parsed any operators yet.
+```java
+public Expression parseExpression(Scanner s, Expression firstOperand, Integer priorityLevel){  
+	if(priorityLevel==null){ priorityLevel = 0; }  
+	if(firstOperand==null){ firstOperand = parseOperand(s); }
+```
+
+
+The next line uses `expressionEndDetected()` to prevent this method from trying to parse past the end of the expression and into some other syntax that may be expected to close off the expression i.e. newline, close curly braces, comma.
+```java  
+    if(expressionEndDetected(s)){ return firstOperand; }
+```
+Now, the priority logic begins. We have an operand, and no expression ending characters were detected, so we expect an operator next.
+```java
+	Operator operator1 = parseOperator(s);
+```
+If our priority level is higher than that of the operator we have just detected, we return what we have parsed so far, "closing the brackets."
+```java
+	if(operator1.getPriority() < priorityLevel) { 
+		return firstOperand;  
+	}
+```
+if detected operator has an equal priority to our priority level, we need to look ahead at the next operator.
+```java
+	else if(operator1.getPriority() == priorityLevel){  
+		require(operator1.getPattern(),s);  
+		Expression operand2 = parseOperand(s);
+```
+Return the expression as-is, if an end of expression token is detected. 
+```java
+		if(expressionEndDetected(s)){ return new OperationExpression(firstOperand,operand2,operator1.getOperation()); }
+```
+Get the next operator and decide whether to close or open brackets by returning parsed expression or calling parseExpression() again recursively.  
+```java  
+		Operator operator2 = parseOperator(s);
+		  
+		if(operator2.getPriority() > operator1.getPriority()){  
+			//parse the higher priority operation in a new parseExpression() call with higher priority  
+			Expression nextExpression = new OperationExpression(firstOperand,parseExpression(s,operand2,priorityLevel+1),operator1.getOperation());  
+			return parseExpression(s,nextExpression,priorityLevel);  
+		}else if (operator2.getPriority() == operator1.getPriority()){  
+			//create an Expression to represented the equal quality operation,  
+			//then call parseExpression with this newly created expression as the parameter.
+			Expression temp = new OperationExpression(firstOperand,operand2,operator1.getOperation());  
+			return parseExpression(s,temp,priorityLevel);  
+		}else{  
+			//next operation is lower priority  
+			return new OperationExpression(firstOperand,operand2,operator1.getOperation());  
+		}
+```
+Otherwise, detected operator has a higher priority to our priority level, and we "open a new set of brackets" by calling parseExpression() with a higher priority level to capture the higher level operation.
+```java
+	} else {
+		Expression operand1 = parseExpression(s,firstOperand,priorityLevel+1);  
+```
+The higher level brackets have been fully parsed. If the expression end isn't detected, we can continue parsing the expression at the current priority level to parse the rest of the expression.
+```java		
+		if(expressionEndDetected(s)){ return operand1; }  
+		return parseExpression(s,operand1,priorityLevel);
+	}  
+}
+```
 
 ## Credits
 ### Tools
@@ -674,6 +863,7 @@ Parsing `Expressions`, especially `OperationExpression`s, are particularly chall
 - [Eff.org](https://www.eff.org/files/2016/07/18/eff_large_wordlist.txt) for the big list of random words
 - [Edabit.com](https://edabit.com/challenges) for some of the coding challenges
 - [Victoria University of Wellington](https://www.wgtn.ac.nz/)'s COMP261 course, for teaching syntax parsing, and the "robot" assignment, which inspired early versions of CodeBot
+-  Syntax Tree Generator - [yohasebe.com](https://yohasebe.com/rsyntaxtree/)
 - sunflower - [almanac.com](https://www.almanac.com/sites/default/files/styles/amp_metadata_content_image_min_696px_wide/public/image_nodes/sunflower-1627193_1920.jpg)
 - monkey - [Surabaya Zoo](https://i.kym-cdn.com/photos/images/original/001/131/258/07c.jpg)
 - tui - [Sid Mosdell]( https://flic.kr/p/qcsb1k)
@@ -683,5 +873,6 @@ Parsing `Expressions`, especially `OperationExpression`s, are particularly chall
 - fiordland - [Bernard Spragg]( https://flic.kr/p/oC9XCR)
 
 ### People
+- [Sam Timmings](https://samtimmings.com/) for designing the cover image!
 -  [Boidushya](https://github.com/boidushya) for helping me sort out my API token using their [Facebook Graph API token guide](https://github.com/Boidushya/FrameBot/blob/master/generateToken.md)!
 - People of the Bot Appreciation Society Discord channel, for general support!
