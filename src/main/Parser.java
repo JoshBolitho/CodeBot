@@ -712,8 +712,8 @@ public class Parser {
         Operator operator1 = parseOperator(s);
 
         if(operator1.getPriority() < priorityLevel) {
-            //The first operator we parsed is of a lower priority, so we ignore it and
-            //return firstOperand.
+            //The first operator we parsed is of a lower priority,
+            //so we ignore it and return firstOperand.
             return firstOperand;
 
         }
@@ -758,20 +758,24 @@ public class Parser {
             if(expressionEndDetected(s)){ return operand1; }
 
             //After the higher priority level calls have completed, there may be more
-            //operations of equal or lower priority to parse.
-            Operator operator2 = parseOperator(s);
+            //operations of equal or lower priority to parse. They can be parsed using
+            //another call of parseExpression() with the same priority level as this call.
 
-            if(operator2.getPriority() == priorityLevel){
-                return parseExpression(s,operand1,priorityLevel);
-            }
+            return parseExpression(s,operand1,priorityLevel);
 
-            //We are dropping down a priority level here so the "outer" parseExpression()
-            // call can handle it. Just return what we parsed so far.
-            else if(operator2.getPriority() < priorityLevel){
-                return operand1;
-            }else{
-                throw new ScriptException("Operation priority error!");
-            }
+//            Operator operator2 = parseOperator(s);
+//
+//            if(operator2.getPriority() == priorityLevel){
+//                return parseExpression(s,operand1,priorityLevel);
+//            }
+//
+//            //We are dropping down a priority level here so the "outer" parseExpression()
+//            // call can handle it. Just return what we parsed so far.
+//            else if(operator2.getPriority() < priorityLevel){
+//                return operand1;
+//            }else{
+//                throw new ScriptException("Operation priority error!");
+//            }
 
         }
 
