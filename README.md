@@ -320,7 +320,7 @@ CodeBot uses 3 separate .json files to store data that is important to the progr
 - `post.json` keeps track of the current post, post scheduling, and handles coding challenge submissions.
 `loadPostData()` does the exact same thing that `loadConfig()` does, but for `post.json`.
 `writePostData()` is used to update `post.json`. The code below shows the serialisation of a `Post` object into json.
-	```json
+	```java
 	public static void writePostData() throws IOException {  
 	  Post post = new Post(  
 		  currentPostID,  
