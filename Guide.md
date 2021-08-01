@@ -483,6 +483,7 @@ print(length(true))
 
 ### Notes
 - Newline characters are an important part of the syntax of BotScript. Facebook comments don't support indentation, so indentation is not supported.
+- CodeBot strings don't currently support an escape character. Strings are parsed between double quotes `"..."`.
 
 
 #### Limitations
