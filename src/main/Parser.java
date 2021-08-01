@@ -762,23 +762,7 @@ public class Parser {
             //another call of parseExpression() with the same priority level as this call.
 
             return parseExpression(s,operand1,priorityLevel);
-
-//            Operator operator2 = parseOperator(s);
-//
-//            if(operator2.getPriority() == priorityLevel){
-//                return parseExpression(s,operand1,priorityLevel);
-//            }
-//
-//            //We are dropping down a priority level here so the "outer" parseExpression()
-//            // call can handle it. Just return what we parsed so far.
-//            else if(operator2.getPriority() < priorityLevel){
-//                return operand1;
-//            }else{
-//                throw new ScriptException("Operation priority error!");
-//            }
-
         }
-
     }
 
     public Expression parseArrayExpression (Scanner s){

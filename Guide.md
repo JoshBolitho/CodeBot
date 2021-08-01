@@ -368,6 +368,7 @@ BotScript has support for image values, which can be rendered to the canvas and 
 
 Images are essentially big 2D arrays of pixels, where each pixel is located at an x,y coordinate, and stores an array of integers representing its colour in RGB.
 
+Images can be up to 2000x2000 pixels. 
 #### Input an image
 If you are writing a script for a CodeBot comment section, you may also attach an image to your comment, and it will be loaded into your program! It will be assigned to the varible name `input`. You can manipulate it just like any other image. 
 
