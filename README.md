@@ -1,6 +1,6 @@
 
 # CodeBot
-![GitHub](https://img.shields.io/github/license/JoshBolitho/CodeBot) ![GitHub last commit](https://img.shields.io/github/last-commit/JoshBolitho/CodeBot) ![GitHub issues](https://img.shields.io/github/issues/JoshBolitho/CodeBot) ![GitHub issues](https://img.shields.io/github/issues-raw/JoshBolitho/CodeBot)
+![GitHub last commit](https://img.shields.io/github/last-commit/JoshBolitho/CodeBot) ![GitHub closed issues](https://img.shields.io/github/issues-closed/JoshBolitho/CodeBot) ![GitHub issues](https://img.shields.io/github/issues/JoshBolitho/CodeBot) [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
 CodeBot is a Java Facebook bot which turns the [CodeBot Facebook page](https://facebook.com/CodeBotOfficial)'s comment section into an interactive coding playground!
 It parses Facebook comments as [BotScript](#What-is-Botscript) code, executes them, and replies with the output.
