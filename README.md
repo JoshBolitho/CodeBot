@@ -873,6 +873,5 @@ The higher level brackets have been fully parsed. If the expression end isn't de
 - fiordland - [Bernard Spragg]( https://flic.kr/p/oC9XCR)
 
 ### People
-- [Sam Timmings](https://samtimmings.com/) for designing the cover image!
 -  [Boidushya](https://github.com/boidushya) for helping me sort out my API token using their [Facebook Graph API token guide](https://github.com/Boidushya/FrameBot/blob/master/generateToken.md)!
 - People of the Bot Appreciation Society Discord channel, for general support!
