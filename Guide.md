@@ -382,6 +382,9 @@ There are several images included in the program by default:
 `alphabet` is a character map that can be used to render a simple pixel font to an image:
 
 <img width="288" alt="alphabet" src="https://user-images.githubusercontent.com/17404588/127492893-b803ae6d-3827-462f-8389-bef80e20001d.png">
+Use the coordinates of the characters in the image to render them to an image!
+
+![character map coords](https://user-images.githubusercontent.com/17404588/127961435-95a03308-570f-493d-8187-0e3625987765.png)
 
 
 #### Create an image
