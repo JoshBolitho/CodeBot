@@ -174,17 +174,9 @@ public class CodeBot {
                 System.out.println(result);
 
                 //Test comment and result for profanity
-                boolean containsProfanity = false;
-                for (String s : profanity_list) {
-                    if (c.getMessage().contains(s) || result.contains(s)) {
-                        System.out.println("Profanity detected");
-                        publishComment(c.getId(), "Profanity detected. Delete your comment.");
-
-                        log(c, "Comment failed the profanity filter.");
-                        containsProfanity = true;
-                    }
-                }
-                if (containsProfanity) {
+                if(testProfanity(c.getMessage()+result)){
+                    publishComment(c.getId(), "Profanity detected. Delete your comment.");
+                    log(c, "Comment failed the profanity filter.");
                     continue;
                 }
 
@@ -235,17 +227,9 @@ public class CodeBot {
                 }
 
                 //Test comment and result for profanity
-                boolean containsProfanity = false;
-                for (String s : profanity_list) {
-                    if (c.getMessage().contains(s)) {
-                        System.out.println("Profanity detected");
-                        publishComment(c.getId(), "Profanity detected. Delete your comment.");
-
-                        log(c, "Comment failed the profanity filter.");
-                        containsProfanity = true;
-                    }
-                }
-                if (containsProfanity) {
+                if(testProfanity(c.getMessage())){
+                    publishComment(c.getId(), "Profanity detected. Delete your comment.");
+                    log(c, "Comment failed the profanity filter.");
                     continue;
                 }
 
@@ -614,11 +598,11 @@ public class CodeBot {
         //Post a comment update to previous post to indicate that the post is no longer
         //tracked by the bot.
         if(submissionsPost) {
-            if(currentSubmissionsID!=null && !currentSubmissionsID.equals("")) {
+            if(!currentSubmissionsID.equals("")) {
                 publishComment(currentSubmissionsID, "This post is no longer active! Check the page for the most recent post [^_^]");
             }
         }else{
-            if(currentPostID!=null && !currentPostID.equals("")) {
+            if(!currentPostID.equals("")) {
                 publishComment(currentPostID, "This post is no longer active! Check the page for the most recent post [^_^]");
             }
         }
@@ -748,6 +732,7 @@ public class CodeBot {
         //Generate challenge string
         switch (mode) {
             case "facebook submission" -> {
+                if(facebookSubmissions.length==0){return "Today's challenge: take a break!";}
                 return "Today's challenge: "
                         + facebookSubmissions[(int) (Math.random() * facebookSubmissions.length)]
                         + "\n\nAlternatively, do whatever you feel like!";
@@ -883,17 +868,18 @@ public class CodeBot {
                         + "\n\nAlternatively, do whatever you feel like! [^_^]";
             }
             case "curated from website" -> {
+                if(curatedChallenges.length==0){return "Today's challenge: take a break!";}
                 return "Today's challenge: "
                         + curatedChallenges[(int) (Math.random() * curatedChallenges.length)]
                         + "\n\nAlternatively, do whatever you feel like! [^_^]";
             }
             default -> {
-                return "ERROR ERROR ERROR BEEP BOOP";
+                return "Today's challenge: take a break!";
             }
         }
     }
 
-    private static String getMostReacted(Comment[] comments) throws InterruptedException {
+    private static String getMostReacted(Comment[] comments) {
 
         //Congratulate the most reacted comment
         Comment mostReacted = null;
@@ -902,18 +888,8 @@ public class CodeBot {
         for(Comment c : comments){
 
             try {
-                //Test comment for profanity
-                boolean containsProfanity = false;
-                for (String s : profanity_list) {
-                    if (c.getMessage().contains(s)) {
-                        System.out.println("Profanity detected");
-                        publishComment(c.getId(), "Profanity detected. Delete your comment.");
-
-                        log(c, "Comment failed the profanity filter.");
-                        containsProfanity = true;
-                    }
-                }
-                if (containsProfanity) {
+                //Test comment for profanity - profane comments can't win as the most popular comment
+                if(testProfanity(c.getMessage())){
                     continue;
                 }
 
@@ -926,8 +902,6 @@ public class CodeBot {
                    }
                 }
 
-            }catch (InterruptedException e){
-                throw e;
             }catch (Throwable e){
                 log(e,"Unanticipated error type thrown during getMostReacted");
             }
@@ -1052,6 +1026,18 @@ public class CodeBot {
         }
     }
 
+    public static boolean testProfanity(String message){
+        for (String s : profanity_list) {
+            message = message
+                    .replaceAll("[ \\t\\r\\n]+","");
+            if (message.contains(s)) {
+                System.out.println("Profanity detected");
+                    return true;
+            }
+        }
+        return false;
+    }
+
     public static void main(String[] args) {
 
         //Load config data
@@ -1081,11 +1067,11 @@ public class CodeBot {
                 case "Comment" -> {
                     System.out.println("Comment mode");
 
-                    if (currentPostID != null) {
+                    if (!currentPostID.equals("")) {
                         Comment[] commentData = requestComments(currentPostID);
                         executeComments(commentData);
                     }else{
-                        log("Comment mode failure","currentPostID was null.");
+                        log("Comment mode failure","currentPostID was empty.");
                     }
                 }
 
@@ -1097,12 +1083,12 @@ public class CodeBot {
                     //and get the top reacted comment.
                     System.out.println("Comment mode");
 
-                    if (currentPostID != null) {
+                    if (!currentPostID.equals("")) {
                         Comment[] commentData = requestComments(currentPostID);
                         executeComments(commentData);
                         topCommentMessage = getMostReacted(commentData);
                     }else{
-                        log("Comment mode failure","currentPostID was null.");
+                        log("Comment mode failure","currentPostID was empty.");
                     }
 
                     //Upload post
