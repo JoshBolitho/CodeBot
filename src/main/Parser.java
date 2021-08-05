@@ -242,6 +242,9 @@ public class Parser {
         String[] lines = script.split("\n");
         StringBuilder commentRemovedScript = new StringBuilder();
         for(String s : lines){
+            //remove all tab characters (\t) from each line.
+            s = s.replace("\t","");
+
             if( s.length()>0 && ! (s.charAt(0) == '%') ){
                 commentRemovedScript.append(s).append("\n");
             }
@@ -269,7 +272,7 @@ public class Parser {
         addInternalFunction(program,"createImage",new String[]{"x","y"},true);
         addInternalFunction(program,"setPixel",new String[]{"image","x","y","r","g","b"},false);
         addInternalFunction(program,"getPixel",new String[]{"image","x","y"},true);
-        addInternalFunction(program,"getDimensions",new String[]{"x"},true);
+        addInternalFunction(program,"getDimensions",new String[]{"image"},true);
         addInternalFunction(program,"setCanvas",new String[]{"image"},false);
         addInternalFunction(program,"canvasVisible",new String[]{"boolean"},false);
 

@@ -37,7 +37,7 @@ public class InternalFunctionExpression implements Expression{
                     Value arr = getParameter(0, programState, functionVariables);
                     Value element = getParameter(1, programState, functionVariables);
 
-                    assertType(arr, ARRAY);
+                    assertType(arr, ARRAY,"array");
                     ((ArrayValue) arr).addElement(element);
 
                     //add() returns nothing
@@ -50,8 +50,8 @@ public class InternalFunctionExpression implements Expression{
                     Value arr = getParameter(0, programState, functionVariables);
                     Value i = getParameter(1, programState, functionVariables);
 
-                    assertType(arr, ARRAY);
-                    assertType(i, INTEGER);
+                    assertType(arr, ARRAY,"array");
+                    assertType(i, INTEGER,"int");
 
                     ArrayValue array = (ArrayValue) arr;
                     int index = i.castInteger();
@@ -61,7 +61,7 @@ public class InternalFunctionExpression implements Expression{
                         array.evaluateArray(programState, functionVariables);
                     }
 
-                    assertRange(index, 0, array.castArray().size());
+                    assertRange(index, 0, array.castArray().size(),"int");
 
                     array.removeElement(index);
 
@@ -75,8 +75,8 @@ public class InternalFunctionExpression implements Expression{
                     Value i = getParameter(1, programState, functionVariables);
                     Value element = getParameter(2, programState, functionVariables);
 
-                    assertType(arr, ARRAY);
-                    assertType(i, INTEGER);
+                    assertType(arr, ARRAY,"array");
+                    assertType(i, INTEGER,"int");
 
                     ArrayValue array = (ArrayValue) arr;
                     int index = i.castInteger();
@@ -86,7 +86,7 @@ public class InternalFunctionExpression implements Expression{
                         array.evaluateArray(programState, functionVariables);
                     }
 
-                    assertRange(index, 0, array.castArray().size());
+                    assertRange(index, 0, array.castArray().size(),"int");
 
                     array.setElement(index, element);
 
@@ -99,8 +99,8 @@ public class InternalFunctionExpression implements Expression{
                     Value arr = getParameter(0, programState, functionVariables);
                     Value i = getParameter(1, programState, functionVariables);
 
-                    assertType(arr, ARRAY);
-                    assertType(i, INTEGER);
+                    assertType(arr, ARRAY,"array");
+                    assertType(i, INTEGER,"int");
 
                     ArrayValue array = (ArrayValue) arr;
                     int index = i.castInteger();
@@ -110,7 +110,7 @@ public class InternalFunctionExpression implements Expression{
                         array.evaluateArray(programState, functionVariables);
                     }
 
-                    assertRange(index, 0, array.castArray().size());
+                    assertRange(index, 0, array.castArray().size(),"int");
 
                     return array.castArray().get(index);
                 }
@@ -155,7 +155,7 @@ public class InternalFunctionExpression implements Expression{
 
                         return new IntegerValue(value.castArray().size());
                     }
-                    fail();
+                    genericFail("Parameter \"value\" is the wrong type - Expected String or Array, received "+value.getType().name());
                 }
                 case "charAt": {
                     assertParameters(2);
@@ -163,13 +163,13 @@ public class InternalFunctionExpression implements Expression{
                     Value str = getParameter(0, programState, functionVariables);
                     Value i = getParameter(1, programState, functionVariables);
 
-                    assertType(str, STRING);
-                    assertType(i, INTEGER);
+                    assertType(str, STRING,"string");
+                    assertType(i, INTEGER,"int");
 
                     String string = str.castString();
                     int index = i.castInteger();
 
-                    assertRange(index, 0, string.length() - 1);
+                    assertRange(index, 0, string.length() - 1,"int");
 
                     return new StringValue(Character.toString(string.charAt(index)));
                 }
@@ -184,8 +184,8 @@ public class InternalFunctionExpression implements Expression{
                     int x = getParameter(0, programState, functionVariables).castInteger();
                     int y = getParameter(1, programState, functionVariables).castInteger();
 
-                    assertRange(x,0,ScriptExecutor.getMaxImageSize());
-                    assertRange(y,0,ScriptExecutor.getMaxImageSize());
+                    assertRange(x,0,ScriptExecutor.getMaxImageSize(),"x");
+                    assertRange(y,0,ScriptExecutor.getMaxImageSize(),"y");
 
                     //createImage() returns an image variable
                     return new ImageValue(x, y);
@@ -202,15 +202,15 @@ public class InternalFunctionExpression implements Expression{
                     int g = getParameter(4, programState, functionVariables).castInteger();
                     int b = getParameter(5, programState, functionVariables).castInteger();
 
-                    assertType(img, IMAGE);
+                    assertType(img, IMAGE,"image");
                     ImageValue image = (ImageValue) img;
 
-                    assertRange(x, 0, image.getWidth() - 1);
-                    assertRange(y, 0, image.getWidth() - 1);
+                    assertRange(x, 0, image.getWidth() - 1,"x");
+                    assertRange(y, 0, image.getWidth() - 1,"y");
 
-                    assertRange(r, 0, 255);
-                    assertRange(g, 0, 255);
-                    assertRange(b, 0, 255);
+                    assertRange(r, 0, 255,"r");
+                    assertRange(g, 0, 255,"g");
+                    assertRange(b, 0, 255,"b");
 
                     Color colour = new Color(r, g, b);
                     image.setPixel(x, y, colour);
@@ -226,11 +226,11 @@ public class InternalFunctionExpression implements Expression{
                     int x = getParameter(1, programState, functionVariables).castInteger();
                     int y = getParameter(2, programState, functionVariables).castInteger();
 
-                    assertType(img, IMAGE);
+                    assertType(img, IMAGE,"image");
                     ImageValue image = (ImageValue) img;
 
-                    assertRange(x, 0, image.getWidth() - 1);
-                    assertRange(y, 0, image.getWidth() - 1);
+                    assertRange(x, 0, image.getWidth() - 1,"x");
+                    assertRange(y, 0, image.getWidth() - 1,"y");
 
                     return image.getPixel(x, y);
                 }
@@ -238,7 +238,7 @@ public class InternalFunctionExpression implements Expression{
                     assertParameters(1);
 
                     Value img = getParameter(0, programState, functionVariables);
-                    assertType(img, IMAGE);
+                    assertType(img, IMAGE,"image");
                     ImageValue image = (ImageValue) img;
 
                     programState.addProgramVariable("_canvas", image);
@@ -251,7 +251,7 @@ public class InternalFunctionExpression implements Expression{
                     assertParameters(1);
 
                     Value b = getParameter(0, programState, functionVariables);
-                    assertType(b, BOOLEAN);
+                    assertType(b, BOOLEAN,"boolean");
                     BooleanValue bool = (BooleanValue) b;
 
                     programState.addProgramVariable("_canvasVisibility", bool);
@@ -263,7 +263,7 @@ public class InternalFunctionExpression implements Expression{
                     assertParameters(1);
 
                     Value img = getParameter(0, programState, functionVariables);
-                    assertType(img, IMAGE);
+                    assertType(img, IMAGE,"image");
                     ImageValue image = (ImageValue) img;
 
                     ArrayList<Expression> array = new ArrayList<>(Arrays.asList(
@@ -292,18 +292,19 @@ public class InternalFunctionExpression implements Expression{
                     float result = (float) Math.pow(base, exponent);
 
                     if (Float.isNaN(result)) {
-                        fail();
+                        genericFail("Result is not a number");
                     }
                     if (Float.isInfinite(result)) {
-                        fail();
+                        genericFail("Result is infinite");
                     }
 
                     return new FloatValue(result);
                 }
-                default:{ fail();}
+                default:{ genericFail("Invalid function name");}
             }
         }catch (ScriptException | StopException e){ throw e; }
-        catch (Exception e){ fail();}
+        //Best not to report to the user that a Java failure has occurred.
+        catch (Exception e){ genericFail("Unknown error");}
         return new NullValue();
     }
 
@@ -311,25 +312,30 @@ public class InternalFunctionExpression implements Expression{
     private Value getParameter(int i, ProgramState programState, HashMap<String, Value> functionVariables ){
         return parameters.get(i).evaluate(programState, functionVariables);
     }
-    private void fail() throws ScriptException{
-        throw new ScriptException("Function call failed: " + this.toString());
+    private void genericFail(String message) throws ScriptException{
+        throw new ScriptException("Function " + this.toString() + " failed: " + message);
     }
     private void assertParameters(int n) throws ScriptException{
         //check the correct number of parameters have been supplied
         if(parameters.size() != n){
-            throw new ScriptException(
-                    String.format("Wrong number of parameters: expecting %s, received %s", n ,parameters.size() )
-            );
+            genericFail(String.format(
+                    "Wrong number of parameters - expected %s, received %s", n ,parameters.size()
+            ));
         }
     }
-    private void assertType(Value value, ValueType valueType){
+    private void assertType(Value value, ValueType valueType, String name){
         if( value.getType() != valueType){
-            fail();}
+            genericFail(String.format(
+                    "Parameter \"%s\" is the wrong type - expected %s, received %s",name, valueType, value.getType()
+            ));
+        }
     }
-    private void assertRange(int i, int min, int max) throws ScriptException {
+    private void assertRange(int i, int min, int max, String name) throws ScriptException {
         //boundary inclusive
         if(i<min || i>max){
-            fail();
+            genericFail(String.format(
+                    "Parameter \"%s\" = %s is out of bounds (%s,%s)",name, i, min, max
+            ));
         }
     }
 
