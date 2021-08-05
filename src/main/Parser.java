@@ -30,7 +30,7 @@ public class Parser {
         not
     }
 
-    static String defaultDelimiter = "[^\\S\\r\\n]|(?=[{}()\\[\\],;\"+\\-*/%#&|!<>=\\n])|(?<=[{}()\\[\\],;\"+\\-*/%#&|!<>=\\n])";
+    static String defaultDelimiter = "[^\\S\\r\\n]+|(?=[{}()\\[\\],;\"+\\-*/%#&|!<>=\\n])|(?<=[{}()\\[\\],;\"+\\-*/%#&|!<>=\\n])";
 
     static Pattern OpenParenthesis = Pattern.compile("\\(");
     static Pattern CloseParenthesis = Pattern.compile("\\)");
@@ -330,6 +330,7 @@ public class Parser {
         addProgramVariable(program,"tui",new ImageValue(tuiImage));
 
         System.out.println(commentRemovedScript);
+
         //Parse the user's script in a separate ProgramNode "scriptNode" and append to the main ProgramNode, "program"
         //to distinguish internal functions/variables from the user's script.
         //(helps when printing the program)
@@ -365,7 +366,8 @@ public class Parser {
             return parseFunctionAssignment(s);
         }else if(s.hasNext(Return)){
             //currently missing a test to see if parsing is currently in a function,
-            //so in theory someone could add a return statement without being in a function
+            //so in theory someone could add a return statement without being in a function,
+            //which would be redundant and harmless.
             return parseReturn(s);
         }else{
             //test whether scanner.next() has a variable name already defined in the script
@@ -393,7 +395,9 @@ public class Parser {
                         parameters.add(parseExpression(s,null,null));
                     }
                     require(CloseParenthesis,s);
-                    require(NewLine,s);
+
+                    //if this line is within a code block, do not require a newLine character.
+                    if(!s.hasNext(CloseBrace)){ require(NewLine,s); }
 
                     return new FunctionExecutionNode(str, parameters);
                 }
@@ -476,10 +480,10 @@ public class Parser {
                 elseBlock.addExecutableNode(parseExecutableNode(s));
             }
             require(CloseBrace, s);
-            require(NewLine, s);
+            optionalRequire(NewLine, s);
             return new IfNode(condition, ifBlock, elseBlock);
         }else{
-            require(NewLine, s);
+            optionalRequire(NewLine, s);
             return new IfNode(condition, ifBlock);
         }
     }
@@ -494,13 +498,13 @@ public class Parser {
         require(OpenBrace, s);
         optionalRequire(NewLine, s);
 
-//        while scanner doesn't have close brace
+        //While scanner doesn't have close brace
         ProgramNode whileBlock = new ProgramNode();
         while(!s.hasNext(CloseBrace)){
             whileBlock.addExecutableNode(parseExecutableNode(s));
         }
         require(CloseBrace, s);
-        require(NewLine, s);
+        optionalRequire(NewLine, s);
 
         return new WhileNode(condition,whileBlock);
     }
@@ -560,7 +564,7 @@ public class Parser {
             functionScript.addExecutableNode(parseExecutableNode(s));
         }
         require(CloseBrace,s);
-        require(NewLine,s);
+        optionalRequire(NewLine,s);
 
         return new FunctionAssignmentNode(name, new Function(name,parameterArray,functionScript));
     }
@@ -657,9 +661,16 @@ public class Parser {
                 expression = new ValueExpression(new StringValue(nextString));
                 s.useDelimiter(defaultDelimiter);
                 require(DoubleQuotes, s);
-            }
-            return expression;
 
+                //update linesParsed with number of newline characters in the new string
+                for(int i=0;i<nextString.length();i++){
+                    if(nextString.charAt(i)=='\n'){
+                        linesParsed ++;
+                    }
+                }
+            }
+
+            return expression;
         }
 
         for(String variableName : variableNames){
