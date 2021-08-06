@@ -453,11 +453,14 @@ public class Parser {
 
     public IfNode parseIfNode(Scanner s){
         require(If, s);
+
+        //condition
         require(OpenParenthesis, s);
-
         Expression condition = parseExpression(s,null,null);
-
         require(CloseParenthesis, s);
+
+        //open brace
+        optionalRequire(NewLine,s);
         require(OpenBrace, s);
         optionalRequire(NewLine, s);
 
@@ -466,11 +469,18 @@ public class Parser {
         while(!s.hasNext(CloseBrace)){
             ifBlock.addExecutableNode(parseExecutableNode(s));
         }
+
+        //close brace
+        optionalRequire(NewLine,s);
         require(CloseBrace, s);
+        optionalRequire(NewLine,s);
 
         //parse else statement if it exists
         if(s.hasNext(Else)){
             require(Else, s);
+
+            //open brace
+            optionalRequire(NewLine,s);
             require(OpenBrace, s);
             optionalRequire(NewLine,s);
 
@@ -479,22 +489,28 @@ public class Parser {
             while(!s.hasNext(CloseBrace)){
                 elseBlock.addExecutableNode(parseExecutableNode(s));
             }
+
+            //close brace
+            optionalRequire(NewLine, s);
             require(CloseBrace, s);
             optionalRequire(NewLine, s);
+
             return new IfNode(condition, ifBlock, elseBlock);
         }else{
-            optionalRequire(NewLine, s);
             return new IfNode(condition, ifBlock);
         }
     }
 
     public WhileNode parseWhileNode(Scanner s){
         require(While, s);
+
+        //condition
         require(OpenParenthesis, s);
-
         Expression condition = parseExpression(s,null,null);
-
         require(CloseParenthesis, s);
+
+        //open brace
+        optionalRequire(NewLine, s);
         require(OpenBrace, s);
         optionalRequire(NewLine, s);
 
@@ -503,6 +519,9 @@ public class Parser {
         while(!s.hasNext(CloseBrace)){
             whileBlock.addExecutableNode(parseExecutableNode(s));
         }
+
+        //close brace
+        optionalRequire(NewLine, s);
         require(CloseBrace, s);
         optionalRequire(NewLine, s);
 
@@ -558,8 +577,12 @@ public class Parser {
         parameterArray = parameters.toArray(parameterArray);
 
         require(CloseParenthesis,s);
+
+        //open brace
+        optionalRequire(NewLine,s);
         require(OpenBrace,s);
         optionalRequire(NewLine,s);
+
         while(!s.hasNext(CloseBrace)){
             functionScript.addExecutableNode(parseExecutableNode(s));
         }
