@@ -43,12 +43,12 @@ public class Parser {
     static Pattern DoubleQuotes = Pattern.compile("\"");
     static Pattern Not = Pattern.compile("!");
 
-    static Pattern While = Pattern.compile("while");
-    static Pattern If = Pattern.compile("if");
-    static Pattern Else = Pattern.compile("else");
-    static Pattern Function = Pattern.compile("function");
+    static Pattern While = Pattern.compile("while",Pattern.CASE_INSENSITIVE);
+    static Pattern If = Pattern.compile("if",Pattern.CASE_INSENSITIVE);
+    static Pattern Else = Pattern.compile("else",Pattern.CASE_INSENSITIVE);
+    static Pattern Function = Pattern.compile("function",Pattern.CASE_INSENSITIVE);
     static Pattern Comma =  Pattern.compile(",");
-    static Pattern Return =  Pattern.compile("return");
+    static Pattern Return =  Pattern.compile("return",Pattern.CASE_INSENSITIVE);
 
     static Pattern Times = Pattern.compile("\\*");
     static Pattern Divide = Pattern.compile("/");
@@ -376,8 +376,9 @@ public class Parser {
         }else{
             //test whether scanner.next() has a variable name already defined in the script
             for(String str : variableNames){
-                if(s.hasNext(str)){
-                    require(str, s);
+                Pattern strPattern = Pattern.compile(str,Pattern.CASE_INSENSITIVE);
+                if(s.hasNext(strPattern)){
+                    require(strPattern, s);
                     require(Equals, s);
                     VariableAssignmentNode variableAssignmentNode = new VariableAssignmentNode(str,parseExpression(s,null,null));
                     optionalRequire(NewLine, s);
@@ -387,8 +388,9 @@ public class Parser {
 
             //check for function names
             for(String str : functionNames){
-                if(s.hasNext(str)){
-                    require(str, s);
+                Pattern strPattern = Pattern.compile(str,Pattern.CASE_INSENSITIVE);
+                if(s.hasNext(strPattern)){
+                    require(strPattern, s);
                     require(OpenParenthesis,s);
                     ArrayList<Expression> parameters = new ArrayList<>();
                     if(!s.hasNext(CloseParenthesis)){
@@ -701,16 +703,18 @@ public class Parser {
         }
 
         for(String variableName : variableNames){
-            if(s.hasNext(variableName)){
-                String recognisedVariableName = s.next();
-                expression = new ReferenceExpression(recognisedVariableName);
+            Pattern varNamePattern = Pattern.compile(variableName,Pattern.CASE_INSENSITIVE);
+            if(s.hasNext(varNamePattern)){
+                require(varNamePattern,s);
+                expression = new ReferenceExpression(variableName);
                 return expression;
             }
         }
 
         for(String functionName : functionNames) {
-            if (s.hasNext(functionName)) {
-                require(functionName, s);
+            Pattern funcNamePattern = Pattern.compile(functionName,Pattern.CASE_INSENSITIVE);
+            if (s.hasNext(funcNamePattern)) {
+                require(funcNamePattern, s);
                 require(OpenParenthesis, s);
                 ArrayList<Expression> parameters = new ArrayList<>();
                 if (!s.hasNext(CloseParenthesis)) {
