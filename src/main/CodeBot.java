@@ -109,7 +109,7 @@ public class CodeBot {
                     Comment[] replies = c.getComments().getData();
                     for (Comment r : replies) {
                         //If Comment c has been replied to by this bot already, ignore it.
-                        if (r.getFrom().getId().equals(page_ID)) {
+                        if (r.getFrom()!=null && r.getFrom().getId().equals(page_ID)) {
                             replied = true;
                             break;
                         }
@@ -189,6 +189,7 @@ public class CodeBot {
             }catch (InterruptedException e){
                 throw e;
             }catch (Throwable e){
+                e.printStackTrace();
                 log(e,"Unanticipated error type thrown during executeComments");
             }
         }

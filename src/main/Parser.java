@@ -245,6 +245,10 @@ public class Parser {
             //remove all tab characters (\t) from each line.
             s = s.replace("\t","");
 
+            //replace curved quotes with plain quotes
+            s = s.replace('”','"');
+            s = s.replace('“','"');
+
             if( s.length()>0 && ! (s.charAt(0) == '%') ){
                 commentRemovedScript.append(s).append("\n");
             }
