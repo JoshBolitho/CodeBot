@@ -176,7 +176,7 @@ public class InternalFunctionExpression implements Expression{
                 case "type": {
                     assertParameters(1);
                     Value value = getParameter(0, programState, functionVariables);
-                    return new StringValue(value.getType().toString());
+                    return new StringValue(value.getType().toString().toLowerCase());
                 }
                 case "createImage": {
                     assertParameters(2);
