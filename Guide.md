@@ -178,7 +178,7 @@ BotScript has some useful functions which will be handy for your programming.
 
 -  `charAt(str,int)` will return the character found at location `int` of the string `str`. For example, `charAt("Hello world",8)` will return `r`. Keep in mind, computers start counting indexes at 0, not 1.
 
--  `type(x)` will return a string that describes what type of value `x` is. `type("Hello")` will return `"STRING"`, `type(1.0)` returns `"FLOAT"`.
+-  `type(x)` will return a string that describes what type of value `x` is. `type("Hello")` will return `"string"`, `type(1.0)` returns `"float"`.
 
 #### Array Functions
 - `add(arr,x)` adds value `x` to array `arr`
