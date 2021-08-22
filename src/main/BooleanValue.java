@@ -37,7 +37,7 @@ public class BooleanValue implements Value {
     }
 
     @Override
-    public Float castFloat() throws ScriptException{
+    public Double castDouble() throws ScriptException{
         throw new ScriptException(String.format("Failed to cast %s to float",value));
     }
 

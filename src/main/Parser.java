@@ -646,8 +646,8 @@ public class Parser {
 
         if (s.hasNext(FloatPattern)){
             if(s.hasNextFloat()){
-                float next = s.nextFloat();
-                if(Float.isNaN(next) || Float.isInfinite(next)){
+                double next = s.nextDouble();
+                if(Double.isNaN(next) || Double.isInfinite(next)){
                     throw new ScriptException("Failed to parse float: "+ next);
                 }
                 expression = new ValueExpression(new FloatValue(next));

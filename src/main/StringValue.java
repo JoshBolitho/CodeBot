@@ -39,12 +39,12 @@ public class StringValue implements Value {
     }
 
     @Override
-    public Float castFloat() throws ScriptException {
+    public Double castDouble() throws ScriptException {
         //ensure this string can evaluate to a float
         try{Float.parseFloat(value);} catch (NumberFormatException e){
             throw new ScriptException(String.format("Failed to cast %s to float",value));
         }
-        return Float.valueOf(value);
+        return Double.valueOf(value);
     }
 
     @Override

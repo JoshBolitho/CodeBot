@@ -17,7 +17,7 @@ public interface Value {
     //If our StringValue's value is "12", we could call castInteger() and it would succeed.
     String castString() throws ScriptException;
     Integer castInteger() throws ScriptException;
-    Float castFloat() throws ScriptException;
+    Double castDouble() throws ScriptException;
     Boolean castBoolean() throws ScriptException;
     ArrayList<Value> castArray() throws ScriptException;
     BufferedImage castImage() throws ScriptException;

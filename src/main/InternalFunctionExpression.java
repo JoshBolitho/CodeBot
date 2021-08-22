@@ -142,7 +142,7 @@ public class InternalFunctionExpression implements Expression{
                 case "castFloat": {
                     assertParameters(1);
                     Value value = getParameter(0, programState, functionVariables);
-                    return new FloatValue(value.castFloat());
+                    return new FloatValue(value.castDouble());
                 }
                 case "castBoolean": {
                     assertParameters(1);
@@ -290,26 +290,26 @@ public class InternalFunctionExpression implements Expression{
                 case "sin": {
                     assertParameters(1);
 
-                    float x = getParameter(0, programState, functionVariables).castFloat();
-                    return new FloatValue((float) Math.sin(x));
+                    double x = getParameter(0, programState, functionVariables).castDouble();
+                    return new FloatValue(Math.sin(x));
                 }
                 case "cos": {
                     assertParameters(1);
 
-                    float x = getParameter(0, programState, functionVariables).castFloat();
-                    return new FloatValue((float) Math.cos(x));
+                    double x = getParameter(0, programState, functionVariables).castDouble();
+                    return new FloatValue(Math.cos(x));
                 }
                 case "pow": {
                     assertParameters(2);
-                    float base = getParameter(0, programState, functionVariables).castFloat();
-                    float exponent = getParameter(1, programState, functionVariables).castFloat();
+                    double base = getParameter(0, programState, functionVariables).castDouble();
+                    double exponent = getParameter(1, programState, functionVariables).castDouble();
 
-                    float result = (float) Math.pow(base, exponent);
+                    double result = Math.pow(base, exponent);
 
-                    if (Float.isNaN(result)) {
+                    if (Double.isNaN(result)) {
                         genericFail("Result is not a number");
                     }
-                    if (Float.isInfinite(result)) {
+                    if (Double.isInfinite(result)) {
                         genericFail("Result is infinite");
                     }
 

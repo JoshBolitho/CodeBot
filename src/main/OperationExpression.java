@@ -43,7 +43,7 @@ public class OperationExpression implements Expression {
                     boolean result;
                     if (bothValuesAreNumbers(value1, value2)) {
                         if (value1.isType(FLOAT) || value2.isType(FLOAT)) {
-                            result = value1.castFloat() > value2.castFloat();
+                            result = value1.castDouble() > value2.castDouble();
                         } else {
                             result = value1.castInteger() > value2.castInteger();
                         }
@@ -56,7 +56,7 @@ public class OperationExpression implements Expression {
                     boolean result;
                     if (bothValuesAreNumbers(value1, value2)) {
                         if (value1.isType(FLOAT) || value2.isType(FLOAT)) {
-                            result = value1.castFloat() < value2.castFloat();
+                            result = value1.castDouble() < value2.castDouble();
                         }else{
                             result = value1.castInteger() < value2.castInteger();
                         }
@@ -74,8 +74,9 @@ public class OperationExpression implements Expression {
                     if (value1.isType(INTEGER) && value2.isType(INTEGER)) {
                         result = value1.castInteger().equals(value2.castInteger());
                     }
-                    else if (value1.isType(FLOAT) && value2.isType(FLOAT)) {
-                        result = value1.castFloat().equals(value2.castFloat());
+                    else if (bothValuesAreNumbers(value1,value2)
+                            && (value1.isType(FLOAT) || value2.isType(FLOAT)) ) {
+                        result = value1.castDouble().equals(value2.castDouble());
                     }
                     else if (value1.isType(BOOLEAN) && value2.isType(BOOLEAN)) {
                         result = value1.castBoolean() == value2.castBoolean();
@@ -122,8 +123,8 @@ public class OperationExpression implements Expression {
                 case plus -> {
                     if (bothValuesAreNumbers(value1, value2)) {
                         if (value1.isType(FLOAT) || value2.isType(FLOAT)) {
-                            float result = value1.castFloat() + value2.castFloat();
-                            assertValidFloat(result);
+                            double result = value1.castDouble() + value2.castDouble();
+                            assertValidDouble(result);
                             return new FloatValue(result);
                         }
                         Integer result = value1.castInteger() + value2.castInteger();
@@ -144,8 +145,8 @@ public class OperationExpression implements Expression {
                 case minus -> {
                     if (bothValuesAreNumbers(value1, value2)) {
                         if (value1.isType(FLOAT) || value2.isType(FLOAT)) {
-                            float result = value1.castFloat() - value2.castFloat();
-                            assertValidFloat(result);
+                            double result = value1.castDouble() - value2.castDouble();
+                            assertValidDouble(result);
                             return new FloatValue(result);
                         }
                         Integer result = value1.castInteger() - value2.castInteger();
@@ -157,8 +158,8 @@ public class OperationExpression implements Expression {
                 case times -> {
                     if (bothValuesAreNumbers(value1, value2)) {
                         if (value1.isType(FLOAT) || value2.isType(FLOAT)) {
-                            float result = value1.castFloat() * value2.castFloat();
-                            assertValidFloat(result);
+                            double result = value1.castDouble() * value2.castDouble();
+                            assertValidDouble(result);
                             return new FloatValue(result);
                         }
                         //both are ints
@@ -172,9 +173,9 @@ public class OperationExpression implements Expression {
                     if (bothValuesAreNumbers(value1, value2)) {
 
                         if (value1.isType(FLOAT) || value2.isType(FLOAT)) {
-                            if (value2.castFloat() == 0f) { fail(); }
-                            float result = value1.castFloat() / value2.castFloat();
-                            assertValidFloat(result);
+                            if (value2.castDouble() == 0f) { fail(); }
+                            double result = value1.castDouble() / value2.castDouble();
+                            assertValidDouble(result);
                             return new FloatValue(result);
                         } else {
                             if (value2.castInteger() == 0) { fail(); }
@@ -184,8 +185,8 @@ public class OperationExpression implements Expression {
                                 assertNotNull(result);
                                 return new IntegerValue(result);
                             }
-                            float result = value1.castFloat() / value2.castFloat();
-                            assertValidFloat(result);
+                            double result = value1.castDouble() / value2.castDouble();
+                            assertValidDouble(result);
                             return new FloatValue(result);
                         }
                     }
@@ -258,10 +259,10 @@ public class OperationExpression implements Expression {
     private void fail() throws ScriptException {
         throw new ScriptException(String.format("Failed to evaluate %s", this));
     }
-    private void assertValidFloat(Float f) throws ScriptException {
-        if(     f == null || 
-                f.isNaN() || 
-                f.isInfinite()
+    private void assertValidDouble(Double d) throws ScriptException {
+        if(     d == null ||
+                d.isNaN() ||
+                d.isInfinite()
         ){
             fail();
         }

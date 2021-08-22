@@ -37,8 +37,8 @@ public class IntegerValue implements Value {
     }
 
     @Override
-    public Float castFloat() {
-        return value * 1.0f;
+    public Double castDouble() {
+        return (double) value;
     }
 
     @Override

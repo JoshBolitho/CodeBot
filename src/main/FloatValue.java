@@ -5,15 +5,15 @@ import java.util.ArrayList;
 
 public class FloatValue implements Value {
 
-    private float value;
+    private final double value;
 
-    public FloatValue(float value) {
+    public FloatValue(double value) {
         this.value = value;
     }
 
     @Override
     public String toString() {
-        return Float.toString(value);
+        return String.valueOf(value);
     }
 
     @Override
@@ -28,7 +28,7 @@ public class FloatValue implements Value {
 
     @Override
     public String castString() {
-        return Float.toString(value);
+        return String.valueOf(value);
     }
 
     @Override
@@ -37,7 +37,7 @@ public class FloatValue implements Value {
     }
 
     @Override
-    public Float castFloat() {
+    public Double castDouble() {
         return value;
     }
 

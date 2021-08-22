@@ -33,7 +33,7 @@ public class NullValue implements Value {
     }
 
     @Override
-    public Float castFloat() throws ScriptException{
+    public Double castDouble() throws ScriptException{
         throw new ScriptException("Failed to cast null to float");
     }
 
