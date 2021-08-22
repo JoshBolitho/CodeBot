@@ -2,6 +2,8 @@ package main;
 
 import java.util.HashMap;
 
+import static main.ValueType.*;
+
 public class ReferenceExpression implements Expression {
 
     String variableReference;
@@ -29,10 +31,15 @@ public class ReferenceExpression implements Expression {
         }
         //Arrays are parsed as an array of Expressions, which must be
         //evaluated to an array of Variables before they are accessible.
-        if (v.getType() == ValueType.ARRAY) {
+        if (v.isType(ARRAY)) {
             ((ArrayValue) v).evaluateArray(programState, functionVariables);
         }
         return v;
+    }
+
+    @Override
+    public Expression clone() {
+        return new ReferenceExpression(variableReference);
     }
 
     @Override

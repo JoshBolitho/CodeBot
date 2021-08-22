@@ -33,6 +33,15 @@ public class FunctionExpression implements Expression {
     }
 
     @Override
+    public Expression clone() {
+        ArrayList<Expression> newParameters = new ArrayList<>();
+        for(Expression e : parameters){
+            newParameters.add(e.clone());
+        }
+        return new FunctionExpression(functionName,newParameters);
+    }
+
+    @Override
     public String toString() {
         StringBuilder res = new StringBuilder(functionName+"(");
         for(int i = 0; i<parameters.size();i++){

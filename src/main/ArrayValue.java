@@ -117,6 +117,16 @@ public class ArrayValue implements Value {
         throw new ScriptException(String.format("Failed to cast array to image"));
     }
 
+    @Override
+    public Value clone() {
+        ArrayList<Expression> newExpressionArray = new ArrayList<>();
+        //deep clone expression array
+        for(Expression e : expressionArray){
+            newExpressionArray.add(e.clone());
+        }
+        return new ArrayValue(newExpressionArray);
+    }
+
     public ArrayList<Expression> getExpressionArray() {
         return expressionArray;
     }

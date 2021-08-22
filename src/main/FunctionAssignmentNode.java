@@ -29,6 +29,12 @@ public class FunctionAssignmentNode implements ExecutableNode {
     }
 
     @Override
+    public ExecutableNode clone() {
+        //TODO unsure whether Function value should be deep cloned
+        return new FunctionAssignmentNode(name,value);
+    }
+
+    @Override
     public String toString() {
         return value.toString();
     }

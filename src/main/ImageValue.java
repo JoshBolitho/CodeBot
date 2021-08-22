@@ -113,4 +113,10 @@ public class ImageValue implements Value {
     public BufferedImage castImage() throws ScriptException {
         return image;
     }
+
+    @Override
+    public Value clone() {
+        //TODO unsure if this has to be a deep clone
+        return new ImageValue(image);
+    }
 }

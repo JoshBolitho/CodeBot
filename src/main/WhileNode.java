@@ -25,9 +25,11 @@ public class WhileNode implements ExecutableNode{
                     throw new InterruptedException("Thread Interrupted");
             }
 
+
             //execute the while block (if it has any nodes in it)
             if(whileBlock.getExecutableNodes().size()==0){return;}
-            whileBlock.execute(programState, functionVariables);
+            //clone the while block instead of running the original copy.
+            whileBlock.clone().execute(programState, functionVariables);
 
             //test the while condition again
             conditionResult = condition.evaluate(programState, functionVariables);
@@ -56,5 +58,17 @@ public class WhileNode implements ExecutableNode{
         res.append("}\n");
 
         return res.toString();
+    }
+
+    @Override
+    public ExecutableNode clone() {
+        Expression newCondition = condition.clone();
+        ProgramNode newWhileBlock = new ProgramNode();
+
+        for(ExecutableNode e : whileBlock.getExecutableNodes()){
+            newWhileBlock.addExecutableNode(e.clone());
+        }
+
+        return new WhileNode(newCondition,newWhileBlock);
     }
 }

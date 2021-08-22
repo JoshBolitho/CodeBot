@@ -38,7 +38,8 @@ public class Function {
         }
 
         //Now the parameters are ready to use, run the script.
-        functionScript.execute(programState, functionVariables);
+        //clone the script instead of running the original copy.
+        functionScript.clone().execute(programState, functionVariables);
 
         //return the output of execution if it exists.
         if(functionVariables.containsKey("_return")){

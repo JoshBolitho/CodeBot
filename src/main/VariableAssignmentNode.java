@@ -63,4 +63,9 @@ public class VariableAssignmentNode implements ExecutableNode {
 
         return res.toString();
     }
+
+    @Override
+    public ExecutableNode clone() {
+        return new VariableAssignmentNode(name,value.clone());
+    }
 }

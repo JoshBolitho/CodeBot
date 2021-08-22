@@ -51,4 +51,9 @@ public class NullValue implements Value {
     public BufferedImage castImage() throws ScriptException {
         throw new ScriptException("Failed to cast null to image");
     }
+
+    @Override
+    public Value clone() {
+        return new NullValue();
+    }
 }

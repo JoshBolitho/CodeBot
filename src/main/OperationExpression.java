@@ -11,6 +11,7 @@ public class OperationExpression implements Expression {
     Expression expression1;
     Expression expression2;
     Parser.Operation operation;
+
     Map<Parser.Operation, String> operations = Map.ofEntries(
             entry(Parser.Operation.equals, "="),
             entry(Parser.Operation.plus, "+"),
@@ -227,6 +228,18 @@ public class OperationExpression implements Expression {
 
         fail();
         return new NullValue();
+    }
+
+    @Override
+    public Expression clone() {
+
+        Expression newExpression1 = expression1.clone();
+        if(expression2==null){
+            return new OperationExpression(newExpression1,null,operation);
+        }else{
+            Expression newExpression2 = expression2.clone();
+            return new OperationExpression(newExpression1,newExpression2,operation);
+        }
     }
 
     //Operation helper methods

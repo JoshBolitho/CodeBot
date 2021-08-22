@@ -22,4 +22,6 @@ public interface Value {
     ArrayList<Value> castArray() throws ScriptException;
     BufferedImage castImage() throws ScriptException;
 
+    Value clone();
+
 }

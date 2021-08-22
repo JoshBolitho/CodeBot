@@ -49,10 +49,10 @@ public class StringValue implements Value {
 
     @Override
     public Boolean castBoolean() throws ScriptException {
-        if(value.equals("true")){
+        if(value.toLowerCase().equals("true")){
             return true;
         }
-        if(value.equals("false")){
+        if(value.toLowerCase().equals("false")){
             return false;
         }
         throw new ScriptException(String.format("Failed to cast %s to boolean",value));
@@ -66,5 +66,10 @@ public class StringValue implements Value {
     @Override
     public BufferedImage castImage() throws ScriptException {
         throw new ScriptException(String.format("Failed to cast %s to image",value));
+    }
+
+    @Override
+    public Value clone() {
+        return new StringValue(value);
     }
 }

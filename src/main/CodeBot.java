@@ -909,7 +909,7 @@ public class CodeBot {
         }
 
         //ensure everything has been initialised etc and there is a comment which received the most reactions.
-        if(mostReacted!=null){
+        if(mostReacted!=null && mostReacted.getFrom()!=null){
             Summary summary = mostReacted.getReactions().getSummary();
             Integer total_count = summary.getTotal_count();
             return String.format("Congratulations to %s for having the top comment in the last post! (%s reaction%s)\n\n",mostReacted.getFrom().getName(),total_count,total_count==1?"":"s");

@@ -90,4 +90,13 @@ public class ProgramNode implements ExecutableNode{
         }
         return res.toString();
     }
+
+    @Override
+    public ExecutableNode clone() {
+        ProgramNode newProgramNode = new ProgramNode();
+        for (ExecutableNode e : executableNodes){
+            newProgramNode.addExecutableNode(e.clone());
+        }
+        return newProgramNode;
+    }
 }

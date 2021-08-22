@@ -27,6 +27,11 @@ public class ValueExpression implements Expression{
     }
 
     @Override
+    public Expression clone() {
+        return new ValueExpression(value.clone());
+    }
+
+    @Override
     public String toString() {
         return value.toString();
     }

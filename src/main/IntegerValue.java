@@ -55,4 +55,9 @@ public class IntegerValue implements Value {
     public BufferedImage castImage() throws ScriptException {
         throw new ScriptException(String.format("Failed to cast %s to image",value));
     }
+
+    @Override
+    public Value clone() {
+        return new IntegerValue(value);
+    }
 }

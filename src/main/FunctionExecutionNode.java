@@ -55,4 +55,15 @@ public class FunctionExecutionNode implements ExecutableNode{
         res.append(")\n");
         return res.toString();
     }
+
+    @Override
+    public ExecutableNode clone() {
+
+        ArrayList<Expression> newParameters = new ArrayList<>();
+        for(Expression e : parameters){
+            newParameters.add(e.clone());
+        }
+
+        return new FunctionExecutionNode(name,newParameters);
+    }
 }

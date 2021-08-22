@@ -79,6 +79,26 @@ public class IfNode implements ExecutableNode{
         return res.toString();
     }
 
+    @Override
+    public ExecutableNode clone() {
+        Expression newCondition = condition.clone();
+
+        ProgramNode newIfBlock = new ProgramNode();
+        for(ExecutableNode e : ifBlock.getExecutableNodes()){
+            newIfBlock.addExecutableNode(e.clone());
+        }
+
+        if(elseBlock!=null) {
+            ProgramNode newElseBlock = new ProgramNode();
+            for (ExecutableNode e : elseBlock.getExecutableNodes()) {
+                newElseBlock.addExecutableNode(e.clone());
+            }
+            return new IfNode(newCondition,newIfBlock,newElseBlock);
+        }else{
+            return new IfNode(newCondition,newIfBlock);
+        }
+    }
+
     private boolean hasElseBlock(){
         return elseBlock != null;
     }

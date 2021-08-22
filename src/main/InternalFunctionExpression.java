@@ -61,7 +61,12 @@ public class InternalFunctionExpression implements Expression{
                         array.evaluateArray(programState, functionVariables);
                     }
 
-                    assertRange(index, 0, array.castArray().size(),"int");
+                    //assert array isn't empty
+                    if(array.castArray().size()==0){
+                        genericFail("Unable to remove element from empty array");
+                    }
+                    //assert int is within range
+                    assertRange(index, 0, array.castArray().size()-1,"int");
 
                     array.removeElement(index);
 
@@ -86,7 +91,12 @@ public class InternalFunctionExpression implements Expression{
                         array.evaluateArray(programState, functionVariables);
                     }
 
-                    assertRange(index, 0, array.castArray().size(),"int");
+                    //assert array isn't empty
+                    if(array.castArray().size()==0){
+                        genericFail("Unable to set element in empty array");
+                    }
+                    //assert int is within range
+                    assertRange(index, 0, array.castArray().size()-1,"int");
 
                     array.setElement(index, element);
 
@@ -110,7 +120,12 @@ public class InternalFunctionExpression implements Expression{
                         array.evaluateArray(programState, functionVariables);
                     }
 
-                    assertRange(index, 0, array.castArray().size(),"int");
+                    //assert array isn't empty
+                    if(array.castArray().size()==0){
+                        genericFail("Unable to get element from empty array");
+                    }
+                    //assert int is within range
+                    assertRange(index, 0, array.castArray().size()-1,"int");
 
                     return array.castArray().get(index);
                 }
@@ -155,7 +170,7 @@ public class InternalFunctionExpression implements Expression{
 
                         return new IntegerValue(value.castArray().size());
                     }
-                    genericFail("Parameter \"value\" is the wrong type - Expected String or Array, received "+value.getType().name());
+                    genericFail("Parameter \"value\" is the wrong type - Expected string or array, received "+value.getType().name().toLowerCase());
                 }
                 case "charAt": {
                     assertParameters(2);
@@ -308,6 +323,15 @@ public class InternalFunctionExpression implements Expression{
         return new NullValue();
     }
 
+    @Override
+    public Expression clone() {
+        ArrayList<Expression> newParameters = new ArrayList<>();
+        for(Expression e : parameters){
+            newParameters.add(e.clone());
+        }
+        return new InternalFunctionExpression(functionName,newParameters);
+    }
+
     //Internal Function helper methods
     private Value getParameter(int i, ProgramState programState, HashMap<String, Value> functionVariables ){
         return parameters.get(i).evaluate(programState, functionVariables);
@@ -326,7 +350,7 @@ public class InternalFunctionExpression implements Expression{
     private void assertType(Value value, ValueType valueType, String name){
         if( value.getType() != valueType){
             genericFail(String.format(
-                    "Parameter \"%s\" is the wrong type - expected %s, received %s",name, valueType, value.getType()
+                    "Parameter \"%s\" is the wrong type - expected %s, received %s",name, valueType.name().toLowerCase(), value.getType().name().toLowerCase()
             ));
         }
     }
