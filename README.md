@@ -167,7 +167,8 @@ This project is designed to run on my computer, and control the [CodeBot Faceboo
 ```
 git clone https://github.com/JoshBolitho/CodeBot.git
 ```
-Open in your IDE of choice and make sure to add JUnit5.4 to your Project
+This project uses `Java 16`. Open in your IDE of choice and make sure to add JUnit5.4 to your Project.
+
 
 ### Acquire API keys
 This project requires a set of access tokens from multiple services. 
