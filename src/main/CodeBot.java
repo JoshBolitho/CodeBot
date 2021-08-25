@@ -853,7 +853,7 @@ public class CodeBot {
                 String[] extra = new String[]{
                         "You must use recursion",
                         "You can only use the print() function once",
-                        "Using the + symbol is not allowed",
+                        "Using the \\+ symbol is not allowed",
                         "No casting functions are allowed",
                         "No array variables are allowed",
                         "Incorporate the concept of \""+randomString(words)+"\"",
